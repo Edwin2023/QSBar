@@ -1,0 +1,27 @@
+# Visual Studio
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+packages/
+*.nupkg
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Old project folders
+BMToolkits/
+0原版QSaddin/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
