@@ -83,6 +83,8 @@
     <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <RegisterForComInterop>false</RegisterForComInterop>
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE</StartProgram>
   </PropertyGroup>
   <!--
     This section defines properties that are set when the "Release" configuration is selected.
@@ -243,4 +245,9 @@
   </ItemGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- 在项目文件的末尾，</Project> 标签之前加入以下内容 -->
+  <Target Name="AfterBuild">
+    <Message Text="正在运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SolutionDir)scripts\dev_register.ps1&quot; -dllPath &quot;$(TargetPath)&quot;" />
+  </Target>
 </Project>

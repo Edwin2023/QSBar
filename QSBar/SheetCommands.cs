@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -29,9 +30,12 @@ namespace QSBar
                 headerRange.Font.Bold = true;
                 headerRange.Font.Name = "微软雅黑";
                 headerRange.Font.Size = 11;
-                // xlThemeColorAccent1 = 5
-                headerRange.Interior.ThemeColor = Excel.XlThemeColor.xlThemeColorAccent1;
-                headerRange.Interior.TintAndShade = 0.599993896298105;
+                // 截图配色：深蓝灰色 (#333F4F)
+                headerRange.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                headerRange.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79));
+                headerRange.Interior.TintAndShade = 0;
+                headerRange.Font.Color = ColorTranslator.ToOle(Color.White);
+                headerRange.Font.TintAndShade = 0;
 
                 int rowNum = 2;
                 foreach (Excel.Worksheet sheet in workbook.Worksheets)

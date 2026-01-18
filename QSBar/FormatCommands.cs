@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -141,24 +142,33 @@ namespace QSBar
 
                         if (level == 1)
                         {
+                            // 截图配色：深蓝灰色 (#333F4F) - 顶层大纲
                             row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.ThemeColor = Excel.XlThemeColor.xlThemeColorAccent1;
-                            row.Interior.TintAndShade = -0.249977111117893;
-                            row.Font.ThemeColor = Excel.XlThemeColor.xlThemeColorDark1;
+                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
+                            row.Interior.TintAndShade = 0;
+                            row.Font.Color = ColorTranslator.ToOle(Color.White);
+                            row.Font.TintAndShade = 0;
                             row.Font.Bold = true;
                         }
                         else if (level == 2)
                         {
+                            // 截图配色：淡蓝色 (Excel 风格) - 二级分类
                             row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.ThemeColor = Excel.XlThemeColor.xlThemeColorAccent1;
-                            row.Interior.TintAndShade = 0.799981688894314;
+                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
+                            row.Interior.TintAndShade = 0;
+                            row.Font.Color = Color.Black.ToArgb(); // 黑色文字
+                            row.Font.TintAndShade = 0;
                             row.Font.Bold = true;
                         }
                         else if (level == 3)
                         {
+                            // 截图配色：淡橙色 (截图底部效果) - 三级明细
                             row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.ThemeColor = Excel.XlThemeColor.xlThemeColorAccent3;
-                            row.Interior.TintAndShade = 0.799981688894314;
+                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
+                            row.Interior.TintAndShade = 0;
+                            row.Font.Color = Color.Black.ToArgb();
+                            row.Font.TintAndShade = 0;
+                            row.Font.Bold = false;
                         }
                     }
                 }
@@ -189,6 +199,8 @@ namespace QSBar
             try
             {
                 rng.Interior.Pattern = Excel.XlPattern.xlPatternNone;
+                rng.Font.ColorIndex = Excel.XlColorIndex.xlColorIndexAutomatic;
+                rng.Font.Bold = false;
             }
             catch { }
         }
@@ -232,9 +244,9 @@ namespace QSBar
                     string v = Convert.ToString(((Excel.Range)row.Cells[1, col]).Value2);
                     
                     int level;
-                    if (Like(v, "*合计*")) level = 1;
-                    else if (Like(v, "*小计*")) level = 2;
-                    else if (Like(v, "*{*") || Like(v, "*[*")) level = 3;
+                    if ( Like(v, "*【*") ) level = 1;
+                    else if ( Like(v, "*《*") || Like(v, "*<*")) level = 2;
+                    else if (Like(v, "*{*") || Like(v, "*｛*") ) level = 3;
                     else level = 4;
                     
                     row.OutlineLevel = level;
