@@ -21,6 +21,11 @@ namespace QSBar
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
 
+        public static void RefreshRibbon()
+        {
+            _ribbon?.Invalidate();
+        }
+
         public void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
         {
             try
@@ -81,9 +86,8 @@ namespace QSBar
         public void OnLoad(Office.IRibbonUI ribbon)
         {
             _ribbon = ribbon;
-            // 检查是否有更新后的日志需要显示
-            UpdateManager.CheckForUpdateResult();
-            // 启动时静默检查更新
+            
+            // 启动时静默检查更新（不打扰用户）
             Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
         }
 
@@ -105,6 +109,7 @@ namespace QSBar
             </menu>
           </splitButton>
           <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large' screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
+          <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible' onAction='OnRestartUpdate' imageMso='TrustCenter' size='large' screentip='重启更新' supertip='检测到新版本，请点击并确认重启以完成更新' />
         </group>
 
         <group id='groupFormat' label='格式/排版'>
@@ -171,13 +176,22 @@ namespace QSBar
 
         #region Ribbon Callbacks
 
+        public bool GetHelpUpdateVisible(Office.IRibbonControl control)
+        {
+            return UpdateManager.HasNewVersion;
+        }
+
+        public void OnRestartUpdate(Office.IRibbonControl control)
+        {
+            UpdateManager.StartUpdateFlow();
+        }
+
         public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
         public void OnExportCurrentSheet(Office.IRibbonControl control) { ExportCommands.ExportCurrentSheet(); }
         public void OnExportStandardReport(Office.IRibbonControl control) { ExportCommands.ExportStandardReport(); }
         public void OnExportInternalReport(Office.IRibbonControl control) { ExportCommands.ExportInternalReport(); }
         public void OnConvertAllToValues(Office.IRibbonControl control) { ExportCommands.ConvertAllToValues(); }
         public void OnShowHelp(Office.IRibbonControl control) { LegacyAppCommands.ShowHelp(); }
-        public void OnCheckUpdate(Office.IRibbonControl control) { UpdateManager.CheckForUpdateAsync(false).ConfigureAwait(false); }
         public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
         public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
         public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }

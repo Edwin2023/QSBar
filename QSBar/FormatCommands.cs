@@ -173,7 +173,7 @@ namespace QSBar
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Optionally log error
             }

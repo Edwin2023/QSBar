@@ -1,5 +1,5 @@
-﻿{
-    "version":  "1.0.0.1",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Redesigned Help UI and fixed update detection error"
+﻿﻿{
+    "version": "1.0.0.1",
+    "downloadUrl": "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
+    "changeLog": "1. 优化更新流程，解决下载卡死问题；\n2. 修复 Excel 启动进入安全模式的问题；\n3. 帮助窗体改版，支持动态显示更新状态。"
 }

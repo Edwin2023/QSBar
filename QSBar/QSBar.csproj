@@ -247,5 +247,9 @@
   <Target Name="AfterBuild">
     <Message Text="正在运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
     <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(SolutionDir)scripts\dev_register.ps1&quot; -dllPath &quot;$(TargetPath)&quot;" />
+    <Message Text="正在同步 DLL 到安装目录 (%LOCALAPPDATA%\QSBar)..." Importance="high" />
+    <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetFileName)&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
   </Target>
 </Project>
