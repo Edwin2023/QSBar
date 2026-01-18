@@ -24,7 +24,6 @@ Name: "chinesesimplified"; MessagesFile: "compiler:Default.isl"
 
 [Files]
 Source: "{#SourcePath}\QSBar.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.System.Drawing.dll"; DestDir: "{app}"; Flags: ignoreversion
