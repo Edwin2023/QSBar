@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32421.90
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSBar", "QSBar\QSBar.csproj", "{DEECF883-67A3-49F5-BF5B-8B13DFEB01AC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSBar.Setup", "QSBar.Setup\QSBar.Setup.csproj", "{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F4G5H6I}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QSBar.Setup", "QSBar.Setup\QSBar.Setup.csproj", "{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F000000}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{DEECF883-67A3-49F5-BF5B-8B13DFEB01AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEECF883-67A3-49F5-BF5B-8B13DFEB01AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DEECF883-67A3-49F5-BF5B-8B13DFEB01AC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F4G5H6I}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F4G5H6I}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F4G5H6I}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F4G5H6I}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F000000}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F000000}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F000000}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8B2C3D4-E5F6-47A8-9B0C-1D2E3F000000}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
