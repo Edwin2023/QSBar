@@ -78,11 +78,18 @@ namespace QSBar
                     // Gitee 必须设置 User-Agent，否则可能会被拦截
                     client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
                     
-                    string json = await client.DownloadStringTaskAsync(VERSION_URL);
+                    // 强制禁用缓存，确保获取的是最新 JSON
+                    client.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
+                    
+                    string json = await client.DownloadStringTaskAsync(VERSION_URL + "?t=" + DateTime.Now.Ticks);
                     return ParseUpdateInfo(json);
                 }
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                // 可以考虑在这里记录日志或抛出更详细的异常
+                throw new Exception($"Download version.json failed: {ex.Message}");
+            }
         }
 
         private static UpdateInfo ParseUpdateInfo(string json)

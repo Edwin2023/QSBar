@@ -1,5 +1,5 @@
 ﻿{
     "version":  "1.0.0.1",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fixed JSON parsing and updated UI messages"
+    "changeLog":  "Redesigned Help UI and fixed update detection error"
 }

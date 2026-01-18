@@ -197,6 +197,9 @@
     <Compile Include="DataCommands.cs" />
     <Compile Include="ExportCommands.cs" />
     <Compile Include="FormatCommands.cs" />
+    <Compile Include="HelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LegacyAppCommands.cs" />
     <Compile Include="PhotoCommands.cs" />
     <Compile Include="SheetCommands.cs" />

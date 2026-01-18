@@ -104,13 +104,7 @@ namespace QSBar
               <button id='btnValOnly' label='全表粘死' onAction='OnConvertAllToValues' imageMso='PasteValues' />
             </menu>
           </splitButton>
-          <splitButton id='spHelp' size='large'>
-            <button id='btnUsageHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' screentip='使用帮助' supertip='查看 QS 工具箱的使用说明文档' />
-            <menu id='menuHelp' itemSize='large'>
-              <button id='btnHelpDoc' label='查看说明' onAction='OnShowHelp' imageMso='Help' />
-              <button id='btnUpdate' label='检查更新' onAction='OnCheckUpdate' imageMso='Refresh' />
-            </menu>
-          </splitButton>
+          <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large' screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
         </group>
 
         <group id='groupFormat' label='格式/排版'>

@@ -78,7 +78,10 @@ namespace QSBar
 
         public static void ShowHelp()
         {
-            MessageBox.Show("QS工具箱帮助信息:\n\n1. 快捷键:\n   Ctrl+5: 选择可见/全选\n   Ctrl+6: 亿元/万元格式\n   Ctrl+7: 文本换行\n   Ctrl+8: 会计格式0位\n   Ctrl+9: 会计格式2位\n   Ctrl+0: 会计格式3位\n\n更多功能请查看Ribbon工具栏。", "帮助");
+            using (var form = new HelpForm())
+            {
+                form.ShowDialog();
+            }
         }
 
         public static void ToggleCalculation()
