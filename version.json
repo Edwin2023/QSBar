@@ -1,0 +1,5 @@
+{
+  "version": "1.0.0.0",
+  "downloadUrl": "https://gitee.com/kevin137/qsbar/raw/master/QSBar.exe",
+  "changeLog": "1. 初始版本发布\n2. 增加自动更新功能支持\n3. 修复帮助菜单图标显示问题"
+}

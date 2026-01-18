@@ -115,12 +115,6 @@
     This section specifies references for the project.
   -->
   <ItemGroup>
-    <ProjectReference Include="..\QSBar.Core\QSBar.Core.csproj">
-      <Project>{F1E2D3C4-B5A6-4798-8C9D-0E1F2A3B4C5D}</Project>
-      <Name>QSBar.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Accessibility" />
     <Reference Include="EPPlus, Version=7.0.5.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
       <HintPath>..\packages\EPPlus.7.0.5\lib\net462\EPPlus.dll</HintPath>
@@ -208,6 +202,7 @@
     <Compile Include="SheetCommands.cs" />
     <Compile Include="BatchProcessForm.cs" />
     <Compile Include="WpsExcelAddIn.cs" />
+    <Compile Include="UpdateManager.cs" />
     <Compile Include="util.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

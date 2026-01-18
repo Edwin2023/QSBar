@@ -168,10 +168,7 @@ namespace QSBar
         }
 
         #endregion
-
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.ComboBox comboBox1;
-        private System.Windows.Forms.TextBox textBox1;
+        
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox copySheetName;
         private System.Windows.Forms.Label label3;

@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 using AddInDesignerObjects;
@@ -80,6 +81,10 @@ namespace QSBar
         public void OnLoad(Office.IRibbonUI ribbon)
         {
             _ribbon = ribbon;
+            // 检查是否有更新后的日志需要显示
+            UpdateManager.CheckForUpdateResult();
+            // 启动时静默检查更新
+            Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
         }
 
         public string GetCustomUI(string RibbonID)
@@ -99,7 +104,13 @@ namespace QSBar
               <button id='btnValOnly' label='全表粘死' onAction='OnConvertAllToValues' imageMso='PasteValues' />
             </menu>
           </splitButton>
-          <button id='btnUsageHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large' screentip='使用帮助' supertip='查看 QS 工具箱的使用说明文档' />
+          <splitButton id='spHelp' size='large'>
+            <button id='btnUsageHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' screentip='使用帮助' supertip='查看 QS 工具箱的使用说明文档' />
+            <menu id='menuHelp' itemSize='large'>
+              <button id='btnHelpDoc' label='查看说明' onAction='OnShowHelp' imageMso='Help' />
+              <button id='btnUpdate' label='检查更新' onAction='OnCheckUpdate' imageMso='Refresh' />
+            </menu>
+          </splitButton>
         </group>
 
         <group id='groupFormat' label='格式/排版'>
@@ -172,6 +183,7 @@ namespace QSBar
         public void OnExportInternalReport(Office.IRibbonControl control) { ExportCommands.ExportInternalReport(); }
         public void OnConvertAllToValues(Office.IRibbonControl control) { ExportCommands.ConvertAllToValues(); }
         public void OnShowHelp(Office.IRibbonControl control) { LegacyAppCommands.ShowHelp(); }
+        public void OnCheckUpdate(Office.IRibbonControl control) { UpdateManager.CheckForUpdateAsync(false).ConfigureAwait(false); }
         public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
         public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
         public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }
