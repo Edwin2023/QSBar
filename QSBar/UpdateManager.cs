@@ -34,12 +34,7 @@ namespace QSBar
                 try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
 
                 UpdateInfo info = await GetLatestVersionInfo();
-                if (info == null)
-                {
-                    if (!silent) MessageBox.Show("无法连接到更新服务器，请检查网络连接或 Gitee 地址是否正确。", "更新检测");
-                    return;
-                }
-
+                
                 LatestUpdateInfo = info;
                 Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
                 
@@ -72,24 +67,35 @@ namespace QSBar
 
         private static async Task<UpdateInfo> GetLatestVersionInfo()
         {
+            string json = "";
             try
             {
                 using (WebClient client = new WebClient())
                 {
+                    // 禁用代理，防止本地代理软件（如 Clash）未开启导致的连接失败
+                    client.Proxy = null;
                     client.Encoding = System.Text.Encoding.UTF8;
-                    // Gitee 必须设置 User-Agent，否则可能会被拦截
                     client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                    
-                    // 强制禁用缓存，确保获取的是最新 JSON
                     client.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
                     
-                    string json = await client.DownloadStringTaskAsync(VERSION_URL + "?t=" + DateTime.Now.Ticks);
+                    json = await client.DownloadStringTaskAsync(VERSION_URL + "?t=" + DateTime.Now.Ticks);
+                    
+                    // 强力清洗：去除 BOM 字符和前后空白
+                    if (!string.IsNullOrEmpty(json))
+                    {
+                        json = json.Trim().Trim('\uFEFF', '\u200B');
+                    }
+
+                    if (string.IsNullOrWhiteSpace(json))
+                    {
+                        throw new Exception("服务器返回了空内容。");
+                    }
                     return ParseUpdateInfo(json);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Download version.json failed: {ex.Message}");
+                throw new Exception($"获取版本信息失败: {ex.Message}\n\n服务器响应内容: {(json.Length > 100 ? json.Substring(0, 100) : json)}");
             }
         }
 
@@ -97,9 +103,14 @@ namespace QSBar
         {
             try
             {
-                return Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
+                var info = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
+                if (info == null) throw new Exception("JSON 反序列化结果为空。");
+                return info;
             }
-            catch { return null; }
+            catch (Exception ex)
+            {
+                throw new Exception($"解析 JSON 失败: {ex.Message}\n\n原始 JSON: {json}");
+            }
         }
 
         public static async Task StartUpdateFlow()

@@ -97,21 +97,6 @@ namespace QSBar
   <ribbon>
     <tabs>
       <tab id='tabQSBar' label='QS工具箱'>
-        <group id='groupBQ' label='批量处理'>
-          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
-          <splitButton id='spExport' size='large'>
-            <button id='btnExportDefault' label='导出报表' onAction='OnExportCurrentSheet' imageMso='WindowNew' screentip='导出报表' supertip='以数值形式导出报表数据' />
-            <menu id='menuExport' itemSize='large'>
-              <button id='btnOutSheet' label='导出当前表' onAction='OnExportCurrentSheet' imageMso='WindowNew' />
-              <button id='btnOutStd' label='导出标准报表' onAction='OnExportStandardReport' imageMso='FileSaveAs' />
-              <button id='btnOutInt' label='导出内部报表' onAction='OnExportInternalReport' imageMso='FileSaveAs' />
-              <button id='btnValOnly' label='全表粘死' onAction='OnConvertAllToValues' imageMso='PasteValues' />
-            </menu>
-          </splitButton>
-          <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large' screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
-          <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible' onAction='OnRestartUpdate' imageMso='TrustCenter' size='large' screentip='重启更新' supertip='检测到新版本，请点击并确认重启以完成更新' />
-        </group>
-
         <group id='groupFormat' label='格式/排版'>
           <button id='btnNormalize' label='数值化' onAction='OnNormalizeNumbers' imageMso='NumberFormat' size='large' screentip='数据规范化' supertip='对选中区域的数据进行规范化处理' />
           <button id='btnLock' label='锁定公式' onAction='OnLockFormula' imageMso='Lock' size='large' screentip='锁定/解锁公式' supertip='锁定或解锁选中区域的单元格公式' />
@@ -123,6 +108,18 @@ namespace QSBar
               <button id='btnAcct2' label='会计格式2位 (Ctrl+9)' onAction='OnAccounting2' imageMso='CommaStyle' />
               <button id='btnAcct3' label='会计格式3位 (Ctrl+0)' onAction='OnAccounting3' imageMso='CommaStyle' />
               <button id='btnYiWan' label='亿/万位格式 (Ctrl+6)' onAction='OnYiWanFormat' imageMso='CommaStyle' />
+            </menu>
+          </splitButton>
+        </group>
+
+        <group id='groupBQ' label='批量处理'>
+          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
+          <splitButton id='spExport' size='large'>
+            <button id='btnExportDefault' label='导出报表' onAction='OnExportCurrentSheet' imageMso='WindowNew' screentip='导出报表' supertip='以数值形式导出报表数据' />
+            <menu id='menuExport' itemSize='large'>
+              <button id='btnOutSheet' label='导出当前表' onAction='OnExportCurrentSheet' imageMso='WindowNew' />
+              <button id='btnOutStd' label='导出标准报表' onAction='OnExportStandardReport' imageMso='FileSaveAs' />
+              <button id='btnOutInt' label='导出内部报表' onAction='OnExportInternalReport' imageMso='FileSaveAs' />
             </menu>
           </splitButton>
         </group>
@@ -158,15 +155,21 @@ namespace QSBar
           <button id='btnMergeSheets' label='合并工作表' onAction='OnMergeSheets' imageMso='Consolidate' size='large' screentip='合并工作表' supertip='将多个工作表合并为一个工作表' />
           <button id='btnSheetIndex' label='生成表目录' onAction='OnCreateSheetIndex' imageMso='Numbering' size='large' screentip='生成表目录' supertip='在当前工作簿中生成所有工作表的目录' />
           <button id='btnForceRefresh' label='强制刷新' onAction='OnForceRefresh' imageMso='Refresh' size='normal' screentip='强制刷新' supertip='强制刷新选中区域的所有公式' />
+          <button id='btnValOnly' label='全表粘死' onAction='OnConvertAllToValues' imageMso='PasteValues' size='normal' screentip='全表粘死' supertip='将当前工作表的所有公式转换为数值' />
           <button id='btnDeleteLinks' label='删除超链接' onAction='OnDeleteHyperlinks' imageMso='Delete' size='normal' screentip='删除超链接' supertip='删除选中区域的所有超链接' />
           <button id='btnDeleteEmptyRows' label='删除空行' onAction='OnDeleteEmptyRows' imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
           <button id='btnUnhideSheets' label='取消隐藏所有表' onAction='OnUnhideAllSheets' imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
           <button id='btnFileDir' label='文件目录' onAction='OnFileDirectory' imageMso='FileOpen' size='normal' screentip='文件目录' supertip='查看或管理当前文件所在的目录' />
         </group>
 
-        <group id='groupHelp' label='计算/辅助'>
+        <group id='groupCalc' label='计算模式'>
           <button id='btnCalcAuto' label='切换自动计算' getVisible='GetCalcAutoVisible' onAction='OnToggleCalculation' imageMso='CalculateNow' size='large' screentip='状态: 自动' supertip='将 Excel 计算模式切换为自动' />
           <button id='btnCalcManual' label='切换手动计算' getVisible='GetCalcManualVisible' onAction='OnToggleCalculation' imageMso='CalculateFull' size='large' screentip='状态: 手动' supertip='将 Excel 计算模式切换为手动' />
+        </group>
+
+        <group id='groupHelpUpdate' label='帮助更新'>
+          <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large' screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
+          <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible' onAction='OnRestartUpdate' imageMso='Refresh' size='large' screentip='重启更新' supertip='检测到新版本，请点击并确认重启以完成更新' />
         </group>
       </tab>
     </tabs>
@@ -175,6 +178,11 @@ namespace QSBar
         }
 
         #region Ribbon Callbacks
+
+        public bool GetHelpNormalVisible(Office.IRibbonControl control)
+        {
+            return !UpdateManager.HasNewVersion;
+        }
 
         public bool GetHelpUpdateVisible(Office.IRibbonControl control)
         {
@@ -191,7 +199,10 @@ namespace QSBar
         public void OnExportStandardReport(Office.IRibbonControl control) { ExportCommands.ExportStandardReport(); }
         public void OnExportInternalReport(Office.IRibbonControl control) { ExportCommands.ExportInternalReport(); }
         public void OnConvertAllToValues(Office.IRibbonControl control) { ExportCommands.ConvertAllToValues(); }
-        public void OnShowHelp(Office.IRibbonControl control) { LegacyAppCommands.ShowHelp(); }
+        public void OnShowHelp(Office.IRibbonControl control) 
+        { 
+            LegacyAppCommands.ShowHelp(); 
+        }
         public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
         public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
         public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }
