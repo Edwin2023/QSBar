@@ -27,21 +27,29 @@ namespace QSBar
             try
             {
                 // 确保使用 TLS 1.2
-                ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; // Tls12
+                try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
 
                 UpdateInfo info = await GetLatestVersionInfo();
                 if (info == null)
                 {
-                    if (!silent) MessageBox.Show("无法连接到更新服务器，请检查网络连接。", "更新检测");
+                    if (!silent) MessageBox.Show("无法连接到更新服务器，请检查网络连接或 Gitee 地址是否正确。", "更新检测");
                     return;
                 }
 
-                Version currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+                // 使用更可靠的方式获取当前 DLL 的版本
+                Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
+                
+                if (string.IsNullOrEmpty(info.Version))
+                {
+                    if (!silent) MessageBox.Show("服务器返回的版本信息格式不正确。", "更新错误");
+                    return;
+                }
+
                 Version latestVersion = new Version(info.Version);
 
                 if (latestVersion > currentVersion)
                 {
-                    var result = MessageBox.Show($"检测到新版本: {info.Version}\n\n更新内容:\n{info.ChangeLog}\n\n是否立即自动更新？", 
+                    var result = MessageBox.Show($"检测到新版本: {info.Version}\n\n当前版本: {currentVersion}\n\n更新内容:\n{info.ChangeLog}\n\n是否立即自动更新？", 
                         "发现新版本", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
                     if (result == DialogResult.Yes)
@@ -54,9 +62,9 @@ namespace QSBar
                     if (!silent) MessageBox.Show($"当前已是最新版本 (v{currentVersion})。", "更新检测");
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                if (!silent) MessageBox.Show("检查更新时出错", "更新错误");
+                if (!silent) MessageBox.Show($"检查更新时出错: {ex.Message}", "更新错误");
             }
         }
 
@@ -81,24 +89,9 @@ namespace QSBar
         {
             try
             {
-                UpdateInfo info = new UpdateInfo();
-                info.Version = ExtractValue(json, "version");
-                info.DownloadUrl = ExtractValue(json, "downloadUrl");
-                info.ChangeLog = ExtractValue(json, "changeLog");
-                return info;
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
             }
             catch { return null; }
-        }
-
-        private static string ExtractValue(string json, string key)
-        {
-            string pattern = $"\"{key}\"\\s*:\\s*\"";
-            int start = json.IndexOf(pattern);
-            if (start == -1) return "";
-            start += pattern.Length;
-            int end = json.IndexOf("\"", start);
-            if (end == -1) return "";
-            return json.Substring(start, end - start).Replace("\\n", "\n");
         }
 
         private static async Task PerformUpdate(UpdateInfo info)
