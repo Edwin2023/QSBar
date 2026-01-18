@@ -1,0 +1,62 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace QSBar.Core.Formatting;
+
+public static class RowStyleProfiles
+{
+    private static readonly object Sync = new();
+    private static readonly Dictionary<int, RowStyle> Overrides = new();
+
+    public static RowStyle Get(int level)
+    {
+        lock (Sync)
+        {
+            if (Overrides.TryGetValue(level, out var ov)) return ov;
+            if (level <= 0) return new RowStyle { ColorIndex = null, Bold = false, BorderLeft = false };
+            if (level == 1) return new RowStyle { ColorIndex = 15, Bold = true, BorderLeft = false };
+            if (level == 2) return new RowStyle { ColorIndex = 14, Bold = true, BorderLeft = false };
+            return new RowStyle { ColorIndex = 13, Bold = true, BorderLeft = true };
+        }
+    }
+
+    public static void SetOverride(int level, RowStyle style)
+    {
+        lock (Sync)
+        {
+            Overrides[level] = style;
+        }
+    }
+
+    public static void ClearOverride(int level)
+    {
+        lock (Sync)
+        {
+            if (Overrides.ContainsKey(level)) Overrides.Remove(level);
+        }
+    }
+
+    public static void ClearAllOverrides()
+    {
+        lock (Sync)
+        {
+            Overrides.Clear();
+        }
+    }
+
+    public static Dictionary<int, RowStyle> GetAllOverrides()
+    {
+        lock (Sync)
+        {
+            return new Dictionary<int, RowStyle>(Overrides);
+        }
+    }
+
+    public static void WithWriteLock(Action action)
+    {
+        lock (Sync)
+        {
+            action();
+        }
+    }
+}
