@@ -178,6 +178,7 @@ namespace QSBar
 
                 string currentPath = Assembly.GetExecutingAssembly().Location;
                 string currentDir = Path.GetDirectoryName(currentPath);
+                string dllName = Path.GetFileName(currentPath); // 动态获取 DLL 文件名
                 string batchFile = Path.Combine(Path.GetTempPath(), "qs_update.bat");
 
                 string logPath = Path.Combine(currentDir, UPDATE_LOG_FILE);
@@ -198,25 +199,22 @@ tasklist | findstr /i ""excel.exe wps.exe"" > nul
 if %errorlevel% equ 0 (
     set /a count+=1
     if !count! gtr 3 (
-        echo Forcing close...
-        taskkill /f /im excel.exe /im wps.exe > nul 2>&1
+        echo Force killing Excel/WPS...
+        taskkill /f /im excel.exe /f /im wps.exe > nul 2>&1
     )
-    if !count! lss 10 goto WAIT_LOOP
+    goto WAIT_LOOP
 )
 
-echo Replacing DLL...
+echo Updating files...
 copy /y ""{tempFile}"" ""{currentPath}""
-if %errorlevel% neq 0 (
-    echo Error: Failed to replace DLL.
-    pause
-    exit
-)
 
-if exist ""{tempFile}"" del ""{tempFile}""
+echo Cleanup...
+del ""{tempFile}""
 
-echo Restarting Excel...
-timeout /t 1 /nobreak > nul
+echo Starting Excel...
 start """" ""{excelExe}""
+
+echo Done!
 del ""%~f0""
 ";
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);

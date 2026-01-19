@@ -6,7 +6,38 @@ $baseDir = $PSScriptRoot
 $projectPath = Join-Path $baseDir "QSBar\QSBar.csproj"
 $slnPath = Join-Path $baseDir "QSBar.sln"
 $nugetExe = Join-Path $baseDir "nuget.exe"
-$msbuildPath = "D:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe"
+
+# 动态查找 MSBuild 路径
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$msbuildPath = ""
+if (Test-Path $vswhere) {
+    $vsPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+    if ($vsPath) {
+        $msbuildPath = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
+        if (-not (Test-Path $msbuildPath)) {
+            $msbuildPath = Join-Path $vsPath "MSBuild\15.0\Bin\MSBuild.exe"
+        }
+    }
+}
+
+# 如果 vswhere 没找到，尝试默认路径
+if (-not (Test-Path $msbuildPath)) {
+    $commonPaths = @(
+        "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "D:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+    )
+    foreach ($p in $commonPaths) {
+        if (Test-Path $p) { $msbuildPath = $p; break }
+    }
+}
+
+if (-not (Test-Path $msbuildPath)) {
+    Write-Error "无法自动找到 MSBuild.exe，请手动在脚本中指定路径。"
+    exit
+}
+
+Write-Host "Using MSBuild: $msbuildPath" -ForegroundColor Gray
 
 Write-Host "--- 1. Cleaning Old Registrations & Resiliency ---" -ForegroundColor Cyan
 
