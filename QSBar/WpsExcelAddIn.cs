@@ -88,7 +88,7 @@ namespace QSBar
             _ribbon = ribbon;
             
             // 启动时静默检查更新（不打扰用户）
-            Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
+            _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
         }
 
         public string GetCustomUI(string RibbonID)
