@@ -25,6 +25,8 @@ SolidCompression=yes
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64
 WizardStyle=modern
+; 检测 Excel 和 WPS 是否正在运行，防止文件占用
+AppMutex=Excel,wps.exe,et.exe,wpp.exe
 ; 展示个性化说明
 InfoBeforeFile=InstallInfo.rtf
 ; 简化安装过程
@@ -46,6 +48,11 @@ english.InfoBeforeLabel=Important Information
 english.InfoBeforeClickLabel=Please read the following information about QSBar before continuing.
 english.ClickNext=When you are ready to continue with Setup, click Next.
 
+[InstallDelete]
+Type: files; Name: "{app}\QSBar.dll"
+Type: files; Name: "{app}\QSBar.tlb"
+Type: files; Name: "{app}\QSBar.dll.config"
+
 [Files]
 Source: "{#SourcePath}\QSBar.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -63,11 +70,17 @@ Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; Val
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
-; Register for WPS
+; Register for WPS (Standard Path)
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName} (WPS)"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
+
+; Register for WPS (Excel Compatible Path)
+Root: HKCU; Subkey: "Software\Kingsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName} (WPS)"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
 ; WPS Whitelist
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
@@ -75,6 +88,10 @@ Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; 
 Root: HKCU; Subkey: "Software\Kingsoft\Office\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
 
 [Run]
+; 安装前清理：尝试注销旧组件（即使文件不存在也会静默执行）
+Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 32-bit registration..."; BeforeInstall: TaskKillOffice
+Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: Is64BitInstallMode
+
 ; Register COM using RegAsm
 Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb"; StatusMsg: "Registering components..."; Flags: runhidden
 Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb"; StatusMsg: "Registering 64-bit components..."; Flags: runhidden; Check: Is64BitInstallMode
@@ -83,4 +100,16 @@ Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" 
 ; Unregister COM
 Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; StatusMsg: "正在注销组件..."; Flags: runhidden
 Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; StatusMsg: "正在注销 64 位组件..."; Flags: runhidden; Check: Is64BitInstallMode
+
+[Code]
+procedure TaskKillOffice();
+var
+  ResultCode: Integer;
+begin
+  // 使用 taskkill 强制关闭可能占用的进程，确保文件不被锁定
+  Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im wpp.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
 
