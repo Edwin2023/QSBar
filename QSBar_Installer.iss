@@ -72,8 +72,8 @@ Source: "{#SourcePath}\Microsoft.IO.RecyclableMemoryStream.dll"; DestDir: "{app}
 Source: "{#SourcePath}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SHOW1_EXCEL BAR.png"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SHOW2_WPS_BAR.png"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SHOW1_EXCEL_BAR.bmp"; Flags: dontcopy
+Source: "SHOW2_WPS_BAR.bmp"; Flags: dontcopy
 
 [Registry]
 ; --- 32-bit COM Registration (For 32-bit Office/WPS) ---
@@ -168,6 +168,61 @@ Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags
 Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering components..."; Flags: runhidden
 
 [Code]
+var
+  ExcelImage, WpsImage: TBitmapImage;
+
+procedure InitializeWizard;
+var
+  ExcelLabel, WpsLabel: TLabel;
+begin
+  // 提取临时图片文件
+  ExtractTemporaryFile('SHOW1_EXCEL_BAR.bmp');
+  ExtractTemporaryFile('SHOW2_WPS_BAR.bmp');
+
+  // 调整 ReadyMemo（准备安装界面的文本框）的位置和高度，为图片腾出空间
+  // ReadyPage 是安装前的最后一个确认页面
+  WizardForm.ReadyMemo.Top := WizardForm.ReadyMemo.Top + ScaleY(140);
+  WizardForm.ReadyMemo.Height := WizardForm.ReadyMemo.Height - ScaleY(140);
+
+  // Excel 展示图
+  ExcelImage := TBitmapImage.Create(WizardForm);
+  ExcelImage.Parent := WizardForm.ReadyPage;
+  ExcelImage.Left := WizardForm.ReadyLabel.Left;
+  ExcelImage.Top := WizardForm.ReadyLabel.Top + WizardForm.ReadyLabel.Height + ScaleY(30);
+  ExcelImage.Width := ScaleX(400);
+  ExcelImage.Height := ScaleY(50);
+  ExcelImage.Stretch := True;
+  ExcelImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\SHOW1_EXCEL_BAR.bmp'));
+  ExcelImage.BringToFront;
+
+  ExcelLabel := TLabel.Create(WizardForm);
+  ExcelLabel.Parent := WizardForm.ReadyPage;
+  ExcelLabel.Caption := 'Excel Interface Preview:';
+  ExcelLabel.Left := ExcelImage.Left;
+  ExcelLabel.Top := ExcelImage.Top - ScaleY(18);
+  ExcelLabel.Font.Style := [fsBold];
+  ExcelLabel.BringToFront;
+
+  // WPS 展示图
+  WpsImage := TBitmapImage.Create(WizardForm);
+  WpsImage.Parent := WizardForm.ReadyPage;
+  WpsImage.Left := ExcelImage.Left;
+  WpsImage.Top := ExcelImage.Top + ExcelImage.Height + ScaleY(30);
+  WpsImage.Width := ScaleX(400);
+  WpsImage.Height := ScaleY(50);
+  WpsImage.Stretch := True;
+  WpsImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\SHOW2_WPS_BAR.bmp'));
+  WpsImage.BringToFront;
+
+  WpsLabel := TLabel.Create(WizardForm);
+  WpsLabel.Parent := WizardForm.ReadyPage;
+  WpsLabel.Caption := 'WPS Interface Preview:';
+  WpsLabel.Left := WpsImage.Left;
+  WpsLabel.Top := WpsImage.Top - ScaleY(18);
+  WpsLabel.Font.Style := [fsBold];
+  WpsLabel.BringToFront;
+end;
+
 procedure TaskKillOffice();
 var
   ResultCode: Integer;
