@@ -72,6 +72,8 @@ Source: "{#SourcePath}\Microsoft.IO.RecyclableMemoryStream.dll"; DestDir: "{app}
 Source: "{#SourcePath}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SHOW1_EXCEL BAR.png"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SHOW2_WPS_BAR.png"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 ; --- 32-bit COM Registration (For 32-bit Office/WPS) ---
