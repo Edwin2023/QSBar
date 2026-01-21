@@ -38,7 +38,7 @@ $inproc = New-Item -Path "$clsidRoot\InprocServer32" -Force
 Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "C:\Windows\System32\mscoree.dll"
 Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
 Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
-Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
 Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
 Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($dllPath.Replace('\', '/'))"
 

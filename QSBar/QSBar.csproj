@@ -202,7 +202,10 @@
     <Compile Include="LegacyAppCommands.cs" />
     <Compile Include="PhotoCommands.cs" />
     <Compile Include="SheetCommands.cs" />
-    <Compile Include="BatchProcessForm.cs" />
+    <Compile Include="BatchProcessForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="KeyboardHook.cs" />
     <Compile Include="WpsExcelAddIn.cs" />
     <Compile Include="UpdateManager.cs" />
     <Compile Include="util.cs" />
@@ -238,19 +241,24 @@
     <Compile Include="sameFileForm.Designer.cs">
       <DependentUpon>sameFileForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmSelectSheets.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSelectSheets.Designer.cs">
+      <DependentUpon>frmSelectSheets.cs</DependentUpon>
+    </Compile>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <!-- Include the build rules for a C# project. -->
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- 在项目文件的末尾，</Project> 标签之前加入以下内容 -->
   <Target Name="AfterBuild">
-    <!-- 仅在 Debug 模式下尝试自动注册，或者在失败时继续编译，避免阻塞 Release 打包 -->
-    <Message Text="正在尝试运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\scripts\dev_register.ps1&quot; -dllPath &quot;$(TargetPath)&quot;" ContinueOnError="true" />
-    
     <Message Text="正在同步 DLL 及依赖到安装目录 (%LOCALAPPDATA%\QSBar)..." Importance="high" />
     <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" ContinueOnError="true" />
     <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" ContinueOnError="true" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" ContinueOnError="true" />
+    <!-- 仅在 Debug 模式下尝试自动注册，或者在失败时继续编译，避免阻塞 Release 打包 -->
+    <Message Text="正在尝试运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\scripts\dev_register.ps1&quot; -dllPath &quot;%LOCALAPPDATA%\QSBar\$(TargetFileName)&quot;" ContinueOnError="true" />
   </Target>
 </Project>

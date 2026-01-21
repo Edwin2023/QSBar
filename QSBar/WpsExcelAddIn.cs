@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading.Tasks;
@@ -20,6 +21,8 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
+        private static KeyboardHook _keyboardHook;
+        private static uint _currentProcessId;
 
         public static void RefreshRibbon()
         {
@@ -32,15 +35,59 @@ namespace QSBar
             {
                 _application = (Excel.Application)Application;
                 App = _application;
+                _currentProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
                 
                 // EPPlus License
                 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
                 StartCalcTimer();
+                RegisterShortcuts();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error during QSBar connection: " + ex.Message);
+            }
+        }
+
+        private void RegisterShortcuts()
+        {
+            if (_keyboardHook != null) return;
+            try
+            {
+                _keyboardHook = new KeyboardHook();
+                
+                // 辅助方法：同时注册主键盘和数字键盘按键
+                void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
+                {
+                    _keyboardHook.AddShortcut(ctrl, alt, mainKey, action);
+                    if (numKey != Keys.None) _keyboardHook.AddShortcut(ctrl, alt, numKey, action);
+                }
+
+                // Ctrl + Key
+                AddShortcuts(true, false, Keys.D7, Keys.NumPad7, () => FormatCommands.WrapText());
+                AddShortcuts(true, false, Keys.D8, Keys.NumPad8, () => FormatCommands.Accounting0());
+                AddShortcuts(true, false, Keys.D9, Keys.NumPad9, () => FormatCommands.Accounting2());
+                AddShortcuts(true, false, Keys.D0, Keys.NumPad0, () => FormatCommands.Accounting3());
+                AddShortcuts(true, false, Keys.D6, Keys.NumPad6, () => FormatCommands.YiWanFormat());
+                AddShortcuts(true, false, Keys.D1, Keys.NumPad1, () => ExportCommands.ShowLevel1());
+                AddShortcuts(true, false, Keys.D2, Keys.NumPad2, () => ExportCommands.ShowLevel2());
+                AddShortcuts(true, false, Keys.D3, Keys.NumPad3, () => ExportCommands.ShowLevel3());
+                AddShortcuts(true, false, Keys.D4, Keys.NumPad4, () => ExportCommands.ShowLevel4());
+                AddShortcuts(true, false, Keys.D5, Keys.NumPad5, () => FormatCommands.SelectVisibleCells());
+
+                // Ctrl + Alt + Key
+                AddShortcuts(true, true, Keys.D1, Keys.NumPad1, () => DataCommands.ExpandPivotTable());
+                AddShortcuts(true, true, Keys.D2, Keys.NumPad2, () => DataCommands.CollapsePivotTable());
+            }
+            catch { }
+        }
+
+        private void UnregisterShortcuts()
+        {
+            if (_keyboardHook != null)
+            {
+                _keyboardHook.Dispose();
+                _keyboardHook = null;
             }
         }
 
@@ -71,10 +118,20 @@ namespace QSBar
             catch { }
         }
 
+        private void StopCalcTimer()
+        {
+            if (_calcTimer != null)
+            {
+                _calcTimer.Stop();
+                _calcTimer.Dispose();
+                _calcTimer = null;
+            }
+        }
+
         public void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            _calcTimer?.Stop();
-            _calcTimer = null;
+            UnregisterShortcuts();
+            StopCalcTimer();
             _application = null;
             App = null;
         }
@@ -86,6 +143,7 @@ namespace QSBar
         public void OnLoad(Office.IRibbonUI ribbon)
         {
             _ribbon = ribbon;
+            RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
             
             // 启动时静默检查更新（不打扰用户）
             _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
@@ -128,6 +186,7 @@ namespace QSBar
           <button id='btnSetGrading' label='设置分级' onAction='OnSetGrading' imageMso='ObjectsGroup' size='large' screentip='设置分级显示' supertip='根据内容自动设置工作表的分级显示' />
           <button id='btnSetGradingStyle' label='分级样式' onAction='OnSetGradingStyle' imageMso='FormatPainter' size='large' screentip='设置分级样式' supertip='为分级显示设置不同的单元格样式' />
           <button id='btnClearStyle' label='清除样式' onAction='OnClearStyle' imageMso='Clear' size='large' screentip='清除样式' supertip='清除选中区域的所有单元格样式' />
+          <button id='btnBreakLinks' label='删除外部链接' onAction='OnBreakLinks' imageMso='EditLinks' size='large' screentip='删除外部链接' supertip='断开所有外部工作簿引用并清理异常名称' />
           <splitButton id='spMultiSelect' size='large'>
             <button id='btnMultiSelectDefault' label='多区域处理' onAction='OnMultiAreaGroup' imageMso='SelectAll' screentip='多区域处理' supertip='对多个不连续的选中区域进行批量处理' />
             <menu id='menuMultiSelect' itemSize='large'>
@@ -159,7 +218,7 @@ namespace QSBar
           <button id='btnDeleteLinks' label='删除超链接' onAction='OnDeleteHyperlinks' imageMso='Delete' size='normal' screentip='删除超链接' supertip='删除选中区域的所有超链接' />
           <button id='btnDeleteEmptyRows' label='删除空行' onAction='OnDeleteEmptyRows' imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
           <button id='btnUnhideSheets' label='取消隐藏所有表' onAction='OnUnhideAllSheets' imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
-          <button id='btnFileDir' label='文件目录' onAction='OnFileDirectory' imageMso='FileOpen' size='normal' screentip='文件目录' supertip='查看或管理当前文件所在的目录' />
+          <button id='btnFileDir' label='生成文件目录' onAction='OnCreateFileIndex' imageMso='FileOpen' size='normal' screentip='生成文件目录' supertip='选择文件并在当前工作簿中生成这些文件的目录' />
         </group>
 
         <group id='groupCalc' label='计算模式'>
@@ -191,7 +250,7 @@ namespace QSBar
 
         public void OnRestartUpdate(Office.IRibbonControl control)
         {
-            UpdateManager.StartUpdateFlow();
+            _ = UpdateManager.StartUpdateFlow();
         }
 
         public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
@@ -213,6 +272,7 @@ namespace QSBar
         public void OnSetGrading(Office.IRibbonControl control) { FormatCommands.SetGrading(); }
         public void OnSetGradingStyle(Office.IRibbonControl control) { FormatCommands.SetGradingStyle(); }
         public void OnClearStyle(Office.IRibbonControl control) { FormatCommands.ClearStyle(); }
+        public void OnBreakLinks(Office.IRibbonControl control) { FormatCommands.BreakExternalLinks(); }
         public void OnMultiAreaGroup(Office.IRibbonControl control) { FormatCommands.MultiAreaGroup(); }
         public void OnMultiAreaUngroup(Office.IRibbonControl control) { FormatCommands.MultiAreaUngroup(); }
         public void OnSelectVisibleCells(Office.IRibbonControl control) { FormatCommands.SelectVisibleCells(); }
@@ -224,6 +284,7 @@ namespace QSBar
         }
         public void OnSelectAllPictures(Office.IRibbonControl control) { PhotoCommands.SelectAllPictures(); }
         public void OnCreateSheetIndex(Office.IRibbonControl control) { SheetCommands.CreateSheetIndex(); }
+        public void OnCreateFileIndex(Office.IRibbonControl control) { SheetCommands.CreateFileIndex(); }
         public void OnMergeSheets(Office.IRibbonControl control) { SheetCommands.MergeSheets(); }
         public void OnDeleteHyperlinks(Office.IRibbonControl control) { SheetCommands.DeleteHyperlinks(); }
         public void OnForceRefresh(Office.IRibbonControl control) { DataCommands.ForceRefresh(); }

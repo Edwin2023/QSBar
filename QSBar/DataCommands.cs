@@ -1,4 +1,4 @@
-﻿﻿﻿using System;
+﻿﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -174,6 +174,50 @@ namespace QSBar
                 foreach (Excel.Range area in formulas.Areas)
                 {
                     area.Formula = area.Formula;
+                }
+            }
+            catch { }
+        }
+
+        public static void ExpandPivotTable()
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            Excel.Range activeCell = app.ActiveCell;
+            if (activeCell == null) return;
+
+            try
+            {
+                Excel.PivotTable pt = activeCell.PivotTable;
+                if (pt != null)
+                {
+                    Excel.PivotField pf = activeCell.PivotField;
+                    if (pf != null)
+                    {
+                        pf.ShowDetail = true;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public static void CollapsePivotTable()
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            Excel.Range activeCell = app.ActiveCell;
+            if (activeCell == null) return;
+
+            try
+            {
+                Excel.PivotTable pt = activeCell.PivotTable;
+                if (pt != null)
+                {
+                    Excel.PivotField pf = activeCell.PivotField;
+                    if (pf != null)
+                    {
+                        pf.ShowDetail = false;
+                    }
                 }
             }
             catch { }
