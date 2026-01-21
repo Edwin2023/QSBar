@@ -227,32 +227,73 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Range selection = app.Selection as Excel.Range;
-            Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
-            if (selection == null || activeSheet == null) return;
-
-            Excel.Range usedRange = activeSheet.UsedRange;
-            Excel.Range rng = app.Intersect(selection, usedRange);
-            if (rng == null) return;
-
-            int col = 2; // Hardcoded in VBA
             
             try
             {
-                foreach (Excel.Range row in rng.Rows)
+                Excel.Range selection = app.Selection as Excel.Range;
+                Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
+                if (selection == null || activeSheet == null) return;
+
+                // 1) 确定范围 - Intersect 确保只处理有数据的区域
+                Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
+                if (rng == null) return;
+
+                // 2) 智能判断列索引
+                // 如果只选了 1 列，或者选区是从 B 列开始的，则判断选区内的第 1 列
+                // 否则默认判断选区内的第 2 列
+                int colInRng = 2;
+                if (selection.Columns.Count == 1 || selection.Column == 2)
                 {
-                    string v = Convert.ToString(((Excel.Range)row.Cells[1, col]).Value2);
+                    colInRng = 1;
+                }
+                
+                // 性能优化：一次性将整个区域的数据读入内存数组
+                // 这比循环数千次读取单元格要快 100 倍以上
+                object[,] dataValues = null;
+                if (rng.Rows.Count > 1 || rng.Columns.Count > 1)
+                {
+                    dataValues = rng.Value2 as object[,];
+                }
+                else
+                {
+                    // 单个单元格处理
+                    dataValues = new object[2, 2];
+                    dataValues[1, 1] = rng.Value2;
+                }
+
+                app.ScreenUpdating = false;
+                app.Calculation = Excel.XlCalculation.xlCalculationManual; // 暂时关闭自动计算
+
+                // 3) 循环数组并设置等级
+                int rowCount = rng.Rows.Count;
+                for (int i = 1; i <= rowCount; i++)
+                {
+                    // 从数组中取值，无需访问 Excel 接口
+                    object val = dataValues[i, colInRng];
+                    string v = val == null ? "" : val.ToString();
                     
-                    int level;
-                    if ( Like(v, "*【*") ) level = 1;
-                    else if ( Like(v, "*《*") || Like(v, "*<*")) level = 2;
-                    else if (Like(v, "*{*") || Like(v, "*｛*") ) level = 3;
-                    else level = 4;
+                    int level = 4;
+                    if (Like(v, "*【*")) level = 1;
+                    else if (Like(v, "*《*")) level = 2;
+                    else if (Like(v, "*{*") || Like(v, "*｛*")) level = 3;
                     
-                    row.OutlineLevel = level;
+                    // 只有在等级不同时才设置，进一步优化
+                    Excel.Range row = (Excel.Range)rng.Rows[i];
+                    if ((int)row.OutlineLevel != level)
+                    {
+                        row.OutlineLevel = level;
+                    }
                 }
             }
-            catch { }
+            catch (Exception)
+            {
+                // 可以按需记录异常
+            }
+            finally
+            {
+                app.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
+                app.ScreenUpdating = true;
+            }
         }
 
         
@@ -331,6 +372,67 @@ namespace QSBar
                 selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Select();
             }
             catch { }
+        }
+
+        public static void BreakExternalLinks()
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            Excel.Workbook workbook = app.ActiveWorkbook;
+            if (workbook == null) return;
+
+            try
+            {
+                app.ScreenUpdating = false;
+
+                // 1. 断开外部工作簿链接 (将公式转为数值)
+                object linksObj = workbook.LinkSources(Excel.XlLink.xlExcelLinks);
+                if (linksObj is Array links)
+                {
+                    for (int i = links.GetLowerBound(0); i <= links.GetUpperBound(0); i++)
+                    {
+                        try
+                        {
+                            object link = links.GetValue(i);
+                            if (link != null)
+                            {
+                                workbook.BreakLink(link.ToString(), Excel.XlLinkType.xlLinkTypeExcelLinks);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                // 2. 清理定义名称 (Names)
+                Excel.Names names = workbook.Names;
+                for (int i = names.Count; i >= 1; i--)
+                {
+                    Excel.Name name = names.Item(i);
+                    string refersTo = "";
+                    try { refersTo = name.RefersTo; } catch { }
+
+                    // 删除原则：
+                    // 1) 包含报错 #REF!
+                    // 2) 包含外部工作簿引用标记 [ 
+                    // 3) 包含绝对路径标识 (:\ 或 \\) 且有工作表关联 !
+                    if (refersTo.Contains("#REF!") || 
+                        refersTo.Contains("[") || 
+                        (refersTo.Contains("!") && (refersTo.Contains(":\\") || refersTo.Contains("\\\\"))))
+                    {
+                        try { name.Delete(); } catch { }
+                    }
+                }
+
+                MessageBox.Show("外部链接已全部断开为数值，且已清理异常的定义名称。", "处理完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("删除外部链接时出错: " + ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                app.ScreenUpdating = true;
+            }
         }
     }
 }

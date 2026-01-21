@@ -63,7 +63,8 @@ namespace QSBar.Setup
             string dllSource = Path.Combine(sourceDir, "QSBar.dll");
             if (!File.Exists(dllSource))
             {
-                dllSource = Path.Combine(sourceDir, "..", "QSBar", "bin", "Debug", "QSBar.dll");
+                // 尝试从项目源码结构中寻找 (适配 VS 调试环境)
+                dllSource = Path.Combine(sourceDir, "..", "..", "..", "QSBar", "bin", "Debug", "QSBar.dll");
                 if (!File.Exists(dllSource))
                 {
                     dllSource = Path.Combine(sourceDir, "payload", "QSBar.dll");

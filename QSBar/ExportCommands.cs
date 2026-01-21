@@ -9,6 +9,20 @@ namespace QSBar
     public static class ExportCommands
     {
         
+        public static void ShowLevel1() { SetRowLevel(1); }
+        public static void ShowLevel2() { SetRowLevel(2); }
+        public static void ShowLevel3() { SetRowLevel(3); }
+        public static void ShowLevel4() { SetRowLevel(4); }
+
+        private static void SetRowLevel(int level)
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            Excel.Worksheet ws = app.ActiveSheet as Excel.Worksheet;
+            if (ws == null) return;
+            try { ws.Outline.ShowLevels(RowLevels: level); } catch { }
+        }
+
         public static void ExportCurrentSheet()
         {
             Excel.Application app = WpsExcelAddIn.App;
@@ -72,6 +86,9 @@ namespace QSBar
             }
             finally
             {
+                try { app.CutCopyMode = (Excel.XlCutCopyMode)0; } catch { }
+                try { Clipboard.Clear(); } catch { }
+
                 app.ScreenUpdating = originalUpdating;
                 app.Calculation = originalCalc;
                 app.EnableEvents = originalEvents;
@@ -94,7 +111,6 @@ namespace QSBar
                 app.ScreenUpdating = false;
                 foreach (Excel.Worksheet ws in wb.Worksheets)
                 {
-                    app.CutCopyMode = (Excel.XlCutCopyMode)0;
                     Excel.Range usedRange = ws.UsedRange;
                     if (usedRange != null)
                     {
@@ -113,6 +129,8 @@ namespace QSBar
             }
             finally
             {
+                try { app.CutCopyMode = (Excel.XlCutCopyMode)0; } catch { }
+                try { Clipboard.Clear(); } catch { }
                 app.ScreenUpdating = originalUpdating;
             }
         }
@@ -272,17 +290,14 @@ namespace QSBar
             }
 
             finally
-
             {
+                try { app.CutCopyMode = false; } catch { }
+                try { Clipboard.Clear(); } catch { }
 
                 app.ScreenUpdating = originalUpdating;
-
                 app.Calculation = originalCalc;
-
                 app.EnableEvents = originalEvents;
-
                 app.DisplayAlerts = originalAlerts;
-
             }
 
         }
