@@ -16,7 +16,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL=https://gitee.com/kevin137/qsbar
 AppSupportURL=https://gitee.com/kevin137/qsbar
 AppUpdatesURL=https://gitee.com/kevin137/qsbar
-DefaultDirName={localappdata}\{#MyAppName}
+DefaultDirName=D:\Program Files\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=Installer
 OutputBaseFilename=QSBar_Setup_v{#MyAppVersion}
@@ -72,6 +72,10 @@ Source: "{#SourcePath}\Microsoft.IO.RecyclableMemoryStream.dll"; DestDir: "{app}
 Source: "{#SourcePath}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "scripts\Register_QSBar.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "UpdateNotes.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SHOW1_EXCEL_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
+Source: "SHOW2_WPS_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW1_EXCEL_BAR.bmp"; Flags: dontcopy
 Source: "SHOW2_WPS_BAR.bmp"; Flags: dontcopy
 
@@ -84,11 +88,35 @@ Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; Val
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
+; --- 强制 COM 注册 (解决 64位 Excel 加载失败的兜底方案) ---
+; 即使 RegAsm 失败，这里的注册表项也能确保 Excel 找到组件
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version={#MyAppVersion}, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/{#MyAppExeName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\QSBar.WpsAddIn"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\QSBar.WpsAddIn\CLSID"; ValueType: string; ValueName: ""; ValueData: "{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; Flags: uninsdeletekey
+
 ; WPS 表格 (ET)
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
+
+; WPS 表格 (ET) - AddinsData (关键：防止重启后需要重新勾选)
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
+
+; WPS 通用 - AddinsData (多处备份，确保自动加载)
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsData\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsData\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
 ; WPS 通用
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
@@ -104,19 +132,75 @@ Root: HKCU; Subkey: "Software\Kingsoft\Office\6.0\AddinsWL"; ValueType: string; 
 
 [Run]
 ; 安装前清理旧的注册信息
-Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 32-bit registration..."; BeforeInstall: TaskKillOffice
-Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: IsWin64
+Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Cleaning up old 32-bit registration..."; BeforeInstall: TaskKillOffice
+Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: IsWin64
 
-; 核心注册逻辑：分别针对 32 位和 64 位环境进行注册
-; 32-bit RegAsm (用于支持 32 位 Office/WPS)
-Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering for 32-bit Office..."; Flags: runhidden
+; 核心注册逻辑：调用 bat 脚本进行注册，确保环境与手动执行一致
+Filename: "{app}\Register_QSBar.bat"; Parameters: ""; WorkingDir: "{app}"; StatusMsg: "Registering QSBar (Finalizing)..."
 
-; 64-bit RegAsm (用于支持 64 位 Office/WPS，仅在 64 位系统上运行)
-Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering for 64-bit Office..."; Flags: runhidden; Check: IsWin64
+Filename: "{app}\UpdateNotes.html"; Description: "View update instructions (查看更新说明)"; Flags: postinstall shellexec skipifsilent
+
+[UninstallRun]
+; 卸载时彻底反注册 COM 组件
+Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Unregistering 32-bit COM..."
+Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Unregistering 64-bit COM..."; Check: IsWin64
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{app}"
+
 
 [Code]
 var
   ExcelImage, WpsImage: TBitmapImage;
+
+// 获取已安装版本的卸载字符串
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+// 检查是否已安装
+function IsInstalled(): Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+// 安装程序初始化时执行
+function InitializeSetup(): Boolean;
+var
+  V: Integer;
+  iResultCode: Integer;
+  sUnInstallString: String;
+begin
+  Result := True;
+  if IsInstalled() then
+  begin
+    V := MsgBox('A version of QSBar is already installed. Do you want to uninstall it before continuing?' + #13#10 +
+                '检测到已安装旧版本，是否在继续安装前先卸载？', mbConfirmation, MB_YESNO);
+    if V = IDYES then
+    begin
+      sUnInstallString := RemoveQuotes(GetUninstallString());
+      if Exec(sUnInstallString, '/SILENT /VERYSILENT /SUPPRESSMSGBOXES', '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      begin
+        // 卸载成功后继续
+        Result := True;
+      end
+      else
+      begin
+        MsgBox('Uninstallation failed. Please uninstall manually and try again.' + #13#10 +
+               '自动卸载失败，请手动卸载后再试。', mbError, MB_OK);
+        Result := False;
+      end;
+    end;
+  end;
+end;
 
 function IsDotNet40Installed: Boolean;
 begin
@@ -131,6 +215,32 @@ begin
   Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+// 获取符合 URL 格式的 CodeBase 路径
+function GetCodeBase(Param: String): String;
+var
+  AppPath: String;
+begin
+  AppPath := ExpandConstant('{app}');
+  // 将反斜杠替换为正斜杠，以符合 file:/// 协议
+  StringChangeEx(AppPath, '\', '/', True);
+  Result := 'file:///' + AppPath + '/QSBar.dll';
+end;
+
+// 卸载时的额外清理
+procedure CurUninstallStepChanged(UninstallStep: TUninstallStep);
+begin
+  if UninstallStep = usPostUninstall then
+  begin
+    // 强制清理可能残留的注册表项
+    RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+    RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\QSBar.WpsAddIn');
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\ET\AddinsWL', 'QSBar.WpsAddIn');
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\WPS\AddinsWL', 'QSBar.WpsAddIn');
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\Common\AddinsWL', 'QSBar.WpsAddIn');
+    RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\6.0\AddinsWL', 'QSBar.WpsAddIn');
+  end;
 end;
 
 procedure InitializeWizard;
