@@ -76,110 +76,81 @@ Source: "SHOW1_EXCEL_BAR.bmp"; Flags: dontcopy
 Source: "SHOW2_WPS_BAR.bmp"; Flags: dontcopy
 
 [Registry]
-; --- 32-bit COM Registration (For 32-bit Office/WPS) ---
-; Register CLSID in 32-bit view
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/QSBar.dll"; Flags: uninsdeletekey
+; --- Office/WPS 加载项注册 (告诉 Office 去哪里找这个 COM 组件) ---
 
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey
-Root: HKLM32; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/QSBar.dll"; Flags: uninsdeletekey
+; Excel (32-bit & 64-bit)
+Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar Excel Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
-; Register ProgID (32-bit)
-Root: HKCU32; Subkey: "Software\Classes\QSBar.WpsAddIn"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Classes\QSBar.WpsAddIn\CLSID"; ValueType: string; ValueName: ""; ValueData: "{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; Flags: uninsdeletekey
+; WPS 表格 (ET)
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
-; Register Add-in for Excel & WPS (32-bit)
-Root: HKCU32; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar Excel Productivity Add-in"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
+; WPS 通用
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
 
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
-
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey
-
-; --- 64-bit COM Registration (For 64-bit Office/WPS) ---
-; Register CLSID in 64-bit view
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/QSBar.dll"; Flags: uninsdeletekey; Check: IsWin64
-
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: ""; ValueData: "mscoree.dll"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "ThreadingModel"; ValueData: "Both"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKLM64; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/QSBar.dll"; Flags: uninsdeletekey; Check: IsWin64
-
-; Register Add-in for Excel & WPS (64-bit)
-Root: HKCU64; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar Excel Productivity Add-in"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey; Check: IsWin64
-
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey; Check: IsWin64
-
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar WPS Productivity Add-in"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "{#MyAppName}"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletekey; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletekey; Check: IsWin64
-
-; --- WPS Whitelist (Both views) ---
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKCU32; Subkey: "Software\Kingsoft\Office\6.0\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
-
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue; Check: IsWin64
-Root: HKCU64; Subkey: "Software\Kingsoft\Office\6.0\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue; Check: IsWin64
+; --- WPS 白名单 (防止被禁用) ---
+Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Kingsoft\Office\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Kingsoft\Office\6.0\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: ""; Flags: uninsdeletevalue
 
 [Run]
-; 安装前清理：尝试注销旧组件（即使文件不存在也会静默执行）
+; 安装前清理旧的注册信息
 Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 32-bit registration..."; BeforeInstall: TaskKillOffice
-Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: Is64BitInstallMode
+Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: IsWin64
 
-; Register COM using RegAsm
-Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering components..."; Flags: runhidden
+; 核心注册逻辑：分别针对 32 位和 64 位环境进行注册
+; 32-bit RegAsm (用于支持 32 位 Office/WPS)
+Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering for 32-bit Office..."; Flags: runhidden
+
+; 64-bit RegAsm (用于支持 64 位 Office/WPS，仅在 64 位系统上运行)
+Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/codebase ""{app}\QSBar.dll"" /tlb:""{app}\QSBar.tlb"""; StatusMsg: "Registering for 64-bit Office..."; Flags: runhidden; Check: IsWin64
 
 [Code]
 var
   ExcelImage, WpsImage: TBitmapImage;
 
+function IsDotNet40Installed: Boolean;
+begin
+  // 简化版检测：只要存在该注册表项，就认为已安装 .NET 4.0
+  Result := RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full');
+end;
+
+procedure TaskKillOffice();
+var
+  ResultCode: Integer;
+begin
+  Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
 procedure InitializeWizard;
 var
   ExcelLabel, WpsLabel: TLabel;
 begin
+  // --- 环境检测：检查是否安装了 .NET 4.0 ---
+  if not IsDotNet40Installed then
+  begin
+    MsgBox('This application requires .NET Framework 4.0 or higher.' + #13#10 +
+           'Please install .NET Framework and try again.', mbCriticalError, MB_OK);
+    WizardForm.Close;
+    exit;
+  end;
+
   // 提取临时图片文件
   ExtractTemporaryFile('SHOW1_EXCEL_BAR.bmp');
   ExtractTemporaryFile('SHOW2_WPS_BAR.bmp');
 
-  // 调整 ReadyMemo（准备安装界面的文本框）的位置和高度，为图片腾出空间
+  // 调整 ReadyMemo（准备安装界面的文本框）的位置 and 高度，为图片腾出空间
   // ReadyPage 是安装前的最后一个确认页面
   WizardForm.ReadyMemo.Top := WizardForm.ReadyMemo.Top + ScaleY(140);
   WizardForm.ReadyMemo.Height := WizardForm.ReadyMemo.Height - ScaleY(140);
@@ -221,13 +192,4 @@ begin
   WpsLabel.Top := WpsImage.Top - ScaleY(18);
   WpsLabel.Font.Style := [fsBold];
   WpsLabel.BringToFront;
-end;
-
-procedure TaskKillOffice();
-var
-  ResultCode: Integer;
-begin
-  Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
