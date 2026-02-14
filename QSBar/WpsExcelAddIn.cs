@@ -113,12 +113,13 @@ namespace QSBar
         </group>
 
         <group id='groupBQ' label='批量处理'>
+          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />        
           <button id='btnSetGrading' label='设置分级' onAction='OnSetGrading' imageMso='ObjectsGroup' size='large' screentip='设置分级显示' supertip='根据内容自动设置工作表的分级显示' />
           <button id='btnSetGradingStyle' label='分级样式' onAction='OnSetGradingStyle' imageMso='FormatPainter' size='large' screentip='设置分级样式' supertip='为分级显示设置不同的单元格样式' />
         </group>
 
         <group id='groupGrading' label='分级/筛选'>
-          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
+
           <button id='btnClearStyle' label='清除样式' onAction='OnClearStyle' imageMso='Clear' size='large' screentip='清除样式' supertip='清除选中区域的所有单元格样式' />
           <splitButton id='spExport' size='large'>
             <button id='btnExportDefault' label='导出报表' onAction='OnExportCurrentSheet' imageMso='WindowNew' screentip='导出报表' supertip='以数值形式导出报表数据' />
@@ -141,7 +142,7 @@ namespace QSBar
             </menu>
           </splitButton>
           <button id='btnSelectAllPictures' label='全选图片' onAction='OnSelectAllPictures' imageMso='SelectAll' size='large' screentip='选中全图' supertip='选中当前工作表中的所有图片' />
-          <button id='btnSelVisible' label='选中可见单元格' onAction='OnSelectVisibleCells' imageMso='SelectAll' size='large' screentip='选中可见单元格' supertip='选中选择区域的可见单元格 (Ctrl+5)' />/>
+          <button id='btnSelVisible' label='选中可见单元格' onAction='OnSelectVisibleCells' imageMso='SelectAll' size='large' screentip='选中可见单元格' supertip='选中选择区域的可见单元格 (Ctrl+5)' />
         </group>
 
         <group id='groupSheets' label='工作表/文件'>

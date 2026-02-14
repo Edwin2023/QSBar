@@ -205,7 +205,9 @@
     <Compile Include="LegacyAppCommands.cs" />
     <Compile Include="PhotoCommands.cs" />
     <Compile Include="SheetCommands.cs" />
-    <Compile Include="BatchProcessForm.cs" />
+    <Compile Include="BatchProcessForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="WpsExcelAddIn.cs" />
     <Compile Include="UpdateManager.cs" />
     <Compile Include="util.cs" />

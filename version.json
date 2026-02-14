@@ -1,5 +1,5 @@
 ﻿{
     "version":  "1.0.0.5",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "删除了多区域处理按钮，优化了Ribbon样式"
+    "changeLog":  "修改按钮位置"
 }
