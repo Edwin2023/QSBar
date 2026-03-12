@@ -63,7 +63,8 @@ namespace QSBar.Setup
             string dllSource = Path.Combine(sourceDir, "QSBar.dll");
             if (!File.Exists(dllSource))
             {
-                dllSource = Path.Combine(sourceDir, "..", "QSBar", "bin", "Debug", "QSBar.dll");
+                // 尝试从项目源码结构中寻找 (适配 VS 调试环境)
+                dllSource = Path.Combine(sourceDir, "..", "..", "..", "QSBar", "bin", "Debug", "QSBar.dll");
                 if (!File.Exists(dllSource))
                 {
                     dllSource = Path.Combine(sourceDir, "payload", "QSBar.dll");
@@ -166,7 +167,7 @@ namespace QSBar.Setup
 
                 // 额外手动写入 HKCU 注册表，确保 Excel/WPS 可见 (用户级别)
                 // 模拟 quick_setup.ps1 中的逻辑
-                using (RegistryKey clsidKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\CLSID\{CLSID}"))
+                using (RegistryKey clsidKey = Registry.CurrentUser.CreateSubKey(string.Format(@"Software\Classes\CLSID\{0}", CLSID)))
                 {
                     clsidKey.SetValue("", ProgID);
                     using (RegistryKey inproc = clsidKey.CreateSubKey("InprocServer32"))
@@ -180,14 +181,14 @@ namespace QSBar.Setup
                     }
                 }
 
-                using (RegistryKey progIdKey = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{ProgID}\CLSID"))
+                using (RegistryKey progIdKey = Registry.CurrentUser.CreateSubKey(string.Format(@"Software\Classes\{0}\CLSID", ProgID)))
                 {
                     progIdKey.SetValue("", CLSID);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"COM 注册过程中出错: {ex.Message}", ex);
+                throw new Exception(string.Format("COM 注册过程中出错: {0}", ex.Message), ex);
             }
         }
 
@@ -196,8 +197,8 @@ namespace QSBar.Setup
             // 清理 HKCU 下的自定义 COM 注册
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\CLSID\{CLSID}", false);
-                Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{ProgID}", false);
+                Registry.CurrentUser.DeleteSubKeyTree(string.Format(@"Software\Classes\CLSID\{0}", CLSID), false);
+                Registry.CurrentUser.DeleteSubKeyTree(string.Format(@"Software\Classes\{0}", ProgID), false);
             }
             catch { }
         }
@@ -205,10 +206,10 @@ namespace QSBar.Setup
         static void RegisterAddIn()
         {
             string[] paths = {
-                $@"Software\Microsoft\Office\Excel\Addins\{ProgID}",
-                $@"Software\Kingsoft\Office\ET\Addins\{ProgID}",
-                $@"Software\Kingsoft\Office\ET\AddinsData\{ProgID}",
-                $@"Software\Kingsoft\Office\WPS\Addins\{ProgID}"
+                string.Format(@"Software\Microsoft\Office\Excel\Addins\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\ET\Addins\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\ET\AddinsData\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\WPS\Addins\{0}", ProgID)
             };
 
             foreach (var path in paths)
@@ -227,10 +228,10 @@ namespace QSBar.Setup
         static void UnregisterAddIn()
         {
             string[] paths = {
-                $@"Software\Microsoft\Office\Excel\Addins\{ProgID}",
-                $@"Software\Kingsoft\Office\ET\Addins\{ProgID}",
-                $@"Software\Kingsoft\Office\ET\AddinsData\{ProgID}",
-                $@"Software\Kingsoft\Office\WPS\Addins\{ProgID}"
+                string.Format(@"Software\Microsoft\Office\Excel\Addins\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\ET\Addins\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\ET\AddinsData\{0}", ProgID),
+                string.Format(@"Software\Kingsoft\Office\WPS\Addins\{0}", ProgID)
             };
 
             foreach (var path in paths)
@@ -244,7 +245,7 @@ namespace QSBar.Setup
             string[] products = { "ET", "WPS", "Common", "6.0" };
             foreach (var prod in products)
             {
-                string path = $@"Software\Kingsoft\Office\{prod}\AddinsWL";
+                string path = string.Format(@"Software\Kingsoft\Office\{0}\AddinsWL", prod);
                 using (RegistryKey key = Registry.CurrentUser.CreateSubKey(path))
                 {
                     key.SetValue(ProgID, "");
@@ -259,9 +260,9 @@ namespace QSBar.Setup
             {
                 try
                 {
-                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey($@"Software\Kingsoft\Office\{prod}\AddinsWL", true))
+                    using (RegistryKey key = Registry.CurrentUser.OpenSubKey(string.Format(@"Software\Kingsoft\Office\{0}\AddinsWL", prod), true))
                     {
-                        key?.DeleteValue(ProgID, false);
+                        if (key != null) key.DeleteValue(ProgID, false);
                     }
                 }
                 catch { }

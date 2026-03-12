@@ -1,62 +1,64 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace QSBar.Core.Formatting;
-
-public static class RowStyleProfiles
+namespace QSBar.Core.Formatting
 {
-    private static readonly object Sync = new();
-    private static readonly Dictionary<int, RowStyle> Overrides = new();
-
-    public static RowStyle Get(int level)
+    public static class RowStyleProfiles
     {
-        lock (Sync)
+        private static readonly object Sync = new object();
+        private static readonly Dictionary<int, RowStyle> Overrides = new Dictionary<int, RowStyle>();
+
+        public static RowStyle Get(int level)
         {
-            if (Overrides.TryGetValue(level, out var ov)) return ov;
-            if (level <= 0) return new RowStyle { ColorIndex = null, Bold = false, BorderLeft = false };
-            if (level == 1) return new RowStyle { ColorIndex = 15, Bold = true, BorderLeft = false };
-            if (level == 2) return new RowStyle { ColorIndex = 14, Bold = true, BorderLeft = false };
-            return new RowStyle { ColorIndex = 13, Bold = true, BorderLeft = true };
+            lock (Sync)
+            {
+                RowStyle ov;
+                if (Overrides.TryGetValue(level, out ov)) return ov;
+                if (level <= 0) return new RowStyle { ColorIndex = null, Bold = false, BorderLeft = false };
+                if (level == 1) return new RowStyle { ColorIndex = 15, Bold = true, BorderLeft = false };
+                if (level == 2) return new RowStyle { ColorIndex = 14, Bold = true, BorderLeft = false };
+                return new RowStyle { ColorIndex = 13, Bold = true, BorderLeft = true };
+            }
         }
-    }
 
-    public static void SetOverride(int level, RowStyle style)
-    {
-        lock (Sync)
+        public static void SetOverride(int level, RowStyle style)
         {
-            Overrides[level] = style;
+            lock (Sync)
+            {
+                Overrides[level] = style;
+            }
         }
-    }
 
-    public static void ClearOverride(int level)
-    {
-        lock (Sync)
+        public static void ClearOverride(int level)
         {
-            if (Overrides.ContainsKey(level)) Overrides.Remove(level);
+            lock (Sync)
+            {
+                if (Overrides.ContainsKey(level)) Overrides.Remove(level);
+            }
         }
-    }
 
-    public static void ClearAllOverrides()
-    {
-        lock (Sync)
+        public static void ClearAllOverrides()
         {
-            Overrides.Clear();
+            lock (Sync)
+            {
+                Overrides.Clear();
+            }
         }
-    }
 
-    public static Dictionary<int, RowStyle> GetAllOverrides()
-    {
-        lock (Sync)
+        public static Dictionary<int, RowStyle> GetAllOverrides()
         {
-            return new Dictionary<int, RowStyle>(Overrides);
+            lock (Sync)
+            {
+                return new Dictionary<int, RowStyle>(Overrides);
+            }
         }
-    }
 
-    public static void WithWriteLock(Action action)
-    {
-        lock (Sync)
+        public static void WithWriteLock(Action action)
         {
-            action();
+            lock (Sync)
+            {
+                action();
+            }
         }
     }
 }

@@ -1,10 +1,13 @@
-﻿namespace QSBar.Core.Photos;
+using System;
 
-public static class PhotoHelper
+namespace QSBar.Core.Photos
 {
-    public static (double width, double height) Scale(double width, double height, double percent)
+    public static class PhotoHelper
     {
-        var p = percent / 100.0;
-        return (width * p, height * p);
+        public static Tuple<double, double> Scale(double width, double height, double percent)
+        {
+            var p = percent / 100.0;
+            return Tuple.Create(width * p, height * p);
+        }
     }
 }

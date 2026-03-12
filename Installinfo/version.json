@@ -1,0 +1,5 @@
+﻿{
+    "version":  "1.0.0.5",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
+    "changeLog":  "Fix duplicate compilation in QSBar.Core"
+}

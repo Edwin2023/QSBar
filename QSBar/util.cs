@@ -158,7 +158,7 @@ namespace QSBar
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.Forms.MessageBox.Show($"Error opening {path}: {ex.Message}");
+                    System.Windows.Forms.MessageBox.Show(string.Format("Error opening {0}: {1}", path, ex.Message));
                 }
             }
             return allSheets;

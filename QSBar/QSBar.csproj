@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <!--
@@ -257,4 +258,280 @@
     <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
   </Target>
+=======
+<Project ToolsVersion="17.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--
+    This section defines project-level properties.
+
+    AssemblyName
+      Name of the output assembly.
+    Configuration
+      Specifies a default value for debug.
+    OutputType
+      Must be "Library" for VSTO.
+    Platform
+      Specifies what CPU the output of this project can run on.
+    NoStandardLibraries
+      Set to "false" for VSTO.
+    RootNamespace
+      In C#, this specifies the namespace given to new files. In VB, all objects are
+      wrapped in this namespace at runtime.
+  -->
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DEECF883-67A3-49F5-BF5B-8B13DFEB01AC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <RootNamespace>QSBar</RootNamespace>
+    <AssemblyName>QSBar</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <IsWebBootstrapper>False</IsWebBootstrapper>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <PublishUrl>publish\</PublishUrl>
+    <InstallUrl />
+    <TargetCulture>en</TargetCulture>
+    <ApplicationVersion>1.0.0.1</ApplicationVersion>
+    <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
+    <UpdateEnabled>true</UpdateEnabled>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>days</UpdateIntervalUnits>
+    <ProductName>QSBar</ProductName>
+    <PublisherName>Bookmen</PublisherName>
+    <SupportUrl />
+    <FriendlyName>QSBar</FriendlyName>
+    <OfficeApplicationDescription />
+    <LoadBehavior>3</LoadBehavior>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>QSBar.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.7.2 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <!--
+    This section defines properties that are set when the "Debug" configuration is selected.
+
+    DebugSymbols
+      If "true", create symbols (.pdb). If "false", do not create symbols.
+    DefineConstants
+      Constants defined for the preprocessor.
+    EnableUnmanagedDebugging
+      If "true", starting the debugger will attach both managed and unmanaged debuggers.
+    Optimize
+      If "true", optimize the build output. If "false", do not optimize.
+    OutputPath
+      Output path of project relative to the project file.
+    WarningLevel
+      Warning level for the compiler.
+  -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
+    <StartAction>Program</StartAction>
+    <!-- 如果你的 Excel 路径不同，请在此处修改 -->
+    <StartProgram Condition="Exists('C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE')">C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE</StartProgram>
+    <StartProgram Condition="Exists('C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE')">C:\Program Files (x86)\Microsoft Office\root\Office16\EXCEL.EXE</StartProgram>
+  </PropertyGroup>
+  <!--
+    This section defines properties that are set when the "Release" configuration is selected.
+
+    DebugSymbols
+      If "true", create symbols (.pdb). If "false", do not create symbols.
+    DefineConstants
+      Constants defined for the preprocessor.
+    EnableUnmanagedDebugging
+      If "true", starting the debugger will attach both managed and unmanaged debuggers.
+    Optimize
+      If "true", optimize the build output. If "false", do not optimize.
+    OutputPath
+      Output path of project relative to the project file.
+    WarningLevel
+      Warning level for the compiler.
+  -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>false</RegisterForComInterop>
+  </PropertyGroup>
+  <!--
+    This section specifies references for the project.
+  -->
+  <ItemGroup>
+    <Reference Include="Accessibility" />
+    <Reference Include="EPPlus, Version=7.0.5.0, Culture=neutral, PublicKeyToken=ea159fdaa78159a1, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPPlus.7.0.5\lib\net462\EPPlus.dll</HintPath>
+    </Reference>
+    <Reference Include="EPPlus.Interfaces, Version=6.1.1.0, Culture=neutral, PublicKeyToken=a694d7f3b0907a61, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPPlus.Interfaces.6.1.1\lib\net462\EPPlus.Interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="EPPlus.System.Drawing, Version=6.1.1.0, Culture=neutral, PublicKeyToken=2308d35469c9bac0, processorArchitecture=MSIL">
+      <HintPath>..\packages\EPPlus.System.Drawing.6.1.1\lib\net462\EPPlus.System.Drawing.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.4.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.4.1\lib\net46\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ComponentModel.Annotations.5.0.0\lib\net461\System.ComponentModel.Annotations.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QSBar.Core\QSBar.Core.csproj">
+      <Project>{4A5D7B9C-1E2F-3A4B-5C6D-7E8F9A0B1C2D}</Project>
+      <Name>QSBar.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Interop.AddInDesignerObjects">
+      <HintPath>..\lib\Interop.AddInDesignerObjects.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Office, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <HintPath>..\lib\Office.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c">
+      <HintPath>..\lib\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="stdole, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <!--
+    This section defines the user source files that are part of the project.
+     
+    A "Compile" element specifies a source file to compile.
+    An "EmbeddedResource" element specifies an .resx file for embedded resources.
+    A "None" element specifies a file that is not to be passed to the compiler (for instance, 
+    a text file or XML file).
+    The "AppDesigner" element specifies the directory where the application properties files
+    can be found.
+  -->
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <EmbeddedResource Include="Ribbon.xml" />
+    <Compile Include="otherFileForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="otherFileForm.Designer.cs">
+      <DependentUpon>otherFileForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataCommands.cs" />
+    <Compile Include="ExportCommands.cs" />
+    <Compile Include="FormatCommands.cs" />
+    <Compile Include="HelpForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LegacyAppCommands.cs" />
+    <Compile Include="PhotoCommands.cs" />
+    <Compile Include="SheetCommands.cs" />
+    <Compile Include="BatchProcessForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="KeyboardHook.cs" />
+    <Compile Include="WpsExcelAddIn.cs" />
+    <Compile Include="UpdateManager.cs" />
+    <Compile Include="util.cs" />
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="otherFileForm.resx">
+      <DependentUpon>otherFileForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="sameFileForm.resx">
+      <DependentUpon>sameFileForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="sameFileForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="sameFileForm.Designer.cs">
+      <DependentUpon>sameFileForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmSelectSheets.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmSelectSheets.Designer.cs">
+      <DependentUpon>frmSelectSheets.cs</DependentUpon>
+    </Compile>
+    <AppDesigner Include="Properties\" />
+  </ItemGroup>
+  <!-- Include the build rules for a C# project. -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- 在项目文件的末尾，</Project> 标签之前加入以下内容 -->
+  <Target Name="AfterBuild">
+    <Message Text="[Dev] 尝试关闭 Excel/WPS 进程以释放 DLL 锁定..." Importance="high" />
+    <Exec Command="taskkill /F /IM EXCEL.EXE /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM et.exe /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM wps.exe /T &gt;nul 2&gt;&amp;1" ContinueOnError="true" />
+    
+    <Message Text="正在同步 DLL 及依赖到安装目录 (%LOCALAPPDATA%\QSBar)..." Importance="high" />
+    <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    
+    <!-- 仅在 Debug 模式下尝试自动注册，或者在失败时继续编译，避免阻塞 Release 打包 -->
+    <Message Text="正在尝试运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\scripts\Register-QSBar.ps1&quot; -DllPath &quot;%LOCALAPPDATA%\QSBar\$(TargetFileName)&quot;" ContinueOnError="true" />
+  </Target>
+>>>>>>> fe804e7ec53608d2c57b7c870bc1bdf7383dccb5
 </Project>

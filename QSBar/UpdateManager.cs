@@ -56,12 +56,12 @@ namespace QSBar
                 }
                 else
                 {
-                    if (!silent) MessageBox.Show($"当前已是最新版本 (v{currentVersion})。", "更新检测");
+                    if (!silent) MessageBox.Show(string.Format("当前已是最新版本 (v{0})。", currentVersion), "更新检测");
                 }
             }
             catch (Exception ex)
             {
-                if (!silent) MessageBox.Show($"检查更新时出错: {ex.Message}", "更新错误");
+                if (!silent) MessageBox.Show(string.Format("检查更新时出错: {0}", ex.Message), "更新错误");
             }
         }
 
@@ -95,7 +95,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                throw new Exception($"获取版本信息失败: {ex.Message}\n\n服务器响应内容: {(json.Length > 100 ? json.Substring(0, 100) : json)}");
+                throw new Exception(string.Format("获取版本信息失败: {0}\n\n服务器响应内容: {1}", ex.Message, (json.Length > 100 ? json.Substring(0, 100) : json)));
             }
         }
 
@@ -109,7 +109,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                throw new Exception($"解析 JSON 失败: {ex.Message}\n\n原始 JSON: {json}");
+                throw new Exception(string.Format("解析 JSON 失败: {0}\n\n原始 JSON: {1}", ex.Message, json));
             }
         }
 
@@ -118,10 +118,8 @@ namespace QSBar
             if (LatestUpdateInfo == null) return;
 
             Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
-            var result = MessageBox.Show($"检测到新版本: {LatestUpdateInfo.Version}\n" +
-                $"当前版本: {currentVersion}\n\n" +
-                $"更新内容:\n{LatestUpdateInfo.ChangeLog}\n\n" +
-                "更新将尝试自动关闭 Excel/WPS 进程并替换文件。\n是否立即开始？",
+            var result = MessageBox.Show(string.Format("检测到新版本: {0}\n当前版本: {1}\n\n更新内容:\n{2}\n\n更新将尝试自动关闭 Excel/WPS 进程并替换文件。\n是否立即开始？", 
+                LatestUpdateInfo.Version, currentVersion, LatestUpdateInfo.ChangeLog),
                 "确认重启更新", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
@@ -166,7 +164,7 @@ namespace QSBar
                     
                     if (vDownloaded < vLatest)
                     {
-                        MessageBox.Show($"警告：下载的文件版本 ({downloadedVersion}) 低于目标版本 ({info.Version})。\n这可能是由于 Gitee 缓存或上传文件错误导致的。更新已取消。", "更新校验失败");
+                        MessageBox.Show(string.Format("警告：下载的文件版本 ({0}) 低于目标版本 ({1})。\n这可能是由于 Gitee 缓存或上传文件错误导致的。更新已取消。", downloadedVersion, info.Version), "更新校验失败");
                         return;
                     }
                 }
@@ -185,7 +183,7 @@ namespace QSBar
                 File.WriteAllText(logPath, info.ChangeLog);
 
                 string excelExe = Process.GetCurrentProcess().MainModule.FileName;
-                string batchContent = $@"
+                string batchContent = string.Format(@"
 @echo off
 setlocal enabledelayedexpansion
 title QSBar Update Script
@@ -206,17 +204,17 @@ if %errorlevel% equ 0 (
 )
 
 echo Updating files...
-copy /y ""{tempFile}"" ""{currentPath}""
+copy /y ""{0}"" ""{1}""
 
 echo Cleanup...
-del ""{tempFile}""
+del ""{0}""
 
 echo Starting Excel...
-start """" ""{excelExe}""
+start """" ""{2}""
 
 echo Done!
 del ""%~f0""
-";
+", tempFile, currentPath, excelExe);
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
 
                 Process.Start(new ProcessStartInfo
@@ -232,7 +230,7 @@ del ""%~f0""
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"更新失败: {ex.Message}", "更新错误");
+                MessageBox.Show(string.Format("更新失败: {0}", ex.Message), "更新错误");
             }
         }
 
@@ -284,7 +282,7 @@ del ""%~f0""
                 return;
             }
             pb.Value = Math.Min(100, Math.Max(0, percentage));
-            lbl.Text = $"已下载: {percentage}%";
+            lbl.Text = string.Format("已下载: {0}%", percentage);
         }
     }
 }

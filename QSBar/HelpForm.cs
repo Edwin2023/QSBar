@@ -116,11 +116,11 @@ namespace QSBar
             var assembly = Assembly.GetExecutingAssembly();
             var version = assembly.GetName().Version;
             
-            lblVersion.Text = $"版本号: v{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
+            lblVersion.Text = string.Format("版本号: v{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
             
             try {
                 var lastWriteTime = File.GetLastWriteTime(assembly.Location);
-                lblUpdateDate.Text = $"最后编译日期: {lastWriteTime:yyyy-MM-dd HH:mm:ss}";
+                lblUpdateDate.Text = string.Format("最后编译日期: {0:yyyy-MM-dd HH:mm:ss}", lastWriteTime);
             }
             catch {
                 lblUpdateDate.Text = "更新日期: 无法获取";

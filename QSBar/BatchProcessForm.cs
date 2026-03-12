@@ -458,7 +458,12 @@ namespace QSBar
                         }
 
                         string formula = "";
-                        try { formula = cell.Formula?.ToString() ?? ""; } catch { continue; } // Handle potential errors
+                        try 
+                        { 
+                            object f = cell.Formula;
+                            formula = (f != null) ? f.ToString() : ""; 
+                        } 
+                        catch { continue; } // Handle potential errors
 
                         string result = "";
                         if (formula.StartsWith("="))
@@ -511,7 +516,11 @@ namespace QSBar
                     foreach (Excel.Range cell in visibleCells)
                     {
                         string formula;
-                        try { formula = cell.Formula?.ToString() ?? ""; }
+                        try 
+                        { 
+                            object f = cell.Formula;
+                            formula = (f != null) ? f.ToString() : ""; 
+                        }
                         catch
                         {
                             errorAddresses.Add(TryGetAddress(cell));
@@ -609,7 +618,7 @@ namespace QSBar
 
                 sb.AppendLine();
 
-                sb.Append($"... 还有 {addresses.Count - max} 个错误未列出");
+                sb.Append(string.Format("... 还有 {0} 个错误未列出", addresses.Count - max));
 
             }
 

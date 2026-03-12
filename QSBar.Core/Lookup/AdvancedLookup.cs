@@ -202,8 +202,8 @@ namespace QSBar.Core.Lookup
 
         public static double CalculateCharSimilarity(string str1, string str2)
         {
-            int len1 = str1?.Length ?? 0;
-            int len2 = str2?.Length ?? 0;
+            int len1 = (str1 != null) ? str1.Length : 0;
+            int len2 = (str2 != null) ? str2.Length : 0;
             if (len1 == 0 && len2 == 0) return 1;
             if (len1 == 0 || len2 == 0) return 0;
 
