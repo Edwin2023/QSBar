@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QSBar - Excel/WPS 效率工具箱</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .features {
+            text-align: left;
+            margin: 2rem 0;
+        }
+        .features h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 0.5rem;
+        }
+        .features ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .features li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .features li::before {
+            content: "✓";
+            color: #27ae60;
+            margin-right: 0.5rem;
+            font-weight: bold;
+        }
+        .download-btn {
+            display: inline-block;
+            background-color: #27ae60;
+            color: white;
+            padding: 1rem 3rem;
+            font-size: 1.5rem;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: background-color 0.3s;
+            margin-top: 1rem;
+        }
+        .download-btn:hover {
+            background-color: #219150;
+        }
+        .footer {
+            margin-top: 3rem;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        .version-info {
+            background: #ecf0f1;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 2rem;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>QSBar 工具箱</h1>
+    <p>专为 Excel 和 WPS 打造的极致效率插件</p>
+</header>
+
+<div class="container">
+    <h2>立即提升你的办公效率</h2>
+    <p>一键安装，永久免费。支持 Excel 2013+ 及 WPS Office。</p>
+
+    <a href="QSBar_Setup.exe" class="download-btn">下载最新版 (v1.0.0.1)</a>
+
+    <div class="features">
+        <h3>核心功能</h3>
+        <ul>
+            <li><strong>批量处理</strong>：支持多区域选择与批量公式计算</li>
+            <li><strong>格式排版</strong>：一键数值化、千分位格式、文本换行</li>
+            <li><strong>图片工具</strong>：批量调整大小、全选图片、导出图片</li>
+            <li><strong>报表导出</strong>：支持标准报表与内部报表一键导出</li>
+            <li><strong>工作表管理</strong>：合并工作表、生成目录、批量取消隐藏</li>
+            <li><strong>WPS 完美兼容</strong>：原生 COM 架构，无缝支持 WPS 表格</li>
+        </ul>
+    </div>
+
+    <div class="version-info">
+        当前版本：1.0.0.1 <br>
+        更新日期：2026-02-14
+    </div>
+
+    <div class="footer">
+        &copy; 2026 QSBar Team. All rights reserved.
+    </div>
+</div>
+
+</body>
+</html>
