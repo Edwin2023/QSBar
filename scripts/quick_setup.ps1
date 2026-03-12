@@ -1,18 +1,11 @@
 # QSBar Quick Setup Script for Excel and WPS
 $ErrorActionPreference = "Stop"
-<<<<<<< HEAD
-$baseDir = (Split-Path -Parent $PSScriptRoot)
-$projectPath = Join-Path $baseDir "QSBar\QSBar.csproj"
-$slnPath = Join-Path $baseDir "QSBar.sln"
-$nugetExe = Join-Path $baseDir "nuget.exe"
-=======
 $baseDir = $PSScriptRoot
 $rootDir = (Get-Item $baseDir).Parent.FullName
 $projectPath = Join-Path $rootDir "QSBar\QSBar.csproj"
 $slnPath = Join-Path $rootDir "QSBar.sln"
 $nugetExe = Join-Path $rootDir "nuget.exe"
 $scriptsDir = $baseDir
->>>>>>> fe804e7ec53608d2c57b7c870bc1bdf7383dccb5
 
 # Find MSBuild
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"

@@ -163,7 +163,6 @@ namespace QSBar
 
         public string GetCustomUI(string RibbonID)
         {
-<<<<<<< HEAD
             return GetResourceText("QSBar.Ribbon.xml");
         }
 
@@ -185,24 +184,6 @@ namespace QSBar
                 }
             }
             return null;
-=======
-            try
-            {
-                using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("QSBar.Ribbon.xml"))
-                {
-                    if (stream == null) return null;
-                    using (var reader = new System.IO.StreamReader(stream))
-                    {
-                        return reader.ReadToEnd();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("GetCustomUI Error: " + ex.ToString());
-                return null;
-            }
->>>>>>> fe804e7ec53608d2c57b7c870bc1bdf7383dccb5
         }
 
         #region Ribbon Callbacks

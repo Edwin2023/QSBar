@@ -1,11 +1,5 @@
 ﻿{
-<<<<<<< HEAD
-    "version":  "1.0.0.5",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "修改按钮位置"
-=======
     "version":  "1.0.0.2",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "您的更新日志"
->>>>>>> fe804e7ec53608d2c57b7c870bc1bdf7383dccb5
+    "changeLog":  "v2"
 }
