@@ -3,7 +3,7 @@
 #define MyAppVersion "1.0.0.1"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"
-#define SourcePath "QSBar\bin\Release"
+#define SourcePath "..\QSBar\bin\Release"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -18,7 +18,7 @@ AppSupportURL=https://gitee.com/kevin137/qsbar
 AppUpdatesURL=https://gitee.com/kevin137/qsbar
 DefaultDirName={localappdata}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputDir=Installer
+OutputDir=..\Release\Installer
 OutputBaseFilename=QSBar_Setup_v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes

@@ -6,9 +6,9 @@ param (
     [string]$Log
 )
 
-$RootDir = Get-Location
+$RootDir = (Split-Path -Parent $PSScriptRoot)
 $DllSource = "$RootDir\QSBar\bin\Release\QSBar.dll"
-$PublishDir = "$RootDir\publish"
+$PublishDir = "$RootDir\Release\publish"
 $VersionJson = "$RootDir\version.json"
 
 # 1. Check parameters

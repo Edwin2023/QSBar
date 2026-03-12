@@ -2,7 +2,7 @@
 # This script restores dependencies, builds the project, and registers it for WPS.
 
 $ErrorActionPreference = "Stop"
-$baseDir = $PSScriptRoot
+$baseDir = (Split-Path -Parent $PSScriptRoot)
 $projectPath = Join-Path $baseDir "QSBar\QSBar.csproj"
 $slnPath = Join-Path $baseDir "QSBar.sln"
 $nugetExe = Join-Path $baseDir "nuget.exe"
