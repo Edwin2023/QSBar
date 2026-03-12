@@ -7,10 +7,11 @@ namespace QSBar
 {
     public partial class frmSelectSheets : Form
     {
-        public List<string> SelectedSheetNames { get; private set; } = new List<string>();
+        public List<string> SelectedSheetNames { get; private set; }
 
         public frmSelectSheets(Excel.Workbook workbook)
         {
+            SelectedSheetNames = new List<string>();
             InitializeComponent();
             LoadSheets(workbook);
         }

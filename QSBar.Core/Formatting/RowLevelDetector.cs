@@ -1,88 +1,116 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace QSBar.Core.Formatting;
-
-public static class RowLevelDetector
+namespace QSBar.Core.Formatting
 {
-    public static int[] ParseLevels(object[] values)
+    public struct GroupInfo
     {
-        var levels = new int[values.Length];
-        for (int i = 0; i < values.Length; i++)
+        public int Start;
+        public int End;
+        public int Level;
+
+        public GroupInfo(int start, int end, int level)
         {
-            levels[i] = ParseLevel(values[i]);
+            Start = start;
+            End = end;
+            Level = level;
         }
-        return levels;
     }
 
-    public static int[] ParseLevels(object[,] data, int columnIndexZeroBased)
+    struct StackItem
     {
-        int rows = data.GetLength(0);
-        var levels = new int[rows];
-        for (int r = 0; r < rows; r++)
+        public int Level;
+        public int Start;
+
+        public StackItem(int level, int start)
         {
-            object v = null;
-            int cols = data.GetLength(1);
-            if (columnIndexZeroBased >= 0 && columnIndexZeroBased < cols)
-                v = data[r, columnIndexZeroBased];
-            levels[r] = ParseLevel(v);
+            Level = level;
+            Start = start;
         }
-        return levels;
     }
 
-    public static List<(int start, int end, int level)> ComputeGroups(int[] levels)
+    public static class RowLevelDetector
     {
-        var groups = new List<(int start, int end, int level)>();
-        var stack = new Stack<(int level, int start)>();
-        int prev = levels.Length > 0 ? levels[0] : 0;
-        for (int i = 1; i < levels.Length; i++)
+        public static int[] ParseLevels(object[] values)
         {
-            int curr = levels[i];
-            if (curr > prev)
+            var levels = new int[values.Length];
+            for (int i = 0; i < values.Length; i++)
             {
-                stack.Push((curr, i));
+                levels[i] = ParseLevel(values[i]);
             }
-            else if (curr < prev)
+            return levels;
+        }
+
+        public static int[] ParseLevels(object[,] data, int columnIndexZeroBased)
+        {
+            int rows = data.GetLength(0);
+            var levels = new int[rows];
+            for (int r = 0; r < rows; r++)
             {
-                while (stack.Count > 0 && stack.Peek().level > curr)
+                object v = null;
+                int cols = data.GetLength(1);
+                if (columnIndexZeroBased >= 0 && columnIndexZeroBased < cols)
+                    v = data[r, columnIndexZeroBased];
+                levels[r] = ParseLevel(v);
+            }
+            return levels;
+        }
+
+        public static List<GroupInfo> ComputeGroups(int[] levels)
+        {
+            var groups = new List<GroupInfo>();
+            var stack = new Stack<StackItem>();
+            int prev = levels.Length > 0 ? levels[0] : 0;
+            for (int i = 1; i < levels.Length; i++)
+            {
+                int curr = levels[i];
+                if (curr > prev)
                 {
-                    var top = stack.Pop();
-                    groups.Add((top.start, i - 1, top.level));
+                    stack.Push(new StackItem(curr, i));
                 }
+                else if (curr < prev)
+                {
+                    while (stack.Count > 0 && stack.Peek().Level > curr)
+                    {
+                        var top = stack.Pop();
+                        groups.Add(new GroupInfo(top.Start, i - 1, top.Level));
+                    }
+                }
+                prev = curr;
             }
-            prev = curr;
+            while (stack.Count > 0)
+            {
+                var top = stack.Pop();
+                groups.Add(new GroupInfo(top.Start, levels.Length - 1, top.Level));
+            }
+            return groups;
         }
-        while (stack.Count > 0)
-        {
-            var top = stack.Pop();
-            groups.Add((top.start, levels.Length - 1, top.level));
-        }
-        return groups;
-    }
 
-    static int ParseLevel(object v)
-    {
-        if (v == null) return 0;
-        if (v is double d) return (int)d;
-        if (v is int i) return i;
-        var raw = v.ToString();
-        if (string.IsNullOrWhiteSpace(raw)) return 0;
-        var sTrim = raw.Trim();
-        if (int.TryParse(sTrim, out var n)) return n;
-        var s = raw;
-        int leadingSpaces = 0;
-        int prefixCount = 0;
-        for (int idx = 0; idx < s.Length; idx++)
+        static int ParseLevel(object v)
         {
-            var ch = s[idx];
-            if (ch == ' ') { leadingSpaces++; continue; }
-            if (ch == '\t') { leadingSpaces += 2; continue; }
-            if (ch == '-' || ch == '>' || ch == '?') { prefixCount++; continue; }
-            break;
+            if (v == null) return 0;
+            if (v is double) return (int)(double)v;
+            if (v is int) return (int)v;
+            var raw = v.ToString();
+            if (string.IsNullOrWhiteSpace(raw)) return 0;
+            var sTrim = raw.Trim();
+            int n;
+            if (int.TryParse(sTrim, out n)) return n;
+            var s = raw;
+            int leadingSpaces = 0;
+            int prefixCount = 0;
+            for (int idx = 0; idx < s.Length; idx++)
+            {
+                var ch = s[idx];
+                if (ch == ' ') { leadingSpaces++; continue; }
+                if (ch == '\t') { leadingSpaces += 2; continue; }
+                if (ch == '-' || ch == '>' || ch == '?') { prefixCount++; continue; }
+                break;
+            }
+            int levelFromIndent = leadingSpaces / 2;
+            int level = Math.Max(levelFromIndent, prefixCount);
+            if (level == 0) return 0;
+            return level;
         }
-        int levelFromIndent = leadingSpaces / 2;
-        int level = Math.Max(levelFromIndent, prefixCount);
-        if (level == 0) return 0;
-        return level;
     }
 }

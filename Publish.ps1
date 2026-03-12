@@ -6,10 +6,14 @@ param (
     [string]$Log
 )
 
+$ErrorActionPreference = "Stop" # Stop on error
 $RootDir = Get-Location
 $DllSource = "$RootDir\QSBar\bin\Release\QSBar.dll"
 $PublishDir = "$RootDir\publish"
 $VersionJson = "$RootDir\version.json"
+$projectPath = "$RootDir\QSBar\QSBar.csproj"
+$slnPath = "$RootDir\QSBar.sln"
+$nugetExe = "$RootDir\nuget.exe"
 
 # 1. Check parameters
 if (-not $Version -or -not $Log) {
@@ -20,19 +24,74 @@ if (-not $Version -or -not $Log) {
 
 Write-Host "--- Starting Publish Process v$Version ---" -ForegroundColor Cyan
 
-# 2. Check Build Result
-if (-not (Test-Path $DllSource)) {
-    Write-Host "Error: Cannot find compiled DLL at: $DllSource" -ForegroundColor Red
-    Write-Host "Please make sure to build the project in 'Release' mode first." -ForegroundColor Yellow
+# 2. Build Setup (Find MSBuild)
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$msbuildPath = $null
+
+if (Test-Path $vswhere) {
+    $vsPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+    if ($vsPath) {
+        $tryPath = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
+        if (Test-Path $tryPath) { $msbuildPath = $tryPath }
+        else {
+            $tryPath = Join-Path $vsPath "MSBuild\15.0\Bin\MSBuild.exe"
+            if (Test-Path $tryPath) { $msbuildPath = $tryPath }
+        }
+    }
+}
+
+if ([string]::IsNullOrEmpty($msbuildPath)) {
+    $commonPaths = @(
+        "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "D:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe",
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe"
+    )
+    foreach ($p in $commonPaths) {
+        if (Test-Path $p) { $msbuildPath = $p; break }
+    }
+}
+
+if ([string]::IsNullOrEmpty($msbuildPath)) {
+    Write-Error "Could not find MSBuild.exe. Please build the project manually in Release mode."
     exit
 }
 
-# 3. Update publish directory
-if (-not (Test-Path $PublishDir)) { New-Item -ItemType Directory -Path $PublishDir }
+Write-Host "Using MSBuild: $msbuildPath" -ForegroundColor Gray
+
+# 3. Restore NuGet Packages
+Write-Host "`n--- Restoring NuGet Packages ---" -ForegroundColor Cyan
+if (Test-Path $nugetExe) {
+    try {
+        & $nugetExe restore $slnPath -Source "https://api.nuget.org/v3/index.json"
+    } catch {
+        Write-Warning "NuGet restore failed or had warnings. Continuing..."
+    }
+} else {
+    Write-Warning "nuget.exe not found. Skipping restore."
+}
+
+# 4. Build Project (Release)
+Write-Host "`n--- Building Project (Release) ---" -ForegroundColor Cyan
+& $msbuildPath $projectPath /p:Configuration=Release /p:Platform="AnyCPU" /t:Rebuild
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Build Failed!"
+    exit
+}
+
+# 5. Check Build Result
+if (-not (Test-Path $DllSource)) {
+    Write-Host "Error: Cannot find compiled DLL at: $DllSource" -ForegroundColor Red
+    exit
+}
+
+# 6. Update publish directory
+if (-not (Test-Path $PublishDir)) { New-Item -ItemType Directory -Path $PublishDir | Out-Null }
 Copy-Item $DllSource -Destination "$PublishDir\QSBar.dll" -Force
 Write-Host "Successfully copied latest DLL to publish directory." -ForegroundColor Green
 
-# 4. Update version.json
+# 7. Update version.json
 $jsonObj = New-Object PSObject
 $jsonObj | Add-Member NoteProperty "version" $Version
 $jsonObj | Add-Member NoteProperty "downloadUrl" "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll"
@@ -42,11 +101,15 @@ $jsonString = $jsonObj | ConvertTo-Json
 [System.IO.File]::WriteAllText($VersionJson, $jsonString, [System.Text.Encoding]::UTF8)
 Write-Host "Successfully updated version.json." -ForegroundColor Green
 
-# 5. Push to Gitee
+# 8. Push to Gitee
 Write-Host "Pushing to Gitee..." -ForegroundColor Cyan
-git add .
-git commit -m "Release v$Version : $Log"
-git push origin master
-
-Write-Host "--- Publish Successful! ---" -ForegroundColor Green
-Write-Host "Users will now receive the update notification for v$Version." -ForegroundColor Cyan
+try {
+    git add .
+    git commit -m "Release v$Version : $Log"
+    git push origin master
+    Write-Host "--- Publish Successful! ---" -ForegroundColor Green
+    Write-Host "Users will now receive the update notification for v$Version." -ForegroundColor Cyan
+} catch {
+    Write-Warning "Git push failed. Please push manually."
+    Write-Warning $_
+}

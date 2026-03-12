@@ -100,7 +100,7 @@ namespace QSBar
                     {
                         indexSheet.Cells[rowNum, 1].Value = rowNum - 1;
                         string sheetName = sheet.Name;
-                        string formula = $"=HYPERLINK(\"#'{sheetName}'!A1\", \"{sheetName}\")";
+                        string formula = string.Format("=HYPERLINK(\"#'{0}'!A1\", \"{1}\")", sheetName.Replace("'", "''"), sheetName);
                         indexSheet.Cells[rowNum, 2].Formula = formula;
                         rowNum++;
                     }
@@ -182,7 +182,7 @@ namespace QSBar
                     string fileName = System.IO.Path.GetFileName(filePath);
                     indexSheet.Cells[rowNum, 1].Value = rowNum - 1;
                     
-                    string formula = $"=HYPERLINK(\"{filePath}\", \"{fileName}\")";
+                    string formula = string.Format("=HYPERLINK(\"{0}\", \"{1}\")", filePath, fileName);
                     indexSheet.Cells[rowNum, 2].Formula = formula;
                     indexSheet.Cells[rowNum, 3].Value = filePath;
                     rowNum++;
@@ -192,7 +192,7 @@ namespace QSBar
                 ApplyModernStyle(indexSheet, rowNum - 1, 3);
                 indexSheet.Activate();
                 
-                MessageBox.Show($"文件目录生成完成！共计 {openFileDialog.FileNames.Length} 个文件。");
+                MessageBox.Show(string.Format("文件目录生成完成！共计 {0} 个文件。", openFileDialog.FileNames.Length));
             }
             catch (Exception ex)
             {
@@ -295,7 +295,7 @@ namespace QSBar
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"打开或处理文件 {System.IO.Path.GetFileName(filePath)} 时出错: {ex.Message}");
+                        MessageBox.Show(string.Format("打开或处理文件 {0} 时出错: {1}", System.IO.Path.GetFileName(filePath), ex.Message));
                     }
                     finally
                     {
@@ -308,7 +308,7 @@ namespace QSBar
                 }
 
                 targetSheet.Columns.AutoFit();
-                MessageBox.Show($"全表合并完成！已创建工作表: {targetSheetName}");
+                MessageBox.Show(string.Format("全表合并完成！已创建工作表: {0}", targetSheetName));
             }
             catch (Exception ex)
             {
@@ -341,11 +341,11 @@ namespace QSBar
             if (!SheetExists(wb, baseName)) return baseName;
 
             int i = 2;
-            while (SheetExists(wb, $"{baseName}({i})"))
+            while (SheetExists(wb, string.Format("{0}({1})", baseName, i)))
             {
                 i++;
             }
-            return $"{baseName}({i})";
+            return string.Format("{0}({1})", baseName, i);
         }
 
         public static void MergeSheets()
@@ -404,7 +404,7 @@ namespace QSBar
 
                 targetSheet.Columns.AutoFit();
                 targetSheet.Activate();
-                MessageBox.Show($"合并工作表完成！已创建/替换工作表: {targetName}");
+                MessageBox.Show(string.Format("合并工作表完成！已创建/替换工作表: {0}", targetName));
             }
             catch (Exception ex)
             {

@@ -47,7 +47,7 @@ namespace QSBar
                 // File Name Processing
                 string dateStr = DateTime.Now.ToString("yyyy-MM-dd");
                 string sheetName = activeSheet.Name;
-                string fileName = $"(OUT{dateStr}){sheetName}";
+                string fileName = string.Format("(OUT{0}){1}", dateStr, sheetName);
                 
                 // Sanitize filename
                 fileName = fileName.Replace(":", "-").Replace("\\", "-").Replace("/", "-");
@@ -199,7 +199,7 @@ namespace QSBar
 
                 string dateStr = DateTime.Now.ToString("yyyy-MM-dd"); // Replaced / with -
 
-                string prefix = isInternal ? $"(OUT内部全数据{dateStr})" : $"(OUT{dateStr})";
+                string prefix = isInternal ? string.Format("(OUT内部全数据{0})", dateStr) : string.Format("(OUT{0})", dateStr);
 
                 string sourcePath = sourceWb.Path;
 

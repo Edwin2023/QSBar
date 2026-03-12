@@ -1,48 +1,48 @@
-# QSBar Quick Setup Script for Excel & WPS
-# This script restores dependencies, builds the project, and registers it for WPS.
-
+# QSBar Quick Setup Script for Excel and WPS
 $ErrorActionPreference = "Stop"
 $baseDir = $PSScriptRoot
 $projectPath = Join-Path $baseDir "QSBar\QSBar.csproj"
 $slnPath = Join-Path $baseDir "QSBar.sln"
 $nugetExe = Join-Path $baseDir "nuget.exe"
 
-# 动态查找 MSBuild 路径
+# Find MSBuild
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-$msbuildPath = ""
+$msbuildPath = $null
+
 if (Test-Path $vswhere) {
     $vsPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
     if ($vsPath) {
-        $msbuildPath = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
-        if (-not (Test-Path $msbuildPath)) {
-            $msbuildPath = Join-Path $vsPath "MSBuild\15.0\Bin\MSBuild.exe"
+        $tryPath = Join-Path $vsPath "MSBuild\Current\Bin\MSBuild.exe"
+        if (Test-Path $tryPath) { $msbuildPath = $tryPath }
+        else {
+            $tryPath = Join-Path $vsPath "MSBuild\15.0\Bin\MSBuild.exe"
+            if (Test-Path $tryPath) { $msbuildPath = $tryPath }
         }
     }
 }
 
-# 如果 vswhere 没找到，尝试默认路径
-if (-not (Test-Path $msbuildPath)) {
+if ([string]::IsNullOrEmpty($msbuildPath)) {
     $commonPaths = @(
         "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
         "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe",
-        "D:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
+        "D:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe",
+        "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe"
     )
     foreach ($p in $commonPaths) {
         if (Test-Path $p) { $msbuildPath = $p; break }
     }
 }
 
-if (-not (Test-Path $msbuildPath)) {
-    Write-Error "无法自动找到 MSBuild.exe，请手动在脚本中指定路径。"
+if ([string]::IsNullOrEmpty($msbuildPath)) {
+    Write-Error "Cannot find MSBuild.exe."
     exit
 }
 
 Write-Host "Using MSBuild: $msbuildPath" -ForegroundColor Gray
+Write-Host "--- 1. Cleaning Old Registrations ---" -ForegroundColor Cyan
 
-Write-Host "--- 1. Cleaning Old Registrations & Resiliency ---" -ForegroundColor Cyan
-
-# 1.1 Clear Excel/WPS Disabled Items (To prevent "Hard Disable")
-Write-Host "Clearing Disabled Items list..." -ForegroundColor Gray
+# Clear Disabled Items
 $disabledPaths = @(
     "HKCU:\Software\Microsoft\Office\16.0\Excel\Resiliency\DisabledItems",
     "HKCU:\Software\Microsoft\Office\15.0\Excel\Resiliency\DisabledItems",
@@ -54,7 +54,7 @@ foreach ($dp in $disabledPaths) {
     }
 }
 
-# 1.7 Remove old COM keys
+# Remove old COM keys
 $progIDs = @("BMToolkits.WpsAddIn", "QSBar.WpsAddIn")
 foreach ($p in $progIDs) {
     $oldPaths = @(
@@ -69,16 +69,8 @@ foreach ($p in $progIDs) {
     }
 }
 
-Write-Host "`n--- 2. Restoring NuGet Packages ---" -ForegroundColor Cyan
-if (Test-Path $nugetExe) {
-    & $nugetExe restore $slnPath -Source "https://api.nuget.org/v3/index.json"
-} else {
-    Write-Warning "nuget.exe not found. Skipping restore."
-}
-
 Write-Host "`n--- 2. Building QSBar ---" -ForegroundColor Cyan
 if (Test-Path $msbuildPath) {
-    # Kill any locking processes
     Stop-Process -Name "et" -Force -ErrorAction SilentlyContinue
     Stop-Process -Name "wps" -Force -ErrorAction SilentlyContinue
     Stop-Process -Name "excel" -Force -ErrorAction SilentlyContinue
@@ -90,37 +82,32 @@ if (Test-Path $msbuildPath) {
     exit
 }
 
-# 3. Registering for WPS & Excel (COM)
-Write-Host "`n--- 3. Registering for WPS & Excel (COM) ---" -ForegroundColor Cyan
+# 3. Registering
+Write-Host "`n--- 3. Registering for WPS and Excel (COM) ---" -ForegroundColor Cyan
 $dllPath = Join-Path $baseDir "QSBar\bin\Debug\QSBar.dll"
 $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
 $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
 if (Test-Path $dllPath) {
-    # 3.1 COM Registration via RegAsm
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
-    # Set environment variable to show Excel/VSTO errors
     [Environment]::SetEnvironmentVariable("VSTO_LOGALERTS", "1", "User")
-    Write-Host "Set VSTO_LOGALERTS=1 to enable error reporting in Excel." -ForegroundColor Gray
-
+    
     if ($isAdmin) {
         if (Test-Path $regasm32) {
-            Write-Host "Registering 32-bit COM..."
             & $regasm32 /codebase "$dllPath" /tlb | Out-Null
         }
         if (Test-Path $regasm64) {
-            Write-Host "Registering 64-bit COM..."
             & $regasm64 /codebase "$dllPath" /tlb | Out-Null
         }
     } else {
         Write-Warning "Not running as Administrator. Attempting to elevate RegAsm..."
         if (Test-Path $regasm32) {
-            Start-Process $regasm32 -ArgumentList "/codebase `"$dllPath`" /tlb" -Verb RunAs -Wait
+            Start-Process $regasm32 -ArgumentList "/codebase ""$dllPath"" /tlb" -Verb RunAs -Wait
         }
         if (Test-Path $regasm64) {
-            Start-Process $regasm64 -ArgumentList "/codebase `"$dllPath`" /tlb" -Verb RunAs -Wait
+            Start-Process $regasm64 -ArgumentList "/codebase ""$dllPath"" /tlb" -Verb RunAs -Wait
         }
     }
 
@@ -129,8 +116,6 @@ if (Test-Path $dllPath) {
     $FriendlyName = "QSBar (COM)"
     $Description = "QSBar COM Add-in for Excel and WPS"
 
-    # 3.2 Explicitly write CLSID to HKCU to ensure Excel/WPS visibility
-    Write-Host "Forcing CLSID registration in HKCU..." -ForegroundColor Gray
     $clsidRoot = "HKCU:\Software\Classes\CLSID\$CLSID"
     if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
     Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value "QSBar.WpsAddIn"
@@ -139,7 +124,7 @@ if (Test-Path $dllPath) {
     Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "C:\Windows\System32\mscoree.dll"
     Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
     Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
-    Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value "QSBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+    Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
     Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
     Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($dllPath.Replace('\', '/'))"
 
@@ -148,7 +133,6 @@ if (Test-Path $dllPath) {
     $curVer = New-Item -Path "$progIdKey\CLSID" -Force
     Set-ItemProperty -Path $curVer.PSPath -Name "(Default)" -Value $CLSID
 
-    # 3.3 Standard COM Add-in paths for WPS and Excel
     $comRegPaths = @(
         "HKCU:\Software\Microsoft\Office\Excel\Addins\$ProgID",
         "HKCU:\Software\Kingsoft\Office\ET\Addins\$ProgID",
@@ -164,11 +148,9 @@ if (Test-Path $dllPath) {
         Set-ItemProperty -Path $path -Name "FriendlyName" -Value $FriendlyName -Force
         Set-ItemProperty -Path $path -Name "LoadBehavior" -Value 3 -Type DWord -Force
         Set-ItemProperty -Path $path -Name "CommandLineSafe" -Value 1 -Type DWord -Force
-        # Remove Manifest key if it exists (from old VSTO attempts) to ensure it's treated as COM
         Remove-ItemProperty -Path $path -Name "Manifest" -ErrorAction SilentlyContinue
     }
 
-    # 3.3 WPS Whitelist (Crucial for WPS)
     $wlProducts = @("ET", "WPS", "Common", "6.0")
     foreach ($prod in $wlProducts) {
         $wlPath = "HKCU:\Software\Kingsoft\Office\$prod\AddinsWL"
@@ -176,27 +158,23 @@ if (Test-Path $dllPath) {
             New-Item -Path $wlPath -Force | Out-Null
         }
         Set-ItemProperty -Path $wlPath -Name $ProgID -Value "" -Force
-        Write-Host "Added $ProgID to $prod whitelist" -ForegroundColor Gray
     }
 
-    Write-Host "WPS & Excel Registration complete!" -ForegroundColor Green
+    Write-Host "Registration complete!" -ForegroundColor Green
 
-    # 4. Diagnostic Test
-    Write-Host "`n--- 4. Diagnostic Test ---" -ForegroundColor Cyan
     try {
         $testObj = New-Object -ComObject $ProgID -ErrorAction Stop
-        Write-Host "SUCCESS: COM object '$ProgID' created successfully in PowerShell!" -ForegroundColor Green
+        Write-Host "SUCCESS: COM object created successfully!" -ForegroundColor Green
         $testObj = $null
     } catch {
-        Write-Warning "FAILED: Could not create COM object '$ProgID'. Excel will likely fail too."
+        Write-Warning "FAILED: Could not create COM object."
         Write-Warning "Error: $($_.Exception.Message)"
     }
 } else {
-    Write-Error "DLL not found after build! Expected at $dllPath"
+    Write-Error "DLL not found after build!"
 }
 
 Write-Host "`n--- Setup Finished! ---" -ForegroundColor Green
 Write-Host "1. Both Excel and WPS are now configured to use COM (not VSTO)."
-Write-Host "2. For WPS: Restart WPS Spreadsheets."
-Write-Host "3. For Excel: Restart Excel."
-Write-Host "If the tab doesn't appear, check 'COM Add-ins' and ensure 'QSBar (COM)' is checked."
+Write-Host "2. Restart WPS/Excel to see the changes."
+Write-Host "If the tab does not appear, check COM Add-ins settings."

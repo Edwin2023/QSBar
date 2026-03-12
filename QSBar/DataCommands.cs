@@ -55,24 +55,35 @@ namespace QSBar
                 object val = value2;
                 if (val != null)
                 {
-                    if (!(val is int iVal && IsExcelErrorCode(iVal)))
+                    bool isError = false;
+                    if (val is int)
+                    {
+                        if (IsExcelErrorCode((int)val))
+                            isError = true;
+                    }
+
+                    if (!isError)
                     {
                         string s = val.ToString();
                         if (s.Length > 0 && s[0] != '=')
                         {
+                            double p;
+                            DateTime dt;
+                            double num;
+
                             if (s.EndsWith("%", StringComparison.Ordinal))
                             {
                                 string inner = s.Substring(0, s.Length - 1);
-                                if (double.TryParse(inner, out double p))
+                                if (double.TryParse(inner, out p))
                                 {
                                     val = (double)(p / 100.0);
                                 }
                             }
-                            else if (DateTime.TryParse(s, out DateTime dt))
+                            else if (DateTime.TryParse(s, out dt))
                             {
                                 val = dt;
                             }
-                            else if (double.TryParse(s, out double num))
+                            else if (double.TryParse(s, out num))
                             {
                                 val = num;
                             }
@@ -102,9 +113,10 @@ namespace QSBar
                         continue;
                     }
 
-                    if (val is int iVal && IsExcelErrorCode(iVal))
+                    if (val is int)
                     {
-                        continue;
+                        if (IsExcelErrorCode((int)val))
+                            continue;
                     }
 
                     string s = val.ToString();
@@ -118,23 +130,27 @@ namespace QSBar
                         continue;
                     }
 
+                    double p;
+                    DateTime dt;
+                    double num;
+
                     if (s.EndsWith("%", StringComparison.Ordinal))
                     {
                         string inner = s.Substring(0, s.Length - 1);
-                        if (double.TryParse(inner, out double p))
+                        if (double.TryParse(inner, out p))
                         {
                             data[i, j] = (double)(p / 100.0);
                             continue;
                         }
                     }
 
-                    if (DateTime.TryParse(s, out DateTime dt))
+                    if (DateTime.TryParse(s, out dt))
                     {
                         data[i, j] = dt;
                         continue;
                     }
 
-                    if (double.TryParse(s, out double num))
+                    if (double.TryParse(s, out num))
                     {
                         data[i, j] = num;
                         continue;
@@ -162,7 +178,9 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Range rng = (app.ActiveSheet as Excel.Worksheet)?.UsedRange;
+            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
+            if (sheet == null) return;
+            Excel.Range rng = sheet.UsedRange;
             if (rng == null) return;
 
             try

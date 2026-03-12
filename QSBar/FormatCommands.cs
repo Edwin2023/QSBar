@@ -387,7 +387,8 @@ namespace QSBar
 
                 // 1. 断开外部工作簿链接 (将公式转为数值)
                 object linksObj = workbook.LinkSources(Excel.XlLink.xlExcelLinks);
-                if (linksObj is Array links)
+                Array links = linksObj as Array;
+                if (links != null)
                 {
                     for (int i = links.GetLowerBound(0); i <= links.GetUpperBound(0); i++)
                     {

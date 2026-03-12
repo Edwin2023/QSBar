@@ -1,8 +1,9 @@
-﻿namespace QSBar.Core.Formatting;
-
-public class RowStyle
+namespace QSBar.Core.Formatting
 {
-    public int? ColorIndex { get; set; }
-    public bool Bold { get; set; }
-    public bool BorderLeft { get; set; }
+    public class RowStyle
+    {
+        public int? ColorIndex { get; set; }
+        public bool Bold { get; set; }
+        public bool BorderLeft { get; set; }
+    }
 }

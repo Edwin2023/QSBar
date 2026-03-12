@@ -81,7 +81,7 @@ namespace QSBar.Setup
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"操作过程中出错: {ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format("操作过程中出错: {0}", ex.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
             }
         }

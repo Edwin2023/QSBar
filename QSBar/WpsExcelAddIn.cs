@@ -26,7 +26,7 @@ namespace QSBar
 
         public static void RefreshRibbon()
         {
-            _ribbon?.Invalidate();
+            if (_ribbon != null) _ribbon.Invalidate();
         }
 
         public void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
@@ -49,6 +49,12 @@ namespace QSBar
             }
         }
 
+        private void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
+        {
+            _keyboardHook.AddShortcut(ctrl, alt, mainKey, action);
+            if (numKey != Keys.None) _keyboardHook.AddShortcut(ctrl, alt, numKey, action);
+        }
+
         private void RegisterShortcuts()
         {
             if (_keyboardHook != null) return;
@@ -56,13 +62,6 @@ namespace QSBar
             {
                 _keyboardHook = new KeyboardHook();
                 
-                // 辅助方法：同时注册主键盘和数字键盘按键
-                void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
-                {
-                    _keyboardHook.AddShortcut(ctrl, alt, mainKey, action);
-                    if (numKey != Keys.None) _keyboardHook.AddShortcut(ctrl, alt, numKey, action);
-                }
-
                 // Ctrl + Key
                 AddShortcuts(true, false, Keys.D7, Keys.NumPad7, () => FormatCommands.WrapText());
                 AddShortcuts(true, false, Keys.D8, Keys.NumPad8, () => FormatCommands.Accounting0());
@@ -107,8 +106,11 @@ namespace QSBar
                             int mode = (int)App.Calculation;
                             if (mode == _lastCalcMode) return;
                             _lastCalcMode = mode;
-                            _ribbon?.InvalidateControl("btnCalcAuto");
-                            _ribbon?.InvalidateControl("btnCalcManual");
+                            if (_ribbon != null)
+                            {
+                                _ribbon.InvalidateControl("btnCalcAuto");
+                                _ribbon.InvalidateControl("btnCalcManual");
+                            }
                         }
                         catch { }
                     };
@@ -146,7 +148,7 @@ namespace QSBar
             RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
             
             // 启动时静默检查更新（不打扰用户）
-            _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
+            Task.Run(() => UpdateManager.CheckForUpdateAsync(true));
         }
 
         public string GetCustomUI(string RibbonID)
@@ -250,7 +252,7 @@ namespace QSBar
 
         public void OnRestartUpdate(Office.IRibbonControl control)
         {
-            _ = UpdateManager.StartUpdateFlow();
+            UpdateManager.StartUpdateFlow();
         }
 
         public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
@@ -279,7 +281,8 @@ namespace QSBar
         public void OnResizePictures(Office.IRibbonControl control) 
         { 
             int factor = 1;
-            if (control.Tag != null && int.TryParse(control.Tag, out int f)) factor = f;
+            int f;
+            if (control.Tag != null && int.TryParse(control.Tag, out f)) factor = f;
             PhotoCommands.ResizePictures(factor); 
         }
         public void OnSelectAllPictures(Office.IRibbonControl control) { PhotoCommands.SelectAllPictures(); }
@@ -314,8 +317,8 @@ namespace QSBar
                 else
                     App.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
                 
-                _ribbon?.InvalidateControl("btnCalcAuto");
-                _ribbon?.InvalidateControl("btnCalcManual");
+                if (_ribbon != null) _ribbon.InvalidateControl("btnCalcAuto");
+                if (_ribbon != null) _ribbon.InvalidateControl("btnCalcManual");
             }
             catch { }
         }
