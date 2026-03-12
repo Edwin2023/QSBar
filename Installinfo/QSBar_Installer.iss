@@ -3,7 +3,8 @@
 #define MyAppVersion "1.0.0.1"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"
-#define SourcePath "QSBar\bin\Release"
+#define SourcePath "..\Release"
+#define ScriptPath "..\scripts"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -18,7 +19,7 @@ AppSupportURL=https://gitee.com/kevin137/qsbar
 AppUpdatesURL=https://gitee.com/kevin137/qsbar
 DefaultDirName=D:\Program Files\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputDir=Installer
+OutputDir=..\Release
 OutputBaseFilename=QSBar_Setup_v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
@@ -72,7 +73,7 @@ Source: "{#SourcePath}\Microsoft.IO.RecyclableMemoryStream.dll"; DestDir: "{app}
 Source: "{#SourcePath}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "scripts\Register_QSBar.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ScriptPath}\Register.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "UpdateNotes.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW1_EXCEL_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW2_WPS_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion

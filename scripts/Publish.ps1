@@ -7,13 +7,14 @@ param (
 )
 
 $ErrorActionPreference = "Stop" # Stop on error
-$RootDir = Get-Location
-$DllSource = "$RootDir\QSBar\bin\Release\QSBar.dll"
-$PublishDir = "$RootDir\publish"
-$VersionJson = "$RootDir\version.json"
-$projectPath = "$RootDir\QSBar\QSBar.csproj"
-$slnPath = "$RootDir\QSBar.sln"
-$nugetExe = "$RootDir\nuget.exe"
+$baseDir = $PSScriptRoot
+$rootDir = (Get-Item $baseDir).Parent.FullName
+$DllSource = Join-Path $rootDir "QSBar\bin\Release\QSBar.dll"
+$PublishDir = Join-Path $rootDir "publish"
+$VersionJson = Join-Path $rootDir "version.json"
+$projectPath = Join-Path $rootDir "QSBar\QSBar.csproj"
+$slnPath = Join-Path $rootDir "QSBar.sln"
+$nugetExe = Join-Path $rootDir "nuget.exe"
 
 # 1. Check parameters
 if (-not $Version -or -not $Log) {
@@ -104,9 +105,11 @@ Write-Host "Successfully updated version.json." -ForegroundColor Green
 # 8. Push to Gitee
 Write-Host "Pushing to Gitee..." -ForegroundColor Cyan
 try {
+    Push-Location $rootDir
     git add .
     git commit -m "Release v$Version : $Log"
     git push origin master
+    Pop-Location
     Write-Host "--- Publish Successful! ---" -ForegroundColor Green
     Write-Host "Users will now receive the update notification for v$Version." -ForegroundColor Cyan
 } catch {

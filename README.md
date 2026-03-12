@@ -10,14 +10,15 @@
 - `QSBar.Core/`: 核心业务逻辑（数据处理、格式转换、导出策略等）。
 - `QSBar.sln`: Visual Studio 解决方案文件。
 - `QSBar_Installer.iss`: Inno Setup 打包脚本，用于生成一键安装 EXE。
-- `scripts/dev_register.ps1`: 由 VS 自动调用的开发注册脚本（支持 Excel & WPS）。
-- `quick_setup.ps1`: 备用的全自动环境初始化脚本。
+- `scripts/Register-QSBar.ps1`: 核心注册脚本（统一支持开发注册、用户安装、卸载）。
+- `scripts/Register.bat`: 一键注册脚本（用户模式）。
+- `scripts/Unregister.bat`: 一键卸载脚本。
 - `0memory/`: 项目开发记忆与技术文档（包含 VBA 源码参考）。
 
 ## 快速开始
 
 ### 1. 开发环境配置
-- **Visual Studio 2022**: 建议以**管理员身份**运行。
+- **Visual Studio 2022**: 建议以**管理员身份**运行（非必须，但推荐）。
 - **Inno Setup**: 用于生成最终的安装程序。
 - **.NET Framework 4.8**: 项目运行的基础环境。
 
@@ -25,13 +26,17 @@
 为了模拟 VBA “即改即见效”的体验，项目已配置全自动开发流：
 1. **修改代码**：在 Visual Studio 中进行逻辑或 UI 修改。
 2. **一键调试**：直接按 **F5**。
-   - **自动化操作**：VS 会自动编译 -> 调用 `scripts/dev_register.ps1` 注册 COM -> **自动启动 Excel** 并挂载调试器。
+   - **自动化操作**：
+     - 自动检测并强制关闭残留的 Excel/WPS 进程（解决文件占用问题）。
+     - 编译并部署最新 DLL 到 `%LOCALAPPDATA%\QSBar`。
+     - 调用 `scripts/Register-QSBar.ps1` 更新注册信息。
+     - **自动启动 Excel** 并挂载调试器。
    - **效果**：Excel 启动后即可直接测试新功能。
-3. **循环开发**：测试完后，**关闭 Excel**，再次修改代码并按 **F5** 即可。
+3. **循环开发**：测试完后，可以直接停止调试（Shift+F5），VS 会自动处理进程清理（如下次启动时）。
 
 > **常见问题排查**：
-> - **生成失败**：通常是因为 Excel 窗口没关，导致 `QSBar.dll` 被占用。请关闭所有 Excel/WPS 进程。
-> - **脚本错误**：如果注册脚本报错，请确保 `scripts/dev_register.ps1` 中不包含导致编码问题的中文字符。
+> - **生成失败**：虽然已配置自动杀进程，但如果文件被非 Excel 进程占用，仍可能失败。
+> - **脚本错误**：如果注册脚本报错，请检查 PowerShell 执行策略 (`Set-ExecutionPolicy RemoteSigned`)。
 
 ### 3. 发布安装包
 1. 在 Visual Studio 中切换到 `Release` 模式并生成。

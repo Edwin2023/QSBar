@@ -1,9 +1,11 @@
 # QSBar Quick Setup Script for Excel and WPS
 $ErrorActionPreference = "Stop"
 $baseDir = $PSScriptRoot
-$projectPath = Join-Path $baseDir "QSBar\QSBar.csproj"
-$slnPath = Join-Path $baseDir "QSBar.sln"
-$nugetExe = Join-Path $baseDir "nuget.exe"
+$rootDir = (Get-Item $baseDir).Parent.FullName
+$projectPath = Join-Path $rootDir "QSBar\QSBar.csproj"
+$slnPath = Join-Path $rootDir "QSBar.sln"
+$nugetExe = Join-Path $rootDir "nuget.exe"
+$scriptsDir = $baseDir
 
 # Find MSBuild
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -75,7 +77,7 @@ if (Test-Path $msbuildPath) {
     Stop-Process -Name "wps" -Force -ErrorAction SilentlyContinue
     Stop-Process -Name "excel" -Force -ErrorAction SilentlyContinue
 
-    & $msbuildPath $projectPath /p:Configuration=Debug /p:Platform="AnyCPU" /p:RegisterForComInterop=false
+    & $msbuildPath $projectPath /p:Configuration=Debug /p:Platform="AnyCPU"
     Write-Host "Build successful!" -ForegroundColor Green
 } else {
     Write-Error "MSBuild not found at $msbuildPath"
@@ -84,11 +86,20 @@ if (Test-Path $msbuildPath) {
 
 # 3. Registering
 Write-Host "`n--- 3. Registering for WPS and Excel (COM) ---" -ForegroundColor Cyan
-$dllPath = Join-Path $baseDir "QSBar\bin\Debug\QSBar.dll"
+$dllPath = Join-Path $rootDir "QSBar\bin\Debug\QSBar.dll"
+$registerScript = Join-Path $scriptsDir "Register-QSBar.ps1"
 $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
 $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
 if (Test-Path $dllPath) {
+    # Use existing Register-QSBar.ps1 script
+    if (Test-Path $registerScript) {
+        Write-Host "Calling Register-QSBar.ps1..." -ForegroundColor Cyan
+        & powershell.exe -ExecutionPolicy Bypass -File $registerScript -DllPath $dllPath
+        exit
+    }
+    
+    # Fallback to manual registration if script missing (legacy code below)
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 

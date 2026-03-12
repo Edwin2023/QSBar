@@ -193,6 +193,7 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
+    <EmbeddedResource Include="Ribbon.xml" />
     <Compile Include="otherFileForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -259,12 +260,16 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- 在项目文件的末尾，</Project> 标签之前加入以下内容 -->
   <Target Name="AfterBuild">
+    <Message Text="[Dev] 尝试关闭 Excel/WPS 进程以释放 DLL 锁定..." Importance="high" />
+    <Exec Command="taskkill /F /IM EXCEL.EXE /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM et.exe /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM wps.exe /T &gt;nul 2&gt;&amp;1" ContinueOnError="true" />
+    
     <Message Text="正在同步 DLL 及依赖到安装目录 (%LOCALAPPDATA%\QSBar)..." Importance="high" />
-    <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" ContinueOnError="true" />
-    <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" ContinueOnError="true" />
-    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" ContinueOnError="true" />
+    <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(TargetName).pdb&quot; &quot;%LOCALAPPDATA%\QSBar\$(TargetName).pdb&quot;" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    
     <!-- 仅在 Debug 模式下尝试自动注册，或者在失败时继续编译，避免阻塞 Release 打包 -->
     <Message Text="正在尝试运行自动注册脚本 (Excel &amp; WPS)..." Importance="high" />
-    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\scripts\dev_register.ps1&quot; -dllPath &quot;%LOCALAPPDATA%\QSBar\$(TargetFileName)&quot;" ContinueOnError="true" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(ProjectDir)..\scripts\Register-QSBar.ps1&quot; -DllPath &quot;%LOCALAPPDATA%\QSBar\$(TargetFileName)&quot;" ContinueOnError="true" />
   </Target>
 </Project>

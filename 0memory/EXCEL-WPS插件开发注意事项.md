@@ -24,14 +24,14 @@ Excel 2021 的 Ribbon 引擎比以往版本（及 WPS）更加严苛，任何不
 ## 3. 开发效率优化：一键调试 (F5 流程)
 为了模拟 VBA “即改即见效”的体验，项目已在 `.csproj` 中配置了深度集成：
 - **自动启动配置**：在 `QSBar.csproj` 的 `Debug` 节点配置了 `<StartAction>Program</StartAction>` 和 `<StartProgram>`。点击 **F5** 会自动启动 Excel 并挂载调试器。
-- **自动注册联动**：配置 `AfterBuild` 目标。每次生成成功后，会自动触发 `scripts/dev_register.ps1`。
-- **功能**：自动执行 32/64 位 RegAsm 注册、写入 HKCU 注册表、配置 WPS 白名单。
+- **自动注册联动**：配置 `AfterBuild` 目标。每次生成成功后，会自动触发 `scripts/Register-QSBar.ps1`。
+- **功能**：自动执行 RegAsm 注册、写入 HKCU 注册表、配置 WPS 白名单。
 
 ## 4. 开发常见坑位与解决方法 (Troubleshooting)
 ### 4.1 文件锁定导致生成失败
 - **现象**：报错 `MSB3021/MSB3027`，提示 `bin\Debug\QSBar.dll` 正在被另一进程使用。
-- **原因**：Excel/WPS 窗口未关闭，或者后台残留了调试进程（如 PID 锁定的 PowerShell）。
-- **解决**：必须先**关闭所有 Excel/WPS 窗口**再点击生成或 F5。如果依然报错，需在任务管理器中强制结束 `EXCEL.EXE` 或对应的 `powershell.exe`。
+- **原因**：Excel/WPS 窗口未关闭。
+- **解决**：项目 `QSBar.csproj` 已配置 `AfterBuild` 自动执行 `taskkill` 关闭 Excel/WPS 进程。如果依然报错，请确保没有以管理员权限运行的僵尸进程。
 
 ### 4.2 脚本编码导致的语法错误
 - **现象**：报错 `字符串缺少终止符` 或 `TerminatorExpectedAtEndOfString`。
