@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.IO;
 using Excel = Microsoft.Office.Interop.Excel;
 using Office = Microsoft.Office.Core;
 using AddInDesignerObjects;
@@ -161,22 +163,27 @@ namespace QSBar
 
         public string GetCustomUI(string RibbonID)
         {
-            try
+            return GetResourceText("QSBar.Ribbon.xml");
+        }
+
+        private static string GetResourceText(string resourceName)
+        {
+            Assembly asm = Assembly.GetExecutingAssembly();
+            string[] resourceNames = asm.GetManifestResourceNames();
+            for (int i = 0; i < resourceNames.Length; ++i)
             {
-                using (var stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("QSBar.Ribbon.xml"))
+                if (string.Compare(resourceName, resourceNames[i], StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    if (stream == null) return null;
-                    using (var reader = new System.IO.StreamReader(stream))
+                    using (StreamReader resourceReader = new StreamReader(asm.GetManifestResourceStream(resourceNames[i])))
                     {
-                        return reader.ReadToEnd();
+                        if (resourceReader != null)
+                        {
+                            return resourceReader.ReadToEnd();
+                        }
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("GetCustomUI Error: " + ex.ToString());
-                return null;
-            }
+            return null;
         }
 
         #region Ribbon Callbacks

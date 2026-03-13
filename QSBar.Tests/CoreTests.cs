@@ -120,8 +120,8 @@ namespace QSBar.Tests
             int[] levels = { 0, 1, 1, 2, 2, 1, 0 };
             var groups = RowLevelDetector.ComputeGroups(levels);
 
-            Assert.Contains(groups, g => g.start == 1 && g.end == 5 && g.level == 1);
-            Assert.Contains(groups, g => g.start == 3 && g.end == 4 && g.level == 2);
+            Assert.Contains(groups, g => g.Start == 1 && g.End == 5 && g.Level == 1);
+            Assert.Contains(groups, g => g.Start == 3 && g.End == 4 && g.Level == 2);
         }
     }
 }
