@@ -51,7 +51,7 @@ namespace QSBar
                 {
                     // 无论是否 silent，发现新版本后都刷新 Ribbon 状态
                     // 不再在这里弹窗，统一由 Ribbon 上的按钮触发
-                    WpsExcelAddIn.RefreshRibbon();
+                    // WpsExcelAddIn.RefreshRibbon(); // FIXME: Cannot call COM on background thread!
                     return;
                 }
                 else
