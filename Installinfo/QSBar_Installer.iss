@@ -1,9 +1,9 @@
-﻿; QSBar One-Click Installer Script for Inno Setup
+; QSBar One-Click Installer Script for Inno Setup
 #define MyAppName "QSBar"
 #define MyAppVersion "1.0.0.5"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"
-#define SourcePath "..\Release"
+#define SourcePath "..\QSBar\bin\Release"
 #define ScriptPath "..\scripts"
 
 [Setup]
@@ -42,8 +42,8 @@ DisableReadyPage=no
 ; Tools -> Configure Sign Tools... -> Add
 ; Name: Standard
 ; Command: "signtool.exe" sign /f "C:\QSBar_Cert.pfx" /p 123456 /fd SHA256 /t http://timestamp.digicert.com $f
-SignTool=Standard
-SignedUninstaller=yes
+; SignTool=Standard
+; SignedUninstaller=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
