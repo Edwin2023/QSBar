@@ -1,10 +1,10 @@
 ; QSBar One-Click Installer Script for Inno Setup
 #define MyAppName "QSBar"
-#define MyAppVersion "1.0.0.5"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"
 #define SourcePath "..\QSBar\bin\Release"
 #define ScriptPath "..\scripts"
+#define MyAppVersion GetFileVersion("..\QSBar\bin\Release\QSBar.dll")
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -17,7 +17,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL=https://gitee.com/kevin137/qsbar
 AppSupportURL=https://gitee.com/kevin137/qsbar
 AppUpdatesURL=https://gitee.com/kevin137/qsbar
-DefaultDirName=D:\Program Files\{#MyAppName}
+DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=..\Release
 OutputBaseFilename=QSBar_Setup_v{#MyAppVersion}
@@ -74,6 +74,7 @@ Source: "{#SourcePath}\Newtonsoft.Json.dll"; DestDir: "{app}"; Flags: ignorevers
 Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ScriptPath}\Register-QSBar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "UpdateNotes.html"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW1_EXCEL_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW2_WPS_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
@@ -97,7 +98,7 @@ Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Class"; ValueData: "QSBar.WpsExcelAddIn"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "Assembly"; ValueData: "QSBar, Version={#MyAppVersion}, Culture=neutral, PublicKeyToken=null"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "RuntimeVersion"; ValueData: "v4.0.30319"; Flags: uninsdeletekey
-Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "file:///{app}/{#MyAppExeName}"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32"; ValueType: string; ValueName: "CodeBase"; ValueData: "{code:GetCodeBase}"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\QSBar.WpsAddIn"; ValueType: string; ValueName: ""; ValueData: "QSBar.WpsAddIn"; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\QSBar.WpsAddIn\CLSID"; ValueType: string; ValueName: ""; ValueData: "{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; Flags: uninsdeletekey
 
@@ -137,7 +138,7 @@ Filename: "{dotnet40}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; Working
 Filename: "{dotnet4064}\RegAsm.exe"; Parameters: "/u ""{app}\QSBar.dll"""; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Cleaning up old 64-bit registration..."; Check: IsWin64
 
 ; 核心注册逻辑：调用 bat 脚本进行注册，确保环境与手动执行一致
-Filename: "{app}\Register_QSBar.bat"; Parameters: ""; WorkingDir: "{app}"; StatusMsg: "Registering QSBar (Finalizing)..."
+Filename: "{app}\Register.bat"; Parameters: ""; WorkingDir: "{app}"; StatusMsg: "Registering QSBar (Finalizing)..."
 
 Filename: "{app}\UpdateNotes.html"; Description: "View update instructions (查看更新说明)"; Flags: postinstall shellexec skipifsilent
 
@@ -183,12 +184,21 @@ begin
   Result := True;
   if IsInstalled() then
   begin
+    sUnInstallString := RemoveQuotes(GetUninstallString());
+    
+    // 如果卸载程序文件已经不存在了（比如被用户手动删除了文件夹），则直接允许覆盖安装
+    if not FileExists(sUnInstallString) then
+    begin
+      Result := True;
+      Exit;
+    end;
+
     V := MsgBox('A version of QSBar is already installed. Do you want to uninstall it before continuing?' + #13#10 +
                 '检测到已安装旧版本，是否在继续安装前先卸载？', mbConfirmation, MB_YESNO);
     if V = IDYES then
     begin
-      sUnInstallString := RemoveQuotes(GetUninstallString());
-      if Exec(sUnInstallString, '/SILENT /VERYSILENT /SUPPRESSMSGBOXES', '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      // 确保使用 ShellExecute 方式调用
+      if ShellExec('', sUnInstallString, '/SILENT /VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
       begin
         // 卸载成功后继续
         Result := True;

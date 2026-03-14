@@ -1,7 +1,7 @@
 # QSBar (COM Version)
 
-![Excel Bar](SHOW1_EXCEL%20BAR.png)
-![WPS Bar](SHOW2_WPS_BAR.png)
+![Excel Bar](Installinfo/SHOW1_EXCEL_BAR.bmp)
+![WPS Bar](Installinfo/SHOW2_WPS_BAR.bmp)
 
 本项目是 QSBar 插件的 COM 版本，旨在提供一套代码同时兼容 **Microsoft Excel** (包括 Excel 2021) 和 **WPS 表格** 的统一解决方案。
 
@@ -9,7 +9,8 @@
 - `QSBar/`: 插件核心源代码（UI、逻辑处理）。
 - `QSBar.Core/`: 核心业务逻辑（数据处理、格式转换、导出策略等）。
 - `QSBar.sln`: Visual Studio 解决方案文件。
-- `scripts/Publish.ps1`: **发布脚本**（一键编译 Release、更新版本号、推送 Gitee）。
+- `Installinfo/`: **打包资源目录**（包含安装脚本、版本信息、更新日志及展示图片）。
+- `scripts/Publish.ps1`: **发布脚本**（一键编译 Release、更新版本号、同步 Installinfo 信息、推送 Gitee）。
 - `scripts/quick_setup.ps1`: **开发调试脚本**（一键重置环境、编译 Debug、注册插件）。
 - `scripts/Register-QSBar.ps1`: **核心注册脚本**（底层工具，处理注册表清理与写入）。
 - `0memory/`: 项目开发记忆与技术文档。
@@ -53,10 +54,11 @@
 
 #### 脚本执行流程：
 1.  **版本更新**：自动修改 `AssemblyInfo.cs` 和 `QSBar.csproj` 为新版本号。
-2.  **编译 Release**：调用 MSBuild 重新编译 Release 版本。
-3.  **构建发布包**：将 DLL 复制到 `publish/` 目录。
-4.  **更新元数据**：更新 `version.json` 供客户端检查更新。
-5.  **推送代码**：自动提交 git commit 并推送到 Gitee `master` 分支。
+2.  **同步 Installinfo**：自动更新 `Installinfo/version.json` 和 `Installinfo/QSBar_Installer.iss` 中的版本号。
+3.  **编译 Release**：调用 MSBuild 重新编译 Release 版本。
+4.  **构建发布包**：将 DLL 复制到 `Release/` 目录。
+5.  **更新元数据**：更新根目录 `version.json` 供客户端检查更新。
+6.  **推送代码**：自动提交 git commit 并推送到 Gitee `master` 分支。
 
 ## 常见问题
 - **插件未显示**：通常是因为 Excel 将插件加入了“禁用项”。运行 `scripts/quick_setup.ps1` 可自动修复。

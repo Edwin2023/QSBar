@@ -129,11 +129,35 @@ Write-Host "Successfully updated version.json." -ForegroundColor Green
 [System.IO.File]::WriteAllText($InstallInfoVersionJson, $jsonString, [System.Text.Encoding]::UTF8)
 Write-Host "Successfully updated Installinfo/version.json." -ForegroundColor Green
 
+# Update UpdateNotes.html
+$UpdateNotesPath = Join-Path $InstallInfoDir "UpdateNotes.html"
+if (Test-Path $UpdateNotesPath) {
+    $notesContent = [System.IO.File]::ReadAllText($UpdateNotesPath, [System.Text.Encoding]::UTF8)
+    
+    # Update Version
+    $notesContent = $notesContent -replace '<!-- VERSION_START -->.*?<!-- VERSION_END -->', "<!-- VERSION_START -->$Version<!-- VERSION_END -->"
+    
+    # Update Log
+    # Split the log by newline or semicolon if it's a single string, to create list items
+    $logItems = $Log -split "[;\n]" | Where-Object { $_.Trim() -ne "" }
+    $logHtml = ""
+    foreach ($item in $logItems) {
+        $logHtml += "            <li>$($item.Trim())</li>`n"
+    }
+    
+    # Replace the block between LOG_START and LOG_END
+    $notesContent = [regex]::Replace($notesContent, '(?s)(?<=<!-- LOG_START -->\s*).*?(?=\s*<!-- LOG_END -->)', "`n$logHtml")
+    
+    [System.IO.File]::WriteAllText($UpdateNotesPath, $notesContent, [System.Text.Encoding]::UTF8)
+    Write-Host "Successfully updated UpdateNotes.html." -ForegroundColor Green
+}
+
 # Update QSBar_Installer.iss version
 if (Test-Path $InstallerScript) {
     $issContent = [System.IO.File]::ReadAllText($InstallerScript, [System.Text.Encoding]::UTF8)
-    # Replace #define MyAppVersion "x.x.x.x"
-    $issContent = $issContent -replace '#define MyAppVersion ".*?"', "#define MyAppVersion `"$Version`""
+    # Update QSBar_Installer.iss version is no longer needed if using GetFileVersion, but we keep it for backward compatibility or we can remove it.
+    # We will just rely on the DLL compilation to update the version.
+    # $issContent = $issContent -replace '#define MyAppVersion ".*?"', "#define MyAppVersion `"$Version`""
     [System.IO.File]::WriteAllText($InstallerScript, $issContent, [System.Text.Encoding]::UTF8)
     Write-Host "Successfully updated QSBar_Installer.iss version." -ForegroundColor Green
 }
