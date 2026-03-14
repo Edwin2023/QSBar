@@ -25,7 +25,26 @@ if (-not $Version -or -not $Log) {
 
 Write-Host "--- Starting Publish Process v$Version ---" -ForegroundColor Cyan
 
-# 2. Build Setup (Find MSBuild)
+# 2.5 Update AssemblyInfo.cs and .csproj with new version
+Write-Host "--- Updating Version to $Version ---" -ForegroundColor Cyan
+$AssemblyInfoPath = Join-Path $rootDir "QSBar\Properties\AssemblyInfo.cs"
+if (Test-Path $AssemblyInfoPath) {
+    # Use System.IO.File to handle encoding reliably (UTF-8)
+    $content = [System.IO.File]::ReadAllText($AssemblyInfoPath, [System.Text.Encoding]::UTF8)
+    $content = $content -replace 'AssemblyVersion\(".*?"\)', "AssemblyVersion(`"$Version`")"
+    $content = $content -replace 'AssemblyFileVersion\(".*?"\)', "AssemblyFileVersion(`"$Version`")"
+    [System.IO.File]::WriteAllText($AssemblyInfoPath, $content, [System.Text.Encoding]::UTF8)
+    Write-Host "Updated AssemblyInfo.cs" -ForegroundColor Gray
+}
+
+if (Test-Path $projectPath) {
+    $content = [System.IO.File]::ReadAllText($projectPath, [System.Text.Encoding]::UTF8)
+    $content = $content -replace '<ApplicationVersion>.*?</ApplicationVersion>', "<ApplicationVersion>$Version</ApplicationVersion>"
+    [System.IO.File]::WriteAllText($projectPath, $content, [System.Text.Encoding]::UTF8)
+    Write-Host "Updated QSBar.csproj ApplicationVersion" -ForegroundColor Gray
+}
+
+# 3. Build Setup (Find MSBuild)
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 $msbuildPath = $null
 
