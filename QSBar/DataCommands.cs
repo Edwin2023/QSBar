@@ -1,4 +1,4 @@
-﻿﻿﻿﻿using System;
+﻿﻿﻿﻿﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -25,6 +25,79 @@ namespace QSBar
 
 
         
+
+        public static void Textify()
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
+            Excel.Range sel = app.Selection as Excel.Range;
+            if (sheet == null || sel == null) return;
+
+            Excel.Range used = sheet.UsedRange;
+            Excel.Range target = app.Intersect(sel, used);
+            if (target == null) return;
+
+            object value2 = target.Value2;
+            if (!(value2 is object[,]))
+            {
+                object val = value2;
+                if (val != null)
+                {
+                    bool isError = false;
+                    if (val is int)
+                    {
+                        if (IsExcelErrorCode((int)val))
+                            isError = true;
+                    }
+
+                    if (!isError)
+                    {
+                        string s = val.ToString();
+                        if (s.Length > 0 && s[0] != '=')
+                        {
+                            // 无论是不是数字，都加上单引号前缀强制转为文本
+                            val = "'" + s;
+                        }
+                    }
+                }
+
+                target.NumberFormatLocal = "@";
+                target.Value2 = val;
+                target.ShrinkToFit = true;
+                return;
+            }
+
+            object[,] data = (object[,])value2;
+            int rows = data.GetLength(0);
+            int cols = data.GetLength(1);
+            int rBase = data.GetLowerBound(0);
+            int cBase = data.GetLowerBound(1);
+
+            for (int i = rBase; i < rBase + rows; i++)
+            {
+                for (int j = cBase; j < cBase + cols; j++)
+                {
+                    object val = data[i, j];
+                    if (val == null) continue;
+
+                    if (val is int)
+                    {
+                        if (IsExcelErrorCode((int)val)) continue;
+                    }
+
+                    string s = val.ToString();
+                    if (s.Length == 0) continue;
+                    if (s[0] == '=') continue;
+
+                    data[i, j] = "'" + s;
+                }
+            }
+
+            target.NumberFormatLocal = "@";
+            target.Value2 = data;
+            target.ShrinkToFit = true;
+        }
 
         public static void NormalizeNumbers()
         {

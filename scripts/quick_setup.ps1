@@ -92,94 +92,14 @@ $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
 $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
 if (Test-Path $dllPath) {
-    # Use existing Register-QSBar.ps1 script
+    # Delegate to Register-QSBar.ps1
     if (Test-Path $registerScript) {
         Write-Host "Calling Register-QSBar.ps1..." -ForegroundColor Cyan
         & powershell.exe -ExecutionPolicy Bypass -File $registerScript -DllPath $dllPath
-        exit
-    }
-    
-    # Fallback to manual registration if script missing (legacy code below)
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-    [Environment]::SetEnvironmentVariable("VSTO_LOGALERTS", "1", "User")
-    
-    if ($isAdmin) {
-        if (Test-Path $regasm32) {
-            & $regasm32 /codebase "$dllPath" /tlb | Out-Null
-        }
-        if (Test-Path $regasm64) {
-            & $regasm64 /codebase "$dllPath" /tlb | Out-Null
-        }
     } else {
-        Write-Warning "Not running as Administrator. Attempting to elevate RegAsm..."
-        if (Test-Path $regasm32) {
-            Start-Process $regasm32 -ArgumentList "/codebase ""$dllPath"" /tlb" -Verb RunAs -Wait
-        }
-        if (Test-Path $regasm64) {
-            Start-Process $regasm64 -ArgumentList "/codebase ""$dllPath"" /tlb" -Verb RunAs -Wait
-        }
-    }
-
-    $ProgID = "QSBar.WpsAddIn"
-    $CLSID = "{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"
-    $FriendlyName = "QSBar (COM)"
-    $Description = "QSBar COM Add-in for Excel and WPS"
-
-    $clsidRoot = "HKCU:\Software\Classes\CLSID\$CLSID"
-    if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
-    Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value "QSBar.WpsAddIn"
-    
-    $inproc = New-Item -Path "$clsidRoot\InprocServer32" -Force
-    Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "C:\Windows\System32\mscoree.dll"
-    Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
-    Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
-    Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
-    Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
-    Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($dllPath.Replace('\', '/'))"
-
-    $progIdKey = "HKCU:\Software\Classes\$ProgID"
-    if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
-    $curVer = New-Item -Path "$progIdKey\CLSID" -Force
-    Set-ItemProperty -Path $curVer.PSPath -Name "(Default)" -Value $CLSID
-
-    $comRegPaths = @(
-        "HKCU:\Software\Microsoft\Office\Excel\Addins\$ProgID",
-        "HKCU:\Software\Kingsoft\Office\ET\Addins\$ProgID",
-        "HKCU:\Software\Kingsoft\Office\ET\AddinsData\$ProgID",
-        "HKCU:\Software\Kingsoft\Office\WPS\Addins\$ProgID"
-    )
-
-    foreach ($path in $comRegPaths) {
-        if (-not (Test-Path $path)) {
-            New-Item -Path $path -Force | Out-Null
-        }
-        Set-ItemProperty -Path $path -Name "Description" -Value $Description -Force
-        Set-ItemProperty -Path $path -Name "FriendlyName" -Value $FriendlyName -Force
-        Set-ItemProperty -Path $path -Name "LoadBehavior" -Value 3 -Type DWord -Force
-        Set-ItemProperty -Path $path -Name "CommandLineSafe" -Value 1 -Type DWord -Force
-        Remove-ItemProperty -Path $path -Name "Manifest" -ErrorAction SilentlyContinue
-    }
-
-    $wlProducts = @("ET", "WPS", "Common", "6.0")
-    foreach ($prod in $wlProducts) {
-        $wlPath = "HKCU:\Software\Kingsoft\Office\$prod\AddinsWL"
-        if (-not (Test-Path $wlPath)) {
-            New-Item -Path $wlPath -Force | Out-Null
-        }
-        Set-ItemProperty -Path $wlPath -Name $ProgID -Value "" -Force
-    }
-
-    Write-Host "Registration complete!" -ForegroundColor Green
-
-    try {
-        $testObj = New-Object -ComObject $ProgID -ErrorAction Stop
-        Write-Host "SUCCESS: COM object created successfully!" -ForegroundColor Green
-        $testObj = $null
-    } catch {
-        Write-Warning "FAILED: Could not create COM object."
-        Write-Warning "Error: $($_.Exception.Message)"
+        Write-Error "CRITICAL ERROR: Register-QSBar.ps1 not found!"
+        Write-Error "Please restore e:\Code\QSBar\scripts\Register-QSBar.ps1"
+        exit 1
     }
 } else {
     Write-Error "DLL not found after build!"

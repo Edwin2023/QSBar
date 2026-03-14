@@ -3,21 +3,15 @@
     <tabs>
       <tab id='tabQSBar' label='QS工具箱'>
         <group id='groupFormat' label='格式/排版'>
-          <button id='btnClearStyle' label='清除样式' onAction='OnClearStyle' imageMso='Clear' size='large' screentip='清除样式' supertip='清除选中区域的所有单元格样式' />
+          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
+          <button id='btnNormalize' label='数值化' onAction='OnNormalizeNumbers' imageMso='NumberFormat' size='normal' screentip='数据规范化' supertip='对选中区域的数据进行规范化处理' />
+          <button id='btnTextify' label='文本化' onAction='OnTextify' imageMso='TextBoxInsert' size='normal' screentip='数据文本化' supertip='将选中区域的数据强制转换为文本格式' />
           <button id='btnLock' label='锁定公式' onAction='OnLockFormula' imageMso='Lock' size='normal' screentip='锁定/解锁公式' supertip='锁定或解锁选中区域的单元格公式' />  
-          <button id='btnWrapText' label='文本格式' onAction='OnWrapText' imageMso='WrapText' size='normal' screentip='文本格式 (Ctrl+7)' supertip='设置选中区域为自动换行文本格式'/>
-          <button id='btnYiWan' label='亿/万位格式' onAction='OnYiWanFormat' imageMso='CommaStyle' size='normal' screentip='亿/万位格式 (Ctrl+6)' supertip='设置选中区域为亿/万位显示格式'/>
-          <button id='btnAcct0' label='会计格式0位' onAction='OnAccounting0' imageMso='CommaStyle' size='normal' screentip='会计格式0位 (Ctrl+8)' supertip='设置选中区域为无小数位的会计格式'/>
-          <button id='btnAcct2' label='会计格式2位' onAction='OnAccounting2' imageMso='CommaStyle' size='normal' screentip='会计格式2位 (Ctrl+9)' supertip='设置选中区域为两位小数的会计格式'/>
-          <button id='btnAcct3' label='会计格式3位' onAction='OnAccounting3' imageMso='CommaStyle' size='normal' screentip='会计格式3位 (Ctrl+0)' supertip='设置选中区域为三位小数的会计格式'/>
-
         </group>
 
         <group id='groupBQ' label='批量处理'>
-          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines' size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
           <button id='btnSetGrading' label='设置分级' onAction='OnSetGrading' imageMso='ObjectsGroup' size='large' screentip='设置分级显示' supertip='根据内容自动设置工作表的分级显示' />
           <button id='btnSetGradingStyle' label='分级样式' onAction='OnSetGradingStyle' imageMso='FormatPainter' size='large' screentip='设置分级样式' supertip='为分级显示设置不同的单元格样式' />
-        
           <button id='btnOutSheet' label='导出当前表' onAction='OnExportCurrentSheet' imageMso='WindowNew' size='normal' screentip='导出当前表' supertip='以数值形式导出当前工作表' />
           <button id='btnOutStd' label='导出标准报表' onAction='OnExportStandardReport' imageMso='FileSaveAs' size='normal' screentip='导出标准报表' supertip='删除隐藏的行和列，以数值形式导出全部工作表' />
           <button id='btnOutInt' label='导出内部报表' onAction='OnExportInternalReport' imageMso='FileSaveAs' size='normal' screentip='导出内部报表' supertip='以数值形式导出全部工作表' />
@@ -34,29 +28,20 @@
         <group id='groupPhotoTools' label='对象选择'>
           <button id='btnSelVisible' label='选中可见单元格' onAction='OnSelectVisibleCells' imageMso='SelectAll' size='large' screentip='选中可见单元格 (Ctrl+5)' supertip='选中当前工作表中可见的单元格' />
           <button id='btnSelectAllPictures' label='全选图片' onAction='OnSelectAllPictures' imageMso='SelectAll' size='large' screentip='选中全图' supertip='选中当前工作表中的所有图片' />
-          <splitButton id='spPhotoResize' size='large'>
-            <button id='btnPhotoResizeDefault' label='调整图片大小' onAction='OnResizePictures' tag='1' imageMso='ObjectsGroup' screentip='调整图片大小' supertip='批量调整工作表中图片的大小' />
-            <menu id='menuPhotoResize' itemSize='large'>
-              <button id='btnResize1' label='1倍大小' onAction='OnResizePictures' tag='1' imageMso='PictureInsertFromFile' />
-              <button id='btnResize2' label='2倍大小' onAction='OnResizePictures' tag='2' imageMso='PictureInsertFromFile' />
-              <button id='btnResize3' label='3倍大小' onAction='OnResizePictures' tag='3' imageMso='PictureInsertFromFile' />
-              <button id='btnResize4' label='4倍大小' onAction='OnResizePictures' tag='4' imageMso='PictureInsertFromFile' />
-            </menu>
-          </splitButton>
+          <button id='btnResize1' label='1倍大小' onAction='OnResizePictures' tag='1' imageMso='PictureInsertFromFile' size='normal' />
+          <button id='btnResize2' label='2倍大小' onAction='OnResizePictures' tag='2' imageMso='PictureInsertFromFile' size='normal' />
+          <button id='btnResize4' label='4倍大小' onAction='OnResizePictures' tag='4' imageMso='PictureInsertFromFile' size='normal' />
           
         </group>
 
         <group id='groupSheets' label='工作表'>
 
           <button id='btnForceRefresh' label='强制刷新' onAction='OnForceRefresh' imageMso='Refresh' size='normal' screentip='强制刷新' supertip='强制刷新选中区域的所有公式' />
-          <button id='btnNormalize' label='选区数值化' onAction='OnNormalizeNumbers' imageMso='NumberFormat' size='normal' screentip='数据规范化' supertip='对选中区域的数据进行规范化处理' />
-          <button id='btnValOnly' label='全表粘死' onAction='OnConvertAllToValues' imageMso='PasteValues' size='normal' screentip='全表粘死' supertip='将当前工作表的所有公式转换为数值' />
-          <button id='btnBreakLinks' label='删除外部链接' onAction='OnBreakLinks' imageMso='EditLinks' size='normal' screentip='删除外部链接' supertip='断开所有外部工作簿引用并清理异常名称' />
+          <button id='btnValOnly' label='全表数值化' onAction='OnConvertAllToValues' imageMso='PasteValues' size='normal' screentip='全表粘死' supertip='将当前工作表的所有公式转换为数值' />
+          <button id='btnUnhideSheets' label='显示隐藏表' onAction='OnUnhideAllSheets' imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
+          <button id='btnBreakLinks' label='删除外链接' onAction='OnBreakLinks' imageMso='EditLinks' size='normal' screentip='删除外部链接' supertip='断开所有外部工作簿引用并清理异常名称' />
           <button id='btnDeleteLinks' label='删除超链接' onAction='OnDeleteHyperlinks' imageMso='Delete' size='normal' screentip='删除超链接' supertip='删除选中区域的所有超链接' />
-          <button id='btnDeleteEmptyRows' label='删除空行' onAction='OnDeleteEmptyRows' imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
-          <button id='btnUnhideSheets' label='取消隐藏所有表' onAction='OnUnhideAllSheets' imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
-          <button id='btnMultiGroup' label='多区域成组' onAction='OnMultiAreaGroup' imageMso='ObjectsGroup' size='normal' screentip='多区域成组' supertip='将多个不连续区域组合成一组以便统一操作' />
-          <button id='btnMultiUngroup' label='多区域取消成组' onAction='OnMultiAreaUngroup' imageMso='ObjectsUngroup' size='normal' screentip='多区域取消成组' supertip='取消已组合的多区域分组' />
+          <button id='btnDeleteEmptyRows' label='删除表空行' onAction='OnDeleteEmptyRows' imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
           
         </group>
 

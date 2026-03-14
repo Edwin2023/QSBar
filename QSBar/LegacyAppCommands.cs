@@ -17,35 +17,52 @@ namespace QSBar
             app.ScreenUpdating = false;
             try
             {
-                foreach (Excel.Range cell in selection)
+                // Find all cells with formulas in the selection
+                Excel.Range formulas = null;
+                try
                 {
-                    try
+                    formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
+                }
+                catch 
+                {
+                    // No formulas found
+                    return;
+                }
+
+                if (formulas != null)
+                {
+                    foreach (Excel.Range area in formulas.Areas)
                     {
-                        if (cell.HasFormula)
+                        // Convert formulas to absolute references
+                        foreach (Excel.Range cell in area)
                         {
-                            string formula = (string)cell.Formula;
-                            if (formula.StartsWith("="))
+                            try
                             {
-                                string content = formula.Substring(1);
-                                try
+                                string f = (string)cell.Formula;
+                                if (!string.IsNullOrEmpty(f))
                                 {
-                                    Excel.Range target = app.Range[content];
-                                    if (target != null)
+                                    // Convert A1 style references to absolute A1 style references
+                                    object newFormula = app.ConvertFormula(
+                                        f,
+                                        Excel.XlReferenceStyle.xlA1,
+                                        Excel.XlReferenceStyle.xlA1,
+                                        Excel.XlReferenceType.xlAbsolute
+                                    );
+                                    
+                                    if (newFormula is string s && !string.IsNullOrEmpty(s))
                                     {
-                                        string sheetName = target.Worksheet.Name;
-                                        string address = target.Address;
-                                        cell.Formula = "='" + sheetName + "'!" + address;
+                                        cell.Formula = s;
                                     }
                                 }
-                                catch { }
                             }
+                            catch { /* Ignore individual conversion errors */ }
                         }
                     }
-                    catch
-                    {
-                        // Ignore errors
-                    }
                 }
+            }
+            catch
+            {
+                // Ignore general errors
             }
             finally
             {

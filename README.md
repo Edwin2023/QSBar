@@ -9,44 +9,59 @@
 - `QSBar/`: 插件核心源代码（UI、逻辑处理）。
 - `QSBar.Core/`: 核心业务逻辑（数据处理、格式转换、导出策略等）。
 - `QSBar.sln`: Visual Studio 解决方案文件。
-- `QSBar_Installer.iss`: Inno Setup 打包脚本，用于生成一键安装 EXE。
-- `scripts/Register-QSBar.ps1`: 核心注册脚本（统一支持开发注册、用户安装、卸载）。
-- `scripts/Register.bat`: 一键注册脚本（用户模式）。
-- `scripts/Unregister.bat`: 一键卸载脚本。
-- `0memory/`: 项目开发记忆与技术文档（包含 VBA 源码参考）。
+- `scripts/Publish.ps1`: **发布脚本**（一键编译 Release、更新版本号、推送 Gitee）。
+- `scripts/quick_setup.ps1`: **开发调试脚本**（一键重置环境、编译 Debug、注册插件）。
+- `scripts/Register-QSBar.ps1`: **核心注册脚本**（底层工具，处理注册表清理与写入）。
+- `0memory/`: 项目开发记忆与技术文档。
 
 ## 快速开始
 
 ### 1. 开发环境配置
-- **Visual Studio 2022**: 建议以**管理员身份**运行（非必须，但推荐）。
-- **Inno Setup**: 用于生成最终的安装程序。
+- **Visual Studio 2022**: 推荐安装 .NET Desktop Development 工作负载。
 - **.NET Framework 4.8**: 项目运行的基础环境。
 
-### 2. 开发阶段的调试（极简流程）
-为了模拟 VBA “即改即见效”的体验，项目已配置全自动开发流：
-1. **修改代码**：在 Visual Studio 中进行逻辑或 UI 修改。
-2. **一键调试**：直接按 **F5**。
-   - **自动化操作**：
-     - 自动检测并强制关闭残留的 Excel/WPS 进程（解决文件占用问题）。
-     - 编译并部署最新 DLL 到 `%LOCALAPPDATA%\QSBar`。
-     - 调用 `scripts/Register-QSBar.ps1` 更新注册信息。
-     - **自动启动 Excel** 并挂载调试器。
-   - **效果**：Excel 启动后即可直接测试新功能。
-3. **循环开发**：测试完后，可以直接停止调试（Shift+F5），VS 会自动处理进程清理（如下次启动时）。
+### 2. 开发与调试 (Development)
 
-> **常见问题排查**：
-> - **生成失败**：虽然已配置自动杀进程，但如果文件被非 Excel 进程占用，仍可能失败。
-> - **脚本错误**：如果注册脚本报错，请检查 PowerShell 执行策略 (`Set-ExecutionPolicy RemoteSigned`)。
+#### 方式 A：Visual Studio 直接调试 (推荐)
+1.  **修改代码**：在 VS 中编辑。
+2.  **启动调试**：直接按 **F5**。
+    *   VS 会自动编译 Debug 版本。
+    *   触发 `AfterBuild` 事件自动调用注册脚本。
+    *   自动启动 Excel 并附加调试器。
 
-### 3. 发布安装包
-1. 在 Visual Studio 中切换到 `Release` 模式并生成。
-2. 使用 Inno Setup 打开 `QSBar_Installer.iss`。
-3. 点击 `Compile`，生成的安装包将存放在 `Installer/QSBar_Setup.exe`。
+#### 方式 B：使用脚本重置环境
+如果遇到插件不加载、F5 报错或需要彻底清理环境，请运行：
+```powershell
+.\scripts\quick_setup.ps1
+```
+此脚本会：
+1.  强制关闭所有 Excel/WPS 进程。
+2.  清理所有旧的注册表项（包括禁用项）。
+3.  重新编译 Debug 版本并注册。
 
-## 注意事项
-- **图标兼容性**: Excel 2021 对 `imageMso` 校验非常严格，已在 `0memory/` 文档中详细记录。
-- **管理员权限**: 注册 COM 组件需要写入系统注册表，VS 生成时如果报错，请检查是否以管理员身份运行。
-- **进程占用**: 如果生成失败，请确保关闭所有 `EXCEL.EXE`、`WPS.EXE` 和 `ET.EXE`。
+### 3. 正式发布 (Production)
+
+本项目使用 `Publish.ps1` 脚本进行一键发布。**请勿手动修改 AssemblyInfo.cs 中的版本号**，脚本会自动处理。
+
+#### 发布步骤：
+1.  打开 PowerShell (建议在 VS 的终端中)。
+2.  运行发布命令，指定**新版本号**和**更新日志**：
+
+```powershell
+.\scripts\Publish.ps1 -Version "1.0.0.5" -Log "修复了版本号显示问题，优化了注册逻辑"
+```
+
+#### 脚本执行流程：
+1.  **版本更新**：自动修改 `AssemblyInfo.cs` 和 `QSBar.csproj` 为新版本号。
+2.  **编译 Release**：调用 MSBuild 重新编译 Release 版本。
+3.  **构建发布包**：将 DLL 复制到 `publish/` 目录。
+4.  **更新元数据**：更新 `version.json` 供客户端检查更新。
+5.  **推送代码**：自动提交 git commit 并推送到 Gitee `master` 分支。
+
+## 常见问题
+- **插件未显示**：通常是因为 Excel 将插件加入了“禁用项”。运行 `scripts/quick_setup.ps1` 可自动修复。
+- **版本号未更新**：请确保使用 `Publish.ps1` 发布，它会处理 AssemblyInfo 的编码和版本写入。
+- **权限问题**：脚本默认注册到 HKCU (当前用户)，无需管理员权限。如果遇到 HKLM 冲突，脚本会提示你使用管理员权限运行 `-CleanHKLM` 参数。
 
 ---
 *所属项目：QSBar*

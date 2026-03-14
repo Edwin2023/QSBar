@@ -213,6 +213,7 @@ namespace QSBar
             LegacyAppCommands.ShowHelp(); 
         }
         public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
+        public void OnTextify(Office.IRibbonControl control) { DataCommands.Textify(); }
         public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
         public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }
         public void OnAccounting0(Office.IRibbonControl control) { FormatCommands.Accounting0(); }

@@ -10,8 +10,11 @@ $ErrorActionPreference = "Stop" # Stop on error
 $baseDir = $PSScriptRoot
 $rootDir = (Get-Item $baseDir).Parent.FullName
 $DllSource = Join-Path $rootDir "QSBar\bin\Release\QSBar.dll"
-$PublishDir = Join-Path $rootDir "publish"
+$PublishDir = Join-Path $rootDir "Release"
 $VersionJson = Join-Path $rootDir "version.json"
+$InstallInfoDir = Join-Path $rootDir "Installinfo"
+$InstallInfoVersionJson = Join-Path $InstallInfoDir "version.json"
+$InstallerScript = Join-Path $InstallInfoDir "QSBar_Installer.iss"
 $projectPath = Join-Path $rootDir "QSBar\QSBar.csproj"
 $slnPath = Join-Path $rootDir "QSBar.sln"
 $nugetExe = Join-Path $rootDir "nuget.exe"
@@ -120,6 +123,21 @@ $jsonObj | Add-Member NoteProperty "changeLog" $Log
 $jsonString = $jsonObj | ConvertTo-Json
 [System.IO.File]::WriteAllText($VersionJson, $jsonString, [System.Text.Encoding]::UTF8)
 Write-Host "Successfully updated version.json." -ForegroundColor Green
+
+# 7.5 Update Installinfo files
+# Update Installinfo/version.json
+[System.IO.File]::WriteAllText($InstallInfoVersionJson, $jsonString, [System.Text.Encoding]::UTF8)
+Write-Host "Successfully updated Installinfo/version.json." -ForegroundColor Green
+
+# Update QSBar_Installer.iss version
+if (Test-Path $InstallerScript) {
+    $issContent = [System.IO.File]::ReadAllText($InstallerScript, [System.Text.Encoding]::UTF8)
+    # Replace #define MyAppVersion "x.x.x.x"
+    $issContent = $issContent -replace '#define MyAppVersion ".*?"', "#define MyAppVersion `"$Version`""
+    [System.IO.File]::WriteAllText($InstallerScript, $issContent, [System.Text.Encoding]::UTF8)
+    Write-Host "Successfully updated QSBar_Installer.iss version." -ForegroundColor Green
+}
+
 
 # 8. Push to Gitee
 Write-Host "Pushing to Gitee..." -ForegroundColor Cyan
