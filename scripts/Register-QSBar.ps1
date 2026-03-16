@@ -135,20 +135,44 @@ if ($Unregister) {
 # --- Task 4: Registration (Default) ---
 Write-Host "--- Registering QSBar ($DllPath) ---" -ForegroundColor Cyan
 
-# 0. Unblock DLL (Fix "Mark of the Web" issues)
+# 0. Check .NET 4.8 Runtime
+$releaseKey = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
+if (Test-Path $releaseKey) {
+    $release = Get-ItemProperty -Path $releaseKey -Name "Release" -ErrorAction SilentlyContinue
+    if ($release.Release -lt 528040) {
+        Write-Error "CRITICAL: .NET Framework 4.8 is required but not found (Release: $($release.Release))."
+        Write-Error "Please install .NET Framework 4.8 Runtime."
+        exit 1
+    }
+} else {
+    Write-Error "CRITICAL: .NET Framework 4.x is not installed."
+    exit 1
+}
+
+# 0.1 Unblock DLL (Fix "Mark of the Web" issues)
 try { Unblock-File -Path $DllPath -ErrorAction SilentlyContinue } catch {}
 
 # 1. Run RegAsm (Updates HKCR/HKLM if Admin, HKCU if User)
 $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
 $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
+$regSuccess = $false
+
 if (Test-Path $regasm32) {
     Write-Host "Running RegAsm (32-bit)..."
-    $output = & $regasm32 /codebase "$DllPath" /tlb 2>&1
+    $p = Start-Process -FilePath $regasm32 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
+    if ($p.ExitCode -eq 0) { $regSuccess = $true }
+    else { Write-Warning "RegAsm (32-bit) failed with exit code $($p.ExitCode)." }
 }
 if (Test-Path $regasm64) {
     Write-Host "Running RegAsm (64-bit)..."
-    $output = & $regasm64 /codebase "$DllPath" /tlb 2>&1
+    $p = Start-Process -FilePath $regasm64 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
+    if ($p.ExitCode -eq 0) { $regSuccess = $true }
+    else { Write-Warning "RegAsm (64-bit) failed with exit code $($p.ExitCode)." }
+}
+
+if (-not $regSuccess) {
+    Write-Warning "RegAsm failed to register the assembly. Attempting manual registry fallback..."
 }
 
 # 2. Force CLSID into Registry (Backup for RegAsm failure/quirks)
@@ -166,8 +190,9 @@ try {
     $fullAsmName = "$($asmName.Name), Version=$asmVersion, Culture=$($asmName.CultureInfo.Name), PublicKeyToken=$pkt"
     if ($asmName.CultureInfo.Name -eq "") { $fullAsmName = $fullAsmName.Replace("Culture=", "Culture=neutral") }
 } catch {
-    Write-Warning "Failed to read assembly metadata. Using default fallback."
-    $fullAsmName = "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
+    Write-Error "CRITICAL: Failed to load assembly metadata from $DllPath."
+    Write-Error $_.Exception.Message
+    exit 1
 }
 
 # Always write CLSID to HKCU to ensure current user can load it regardless of UAC

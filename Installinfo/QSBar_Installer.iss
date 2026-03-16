@@ -147,14 +147,37 @@ begin
   Result := (GetUninstallString() <> '');
 end;
 
-// 安装程序初始化时执行
 function InitializeSetup(): Boolean;
 var
   V: Integer;
   iResultCode: Integer;
   sUnInstallString: String;
+  Release: Cardinal;
 begin
   Result := True;
+  
+  // Check for .NET Framework 4.8
+  if RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full') then
+  begin
+    if RegQueryDwordValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full', 'Release', Release) then
+    begin
+      if Release < 528040 then
+      begin
+        MsgBox('.NET Framework 4.8 is required.' + #13#10 + 
+               'Please install it and run setup again.', mbCriticalError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+    end;
+  end
+  else
+  begin
+    MsgBox('.NET Framework 4.8 is required.' + #13#10 + 
+           'Please install it and run setup again.', mbCriticalError, MB_OK);
+    Result := False;
+    Exit;
+  end;
+
   if IsInstalled() then
   begin
     sUnInstallString := RemoveQuotes(GetUninstallString());

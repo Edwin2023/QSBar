@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.6",
+    "version":  "1.0.0.7",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix script syntax for root paths"
+    "changeLog":  "Add strict .NET 4.8 check to installer"
 }
