@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.3",
+    "version":  "1.0.0.4",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix WPS AddinsWL in HKCU"
+    "changeLog":  "Fix WPS HKCU CLSID loading issue"
 }

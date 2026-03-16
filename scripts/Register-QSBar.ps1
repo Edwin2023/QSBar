@@ -152,7 +152,8 @@ if (Test-Path $regasm64) {
 }
 
 # 2. Force CLSID into Registry (Backup for RegAsm failure/quirks)
-# We use $RegRoot determined at start (HKLM: or HKCU:)
+# We always write to HKCU CLSID as a fallback because WPS heavily relies on HKCU.
+# Even if Admin (where RegAsm writes to HKLM), writing to HKCU ensures the current user can load it.
 try {
     $asmName = [System.Reflection.AssemblyName]::GetAssemblyName($DllPath)
     $asmVersion = $asmName.Version.ToString()
@@ -169,22 +170,28 @@ try {
     $fullAsmName = "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
 }
 
-$clsidRoot = "$RegRoot\Software\Classes\CLSID\$CLSID"
-if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
-Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value $ProgID
+# Always write CLSID to HKCU to ensure current user can load it regardless of UAC
+$targetRoots = @("HKCU:")
+if ($IsAdmin) { $targetRoots += "HKLM:" }
 
-$inproc = New-Item -Path "$clsidRoot\InprocServer32" -Force
-Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "C:\Windows\System32\mscoree.dll"
-Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
-Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
-Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value $fullAsmName
-Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
-Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+foreach ($root in $targetRoots) {
+    $clsidRoot = "$root\Software\Classes\CLSID\$CLSID"
+    if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
+    Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value $ProgID
 
-$progIdKey = "$RegRoot\Software\Classes\$ProgID"
-if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
-$clsidKey = New-Item -Path "$progIdKey\CLSID" -Force
-Set-ItemProperty -Path $clsidKey.PSPath -Name "(Default)" -Value $CLSID
+    $inproc = New-Item -Path "$clsidRoot\InprocServer32" -Force
+    Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "C:\Windows\System32\mscoree.dll"
+    Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
+    Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
+    Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value $fullAsmName
+    Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
+    Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+
+    $progIdKey = "$root\Software\Classes\$ProgID"
+    if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
+    $clsidKey = New-Item -Path "$progIdKey\CLSID" -Force
+    Set-ItemProperty -Path $clsidKey.PSPath -Name "(Default)" -Value $CLSID
+}
 
 # 3. Register Addin paths (Excel & WPS) - Use $RegRoot
 $comRegPaths = @(
