@@ -171,11 +171,11 @@ try {
 }
 
 # Always write CLSID to HKCU to ensure current user can load it regardless of UAC
-$targetRoots = @("HKCU")
-if ($IsAdmin) { $targetRoots += "HKLM" }
+$targetRoots = @("HKCU:")
+if ($IsAdmin) { $targetRoots += "HKLM:" }
 
 foreach ($root in $targetRoots) {
-    $clsidRoot = "$root:\Software\Classes\CLSID\$CLSID"
+    $clsidRoot = "$root\Software\Classes\CLSID\$CLSID"
     if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
     Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value "QSBar.WpsExcelAddIn"
 
@@ -187,7 +187,7 @@ foreach ($root in $targetRoots) {
     Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
     Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
 
-    $progIdKey = "$root:\Software\Classes\$ProgID"
+    $progIdKey = "$root\Software\Classes\$ProgID"
     if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
     Set-ItemProperty -Path $progIdKey -Name "(Default)" -Value "QSBar.WpsExcelAddIn"
     

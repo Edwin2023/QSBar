@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.5",
+    "version":  "1.0.0.6",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix WPS silent load failure (CLSID mapping)"
+    "changeLog":  "Fix script syntax for root paths"
 }
