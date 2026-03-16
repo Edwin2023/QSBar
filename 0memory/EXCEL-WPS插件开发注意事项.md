@@ -7,6 +7,7 @@
 - **接口要求**：必须实现 `IDTExtensibility2` 和 `IRibbonExtensibility`。
 - **注册方式**：使用 `RegAsm.exe` 注册，并手动配置注册表以兼容 WPS。
 - **优点**：彻底解决 Excel 与 WPS 之间的插件冲突，实现一套 DLL 双平台运行。
+- **WPS 专用指南**：关于 WPS 的安装、注册表路径及排错，请参阅单独的文档：[WPS插件安装与排错指南](./WPS插件安装与排错指南.md)。
 
 ## 2. Excel 2021 图标与 XML 兼容性（重要）
 Excel 2021 的 Ribbon 引擎比以往版本（及 WPS）更加严苛，任何不规范的 XML 都会导致加载失败。
@@ -59,8 +60,8 @@ Excel 2021 的 Ribbon 引擎比以往版本（及 WPS）更加严苛，任何不
 
 ## 6. 解决加载失败的“韧性”清理
 如果插件不显示，请检查以下注册表项：
-- **禁用项**：`HKCU\Software\Microsoft\Office\16.0\Excel\Resiliency\DisabledItems` (WPS 也有类似路径)。
-- **白名单 (WPS)**：ProgID 必须存在于 `HKCU\Software\Kingsoft\Office\ET\AddinsWL` 中。
+- **禁用项**：`HKCU\Software\Microsoft\Office\16.0\Excel\Resiliency\DisabledItems`。
+- **WPS 相关**：关于 WPS 的白名单 (`AddinsWL`) 和 32 位兼容性 (`Wow6432Node`)，请参阅 [WPS插件安装与排错指南](./WPS插件安装与排错指南.md)。
 - **LoadBehavior**：确保值为 `3`。
 
 ## 7. 环境要求

@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.5",
+    "version":  "1.0.0.3",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "修复了版本号显示问题，优化了注册逻辑"
+    "changeLog":  "Fix WPS AddinsWL in HKCU"
 }

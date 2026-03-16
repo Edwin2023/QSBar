@@ -16,6 +16,16 @@ function Test-IsAdmin {
     return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+# --- Determine Registry Root ---
+$IsAdmin = Test-IsAdmin
+if ($IsAdmin) {
+    $RegRoot = "HKLM:"
+    Write-Host "Running as Administrator (Using HKLM - All Users)" -ForegroundColor Yellow
+} else {
+    $RegRoot = "HKCU:"
+    Write-Host "Running as Standard User (Using HKCU - Current User)" -ForegroundColor Cyan
+}
+
 # --- Task 0: Clean Disabled Items (Fix silent load failures) ---
 if (-not $Unregister) {
     Write-Host "--- Checking for Disabled Items ---" -ForegroundColor Cyan
@@ -32,23 +42,21 @@ if (-not $Unregister) {
     }
 }
 
-# --- Task 1: Clean HKLM (Optional) ---
-if ($CleanHKLM) {
-    Write-Host "--- Cleaning HKLM Registration ---" -ForegroundColor Cyan
-    if (-not (Test-IsAdmin)) {
-        Write-Warning "Cleaning HKLM requires Administrator privileges."
-        Write-Warning "Please run this script as Administrator to use -CleanHKLM."
-    } else {
-        $hklmPath = "HKLM:\Software\Classes\CLSID\$CLSID"
-        if (Test-Path $hklmPath) {
-            Write-Host "Removing HKLM CLSID key..." -ForegroundColor Yellow
-            Remove-Item -Path $hklmPath -Recurse -Force
-            Write-Host "HKLM Cleanup complete." -ForegroundColor Green
-        } else {
-            Write-Host "No HKLM registration found." -ForegroundColor Gray
-        }
+# --- Task 1: Clean Opposite Registry (Prevent Conflicts) ---
+# If Admin (HKLM), try to clean HKCU CLSID to avoid shadowing.
+# We DO NOT clean HKCU Addins anymore, because we will explicitly write to them.
+if ($IsAdmin) {
+    Write-Host "--- Cleaning HKCU CLSID (to enforce HKLM) ---" -ForegroundColor Cyan
+    $hkcuPaths = @(
+        "HKCU:\Software\Classes\CLSID\$CLSID",
+        "HKCU:\Software\Classes\$ProgID"
+    )
+    foreach ($p in $hkcuPaths) {
+        if (Test-Path $p) { Remove-Item -Path $p -Recurse -Force; Write-Host "Removed HKCU shadow: $p" -ForegroundColor Gray }
     }
-    if ($Unregister -and -not $DllPath) { exit }
+} elseif ($CleanHKLM) {
+    # Existing logic for cleaning HKLM if requested (and failed IsAdmin check earlier?)
+    # Actually Test-IsAdmin check is at top now.
 }
 
 # --- Task 2: Restart Apps (Optional) ---
@@ -127,41 +135,24 @@ if ($Unregister) {
 # --- Task 4: Registration (Default) ---
 Write-Host "--- Registering QSBar ($DllPath) ---" -ForegroundColor Cyan
 
-# 1. Run RegAsm (Updates HKCR, might fail if no Admin, but we rely on manual HKCU mostly)
+# 0. Unblock DLL (Fix "Mark of the Web" issues)
+try { Unblock-File -Path $DllPath -ErrorAction SilentlyContinue } catch {}
+
+# 1. Run RegAsm (Updates HKCR/HKLM if Admin, HKCU if User)
 $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
 $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
 if (Test-Path $regasm32) {
     Write-Host "Running RegAsm (32-bit)..."
     $output = & $regasm32 /codebase "$DllPath" /tlb 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "RegAsm (32-bit) FAILED (Likely due to no Admin rights)."
-        Write-Warning "Proceeding with HKCU registration (Sufficient for User/Dev mode)..."
-    }
 }
 if (Test-Path $regasm64) {
     Write-Host "Running RegAsm (64-bit)..."
     $output = & $regasm64 /codebase "$DllPath" /tlb 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Warning "RegAsm (64-bit) FAILED (Likely due to no Admin rights)."
-        Write-Warning "Proceeding with HKCU registration (Sufficient for User/Dev mode)..."
-    }
 }
 
-# 2. Check for HKLM Conflict
-$hklmInproc = "HKLM:\Software\Classes\CLSID\$CLSID\InprocServer32"
-if (Test-Path $hklmInproc) {
-    $hklmCodeBase = Get-ItemProperty -Path $hklmInproc -Name "CodeBase" -ErrorAction SilentlyContinue
-    if ($hklmCodeBase -and $hklmCodeBase.CodeBase -ne "file:///$($DllPath.Replace('\', '/'))") {
-        Write-Warning "CONFLICT DETECTED: HKLM registration points to a different DLL!"
-        Write-Warning "Current HKLM: $($hklmCodeBase.CodeBase)"
-        Write-Warning "Target DLL:   file:///$($DllPath.Replace('\', '/'))"
-        Write-Warning "This will likely prevent Excel from loading your changes."
-        Write-Warning "Run this script with '-CleanHKLM' as Administrator to fix this."
-    }
-}
-
-# 3. Force CLSID into HKCU (User Registration)
+# 2. Force CLSID into Registry (Backup for RegAsm failure/quirks)
+# We use $RegRoot determined at start (HKLM: or HKCU:)
 try {
     $asmName = [System.Reflection.AssemblyName]::GetAssemblyName($DllPath)
     $asmVersion = $asmName.Version.ToString()
@@ -178,7 +169,7 @@ try {
     $fullAsmName = "QSBar, Version=1.0.0.1, Culture=neutral, PublicKeyToken=null"
 }
 
-$clsidRoot = "HKCU:\Software\Classes\CLSID\$CLSID"
+$clsidRoot = "$RegRoot\Software\Classes\CLSID\$CLSID"
 if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
 Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value $ProgID
 
@@ -190,17 +181,18 @@ Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value $fullAsmName
 Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
 Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
 
-$progIdKey = "HKCU:\Software\Classes\$ProgID"
+$progIdKey = "$RegRoot\Software\Classes\$ProgID"
 if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
 $clsidKey = New-Item -Path "$progIdKey\CLSID" -Force
 Set-ItemProperty -Path $clsidKey.PSPath -Name "(Default)" -Value $CLSID
 
-# 4. Register Addin paths (Excel & WPS)
+# 3. Register Addin paths (Excel & WPS) - Use $RegRoot
 $comRegPaths = @(
-    "HKCU:\Software\Microsoft\Office\Excel\Addins\$ProgID",
-    "HKCU:\Software\Kingsoft\Office\ET\Addins\$ProgID",
-    "HKCU:\Software\Kingsoft\Office\ET\AddinsData\$ProgID",
-    "HKCU:\Software\Kingsoft\Office\WPS\Addins\$ProgID"
+    "$RegRoot\Software\Microsoft\Office\Excel\Addins\$ProgID",
+    "$RegRoot\Software\Kingsoft\Office\ET\Addins\$ProgID",
+    "$RegRoot\Software\Kingsoft\Office\ET\AddinsData\$ProgID",
+    "$RegRoot\Software\Kingsoft\Office\WPS\Addins\$ProgID",
+    "$RegRoot\Software\Kingsoft\Office\WPS\AddinsData\$ProgID"
 )
 
 foreach ($path in $comRegPaths) {
@@ -213,24 +205,88 @@ foreach ($path in $comRegPaths) {
     Remove-ItemProperty -Path $path -Name "Manifest" -ErrorAction SilentlyContinue
 }
 
-# 5. WPS Whitelist
-$wlProducts = @("ET", "WPS", "Common", "6.0")
-foreach ($prod in $wlProducts) {
-    $wlPath = "HKCU:\Software\Kingsoft\Office\$prod\AddinsWL"
-    if (-not (Test-Path $wlPath)) { New-Item -Path $wlPath -Force | Out-Null }
-    Set-ItemProperty -Path $wlPath -Name $ProgID -Value "" -Force
+# 4. WPS Whitelist (AddinsWL)
+# Kingsoft might check HKLM whitelist too. Safe to add.
+$wlPaths = @(
+    "$RegRoot\Software\Kingsoft\Office\ET\AddinsWL",
+    "$RegRoot\Software\Kingsoft\Office\WPS\AddinsWL",
+    "$RegRoot\Software\Kingsoft\Office\6.0\Common\AddinsWL"
+)
+foreach ($path in $wlPaths) {
+    if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+    Set-ItemProperty -Path $path -Name $ProgID -Value "1" -Type String -Force
+}
+
+# 5. WOW6432Node Support (If Admin/HKLM, ensure 32-bit apps see it too)
+if ($IsAdmin) {
+    Write-Host "Adding WOW6432Node keys for 32-bit WPS/Office..." -ForegroundColor Cyan
+    
+    # 5.1 Addin Registration (WOW6432Node)
+    $wowPaths = @(
+        "HKLM:\Software\Wow6432Node\Kingsoft\Office\ET\Addins\$ProgID",
+        "HKLM:\Software\Wow6432Node\Kingsoft\Office\WPS\Addins\$ProgID"
+    )
+    foreach ($path in $wowPaths) {
+         if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+         Set-ItemProperty -Path $path -Name "Description" -Value $Description -Force
+         Set-ItemProperty -Path $path -Name "FriendlyName" -Value $FriendlyName -Force
+         Set-ItemProperty -Path $path -Name "LoadBehavior" -Value 3 -Type DWord -Force
+         Set-ItemProperty -Path $path -Name "CommandLineSafe" -Value 1 -Type DWord -Force
+         Remove-ItemProperty -Path $path -Name "Manifest" -ErrorAction SilentlyContinue
+    }
+
+    # 5.2 Whitelist (WOW6432Node) - Crucial for 32-bit WPS on 64-bit OS
+    $wowWlPaths = @(
+        "HKLM:\Software\Wow6432Node\Kingsoft\Office\ET\AddinsWL",
+        "HKLM:\Software\Wow6432Node\Kingsoft\Office\WPS\AddinsWL",
+        "HKLM:\Software\Wow6432Node\Kingsoft\Office\6.0\Common\AddinsWL"
+    )
+    foreach ($path in $wowWlPaths) {
+        if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+        Set-ItemProperty -Path $path -Name $ProgID -Value "1" -Type String -Force
+    }
+}
+
+# 6. Explicitly write to HKCU (Crucial for WPS)
+# Office and WPS prioritize HKCU for Addins and Whitelist.
+# Even if running as Admin, we write to the current HKCU profile.
+Write-Host "Ensuring HKCU Addins and Whitelist keys..." -ForegroundColor Cyan
+$hkcuAddinPaths = @(
+    "HKCU:\Software\Microsoft\Office\Excel\Addins\$ProgID",
+    "HKCU:\Software\Kingsoft\Office\ET\Addins\$ProgID",
+    "HKCU:\Software\Kingsoft\Office\ET\AddinsData\$ProgID",
+    "HKCU:\Software\Kingsoft\Office\WPS\Addins\$ProgID",
+    "HKCU:\Software\Kingsoft\Office\WPS\AddinsData\$ProgID"
+)
+foreach ($path in $hkcuAddinPaths) {
+    if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+    Set-ItemProperty -Path $path -Name "Description" -Value $Description -Force
+    Set-ItemProperty -Path $path -Name "FriendlyName" -Value $FriendlyName -Force
+    Set-ItemProperty -Path $path -Name "LoadBehavior" -Value 3 -Type DWord -Force
+    Set-ItemProperty -Path $path -Name "CommandLineSafe" -Value 1 -Type DWord -Force
+    Remove-ItemProperty -Path $path -Name "Manifest" -ErrorAction SilentlyContinue
+}
+
+$hkcuWlPaths = @(
+    "HKCU:\Software\Kingsoft\Office\ET\AddinsWL",
+    "HKCU:\Software\Kingsoft\Office\WPS\AddinsWL",
+    "HKCU:\Software\Kingsoft\Office\6.0\Common\AddinsWL"
+)
+foreach ($path in $hkcuWlPaths) {
+    if (-not (Test-Path $path)) { New-Item -Path $path -Force | Out-Null }
+    Set-ItemProperty -Path $path -Name $ProgID -Value "1" -Type String -Force
 }
 
 Write-Host "Registration Complete!" -ForegroundColor Green
 
-# 6. Verify COM Object (Self-Test)
+# 7. Verify COM Object (Self-Test)
 try {
-            $testObj = New-Object -ComObject $ProgID -ErrorAction Stop
-            Write-Host "SUCCESS: COM object created successfully!" -ForegroundColor Green
-            if ([System.Runtime.InteropServices.Marshal]::IsComObject($testObj)) {
-                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($testObj) | Out-Null
-            }
-        } catch {
+    $testObj = New-Object -ComObject $ProgID -ErrorAction Stop
+    Write-Host "SUCCESS: COM object created successfully!" -ForegroundColor Green
+    if ([System.Runtime.InteropServices.Marshal]::IsComObject($testObj)) {
+        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($testObj) | Out-Null
+    }
+} catch {
     Write-Warning "FAILED: Could not create COM object."
     Write-Warning "Error: $($_.Exception.Message)"
     Write-Warning "This might mean the DLL is not loadable (missing dependencies?) or registration failed."
