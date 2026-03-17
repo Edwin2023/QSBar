@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.12",
+    "version":  "1.0.0.13",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix WPS load error by adding QSBar.Core.dll to installer; fix register bat silent mode"
+    "changeLog":  "Fix installer issue: add manual HKCU CLSID registration for user-mode installs (supports 32-bit WPS)"
 }

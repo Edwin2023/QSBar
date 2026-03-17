@@ -175,17 +175,54 @@ if (-not $UserConfigOnly) {
     Write-Host "Skipping RegAsm (User Config Mode)" -ForegroundColor Yellow
 }
 
-# 2. Clean up any manual HKCU CLSID (Fix for v1.0.0.10 and earlier)
-# Manual HKCU CLSID shadows RegAsm's HKLM registration and often lacks Implemented Categories,
-# causing WPS to silently fail to load the add-in.
+# 2. Register HKCU CLSID (User Mode / Fallback)
+# Note: This is critical for Non-Admin installs or if HKLM is missing/broken (e.g. 32-bit/64-bit mismatch).
+# We MUST create a complete HKCU registration to ensure WPS (32-bit) can find the COM object.
 $hkcuClsidRoot = "HKCU:\Software\Classes\CLSID\$CLSID"
-if (Test-Path $hkcuClsidRoot) {
-    Write-Host "Cleaning up legacy HKCU CLSID to unblock HKLM registration..." -ForegroundColor Yellow
-    Remove-Item -Path $hkcuClsidRoot -Recurse -Force -ErrorAction SilentlyContinue
-}
 $hkcuProgIdRoot = "HKCU:\Software\Classes\$ProgID"
-if (Test-Path $hkcuProgIdRoot) {
-    Remove-Item -Path $hkcuProgIdRoot -Recurse -Force -ErrorAction SilentlyContinue
+
+try {
+    Write-Host "Registering HKCU CLSID for User-Level Access..." -ForegroundColor Cyan
+    
+    # Get Assembly Info
+    $assembly = [System.Reflection.AssemblyName]::GetAssemblyName($DllPath)
+    $assemblyName = $assembly.FullName
+    $runtimeVersion = "v4.0.30319" # Default for .NET 4.x
+    
+    # 2.1 CLSID Key
+    if (-not (Test-Path $hkcuClsidRoot)) { New-Item -Path $hkcuClsidRoot -Force | Out-Null }
+    Set-ItemProperty -Path $hkcuClsidRoot -Name "(default)" -Value "QSBar.WpsExcelAddIn"
+    
+    # 2.2 InprocServer32
+    $inprocKey = "$hkcuClsidRoot\InprocServer32"
+    if (-not (Test-Path $inprocKey)) { New-Item -Path $inprocKey -Force | Out-Null }
+    Set-ItemProperty -Path $inprocKey -Name "(default)" -Value "mscoree.dll"
+    Set-ItemProperty -Path $inprocKey -Name "ThreadingModel" -Value "Both"
+    Set-ItemProperty -Path $inprocKey -Name "Class" -Value "QSBar.WpsExcelAddIn"
+    Set-ItemProperty -Path $inprocKey -Name "Assembly" -Value $assemblyName
+    Set-ItemProperty -Path $inprocKey -Name "RuntimeVersion" -Value $runtimeVersion
+    Set-ItemProperty -Path $inprocKey -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+    
+    # 2.3 ProgId
+    $progIdKey = "$hkcuClsidRoot\ProgId"
+    if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
+    Set-ItemProperty -Path $progIdKey -Name "(default)" -Value $ProgID
+    
+    # 2.4 Implemented Categories (Crucial for .NET COM)
+    $catKey = "$hkcuClsidRoot\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}"
+    if (-not (Test-Path $catKey)) { New-Item -Path $catKey -Force | Out-Null }
+    
+    # 2.5 ProgID -> CLSID Mapping
+    if (-not (Test-Path $hkcuProgIdRoot)) { New-Item -Path $hkcuProgIdRoot -Force | Out-Null }
+    Set-ItemProperty -Path $hkcuProgIdRoot -Name "(default)" -Value "QSBar.WpsExcelAddIn"
+    
+    $clsidMapKey = "$hkcuProgIdRoot\CLSID"
+    if (-not (Test-Path $clsidMapKey)) { New-Item -Path $clsidMapKey -Force | Out-Null }
+    Set-ItemProperty -Path $clsidMapKey -Name "(default)" -Value "{$CLSID}"
+    
+    Write-Host "HKCU CLSID Registration Successful." -ForegroundColor Green
+} catch {
+    Write-Warning "Failed to register HKCU CLSID: $_"
 }
 
 # 3. Register Addin paths (Excel & WPS) - Use $RegRoot
