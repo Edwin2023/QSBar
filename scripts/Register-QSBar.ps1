@@ -43,20 +43,10 @@ if (-not $Unregister) {
 }
 
 # --- Task 1: Clean Opposite Registry (Prevent Conflicts) ---
-# If Admin (HKLM), try to clean HKCU CLSID to avoid shadowing.
-# We DO NOT clean HKCU Addins anymore, because we will explicitly write to them.
-if ($IsAdmin) {
-    Write-Host "--- Cleaning HKCU CLSID (to enforce HKLM) ---" -ForegroundColor Cyan
-    $hkcuPaths = @(
-        "HKCU:\Software\Classes\CLSID\$CLSID",
-        "HKCU:\Software\Classes\$ProgID"
-    )
-    foreach ($p in $hkcuPaths) {
-        if (Test-Path $p) { Remove-Item -Path $p -Recurse -Force; Write-Host "Removed HKCU shadow: $p" -ForegroundColor Gray }
-    }
-} elseif ($CleanHKLM) {
-    # Existing logic for cleaning HKLM if requested (and failed IsAdmin check earlier?)
-    # Actually Test-IsAdmin check is at top now.
+# We SKIP cleaning HKCU when running as Admin to avoid "UAC Registry Drift" (Admin HKCU != User HKCU).
+# We only clean HKLM if requested.
+if ($CleanHKLM -and $IsAdmin) {
+    # Logic to clean HKLM if implemented...
 }
 
 # --- Task 2: Restart Apps (Optional) ---

@@ -88,16 +88,51 @@ Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; V
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\6.0\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
 
+; HKLM Backup for All Users (Fixes issue where Admin HKCU != User HKCU)
+; 64-bit Registry
+Root: HKLM; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\6.0\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+
+; 32-bit Registry (Wow6432Node) - For 32-bit WPS on 64-bit Windows
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\6.0\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+
 ; 强制在 HKCU 也写入 Addins 注册表，确保 WPS/Excel 必定加载 (WPS 对 HKCU 的优先级最高)
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
 
+; HKLM Addins (64-bit)
+Root: HKLM; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
+
+; HKLM Addins (32-bit)
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
+
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
+
+; HKLM Addins (64-bit) - WPS
+Root: HKLM; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
+Root: HKLM; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
+
+; HKLM Addins (32-bit) - WPS
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
+Root: HKLM32; Subkey: "Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
 
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
