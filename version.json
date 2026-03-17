@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.9",
+    "version":  "1.0.0.10",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix WPS visibility on new computers (UAC registry drift fix); Enhance Register.bat with auto-elevation."
+    "changeLog":  "Switch to User-Mode Install (AppData) to fix WPS visibility issues and match Dev environment."
 }
