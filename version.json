@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.7",
+    "version":  "1.0.0.8",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Add strict .NET 4.8 check to installer"
+    "changeLog":  "Fix C# 7 syntax for older compilers"
 }

@@ -49,9 +49,13 @@ namespace QSBar
                                         Excel.XlReferenceType.xlAbsolute
                                     );
                                     
-                                    if (newFormula is string s && !string.IsNullOrEmpty(s))
+                                    if (newFormula is string)
                                     {
-                                        cell.Formula = s;
+                                        string s = (string)newFormula;
+                                        if (!string.IsNullOrEmpty(s))
+                                        {
+                                            cell.Formula = s;
+                                        }
                                     }
                                 }
                             }
