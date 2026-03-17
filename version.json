@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.14",
+    "version":  "1.0.0.15",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Ship Interop DLLs (Office.dll, Microsoft.Office.Interop.Excel.dll, etc.) with CopyLocal=True to resolve RegAsm warnings on WPS-only machines, while keeping EmbedInteropTypes=True for compatibility."
+    "changeLog":  "Fix RegAsm warnings on WPS-only machines by removing PIA dependencies from public interface"
 }

@@ -144,11 +144,11 @@ namespace QSBar
         public void OnStartupComplete(ref Array custom) { }
         public void OnBeginShutdown(ref Array custom) { }
 
-        public void OnLoad(Office.IRibbonUI ribbon)
+        public void OnLoad(object ribbon)
         {
             try
             {
-                _ribbon = ribbon;
+                _ribbon = ribbon as Office.IRibbonUI;
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
             
                 // 启动时静默检查更新（不打扰用户）
@@ -188,75 +188,76 @@ namespace QSBar
 
         #region Ribbon Callbacks
 
-        public bool GetHelpNormalVisible(Office.IRibbonControl control)
+        public bool GetHelpNormalVisible(object control)
         {
             return !UpdateManager.HasNewVersion;
         }
 
-        public bool GetHelpUpdateVisible(Office.IRibbonControl control)
+        public bool GetHelpUpdateVisible(object control)
         {
             return UpdateManager.HasNewVersion;
         }
 
-        public void OnRestartUpdate(Office.IRibbonControl control)
+        public void OnRestartUpdate(object control)
         {
             UpdateManager.StartUpdateFlow();
         }
 
-        public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
-        public void OnExportCurrentSheet(Office.IRibbonControl control) { ExportCommands.ExportCurrentSheet(); }
-        public void OnExportStandardReport(Office.IRibbonControl control) { ExportCommands.ExportStandardReport(); }
-        public void OnExportInternalReport(Office.IRibbonControl control) { ExportCommands.ExportInternalReport(); }
-        public void OnConvertAllToValues(Office.IRibbonControl control) { ExportCommands.ConvertAllToValues(); }
-        public void OnShowHelp(Office.IRibbonControl control) 
+        public void OnBatchProcess(object control) { DataCommands.BatchProcess(); }
+        public void OnExportCurrentSheet(object control) { ExportCommands.ExportCurrentSheet(); }
+        public void OnExportStandardReport(object control) { ExportCommands.ExportStandardReport(); }
+        public void OnExportInternalReport(object control) { ExportCommands.ExportInternalReport(); }
+        public void OnConvertAllToValues(object control) { ExportCommands.ConvertAllToValues(); }
+        public void OnShowHelp(object control) 
         { 
             LegacyAppCommands.ShowHelp(); 
         }
-        public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
-        public void OnTextify(Office.IRibbonControl control) { DataCommands.Textify(); }
-        public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
-        public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }
-        public void OnAccounting0(Office.IRibbonControl control) { FormatCommands.Accounting0(); }
-        public void OnAccounting2(Office.IRibbonControl control) { FormatCommands.Accounting2(); }
-        public void OnAccounting3(Office.IRibbonControl control) { FormatCommands.Accounting3(); }
-        public void OnYiWanFormat(Office.IRibbonControl control) { FormatCommands.YiWanFormat(); }
-        public void OnSetGrading(Office.IRibbonControl control) { FormatCommands.SetGrading(); }
-        public void OnSetGradingStyle(Office.IRibbonControl control) { FormatCommands.SetGradingStyle(); }
-        public void OnClearStyle(Office.IRibbonControl control) { FormatCommands.ClearStyle(); }
-        public void OnBreakLinks(Office.IRibbonControl control) { FormatCommands.BreakExternalLinks(); }
-        public void OnMultiAreaGroup(Office.IRibbonControl control) { FormatCommands.MultiAreaGroup(); }
-        public void OnMultiAreaUngroup(Office.IRibbonControl control) { FormatCommands.MultiAreaUngroup(); }
-        public void OnSelectVisibleCells(Office.IRibbonControl control) { FormatCommands.SelectVisibleCells(); }
-        public void OnResizePictures(Office.IRibbonControl control) 
+        public void OnNormalizeNumbers(object control) { DataCommands.NormalizeNumbers(); }
+        public void OnTextify(object control) { DataCommands.Textify(); }
+        public void OnLockFormula(object control) { LegacyAppCommands.LockFormula(); }
+        public void OnWrapText(object control) { FormatCommands.WrapText(); }
+        public void OnAccounting0(object control) { FormatCommands.Accounting0(); }
+        public void OnAccounting2(object control) { FormatCommands.Accounting2(); }
+        public void OnAccounting3(object control) { FormatCommands.Accounting3(); }
+        public void OnYiWanFormat(object control) { FormatCommands.YiWanFormat(); }
+        public void OnSetGrading(object control) { FormatCommands.SetGrading(); }
+        public void OnSetGradingStyle(object control) { FormatCommands.SetGradingStyle(); }
+        public void OnClearStyle(object control) { FormatCommands.ClearStyle(); }
+        public void OnBreakLinks(object control) { FormatCommands.BreakExternalLinks(); }
+        public void OnMultiAreaGroup(object control) { FormatCommands.MultiAreaGroup(); }
+        public void OnMultiAreaUngroup(object control) { FormatCommands.MultiAreaUngroup(); }
+        public void OnSelectVisibleCells(object control) { FormatCommands.SelectVisibleCells(); }
+        public void OnResizePictures(object control) 
         { 
             int factor = 1;
             int f;
-            if (control.Tag != null && int.TryParse(control.Tag, out f)) factor = f;
+            var ribbonControl = control as Office.IRibbonControl;
+            if (ribbonControl != null && ribbonControl.Tag != null && int.TryParse(ribbonControl.Tag, out f)) factor = f;
             PhotoCommands.ResizePictures(factor); 
         }
-        public void OnSelectAllPictures(Office.IRibbonControl control) { PhotoCommands.SelectAllPictures(); }
-        public void OnCreateSheetIndex(Office.IRibbonControl control) { SheetCommands.CreateSheetIndex(); }
-        public void OnCreateFileIndex(Office.IRibbonControl control) { SheetCommands.CreateFileIndex(); }
-        public void OnMergeSheets(Office.IRibbonControl control) { SheetCommands.MergeSheets(); }
-        public void OnDeleteHyperlinks(Office.IRibbonControl control) { SheetCommands.DeleteHyperlinks(); }
-        public void OnForceRefresh(Office.IRibbonControl control) { DataCommands.ForceRefresh(); }
-        public void OnDeleteEmptyRows(Office.IRibbonControl control) { SheetCommands.DeleteEmptyRows(); }
-        public void OnUnhideAllSheets(Office.IRibbonControl control) { SheetCommands.UnhideAllSheets(); }
-        public void OnFileDirectory(Office.IRibbonControl control) { SheetCommands.FileDirectory(); }
+        public void OnSelectAllPictures(object control) { PhotoCommands.SelectAllPictures(); }
+        public void OnCreateSheetIndex(object control) { SheetCommands.CreateSheetIndex(); }
+        public void OnCreateFileIndex(object control) { SheetCommands.CreateFileIndex(); }
+        public void OnMergeSheets(object control) { SheetCommands.MergeSheets(); }
+        public void OnDeleteHyperlinks(object control) { SheetCommands.DeleteHyperlinks(); }
+        public void OnForceRefresh(object control) { DataCommands.ForceRefresh(); }
+        public void OnDeleteEmptyRows(object control) { SheetCommands.DeleteEmptyRows(); }
+        public void OnUnhideAllSheets(object control) { SheetCommands.UnhideAllSheets(); }
+        public void OnFileDirectory(object control) { SheetCommands.FileDirectory(); }
 
-        public bool GetCalcAutoVisible(Office.IRibbonControl control)
+        public bool GetCalcAutoVisible(object control)
         {
             try { return App != null && App.Calculation == Excel.XlCalculation.xlCalculationAutomatic; }
             catch { return true; }
         }
 
-        public bool GetCalcManualVisible(Office.IRibbonControl control)
+        public bool GetCalcManualVisible(object control)
         {
             try { return App != null && App.Calculation != Excel.XlCalculation.xlCalculationAutomatic; }
             catch { return false; }
         }
 
-        public void OnToggleCalculation(Office.IRibbonControl control)
+        public void OnToggleCalculation(object control)
         {
             try
             {
