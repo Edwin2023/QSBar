@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.13",
+    "version":  "1.0.0.14",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix installer issue: add manual HKCU CLSID registration for user-mode installs (supports 32-bit WPS)"
+    "changeLog":  "Ship Interop DLLs (Office.dll, Microsoft.Office.Interop.Excel.dll, etc.) with CopyLocal=True to resolve RegAsm warnings on WPS-only machines, while keeping EmbedInteropTypes=True for compatibility."
 }

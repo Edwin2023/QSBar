@@ -66,6 +66,10 @@ Type: files; Name: "{app}\QSBar.dll.config"
 [Files]
 Source: "{#SourcePath}\QSBar.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\Office.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\Microsoft.Office.Interop.Excel.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\Interop.AddInDesignerObjects.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\stdole.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.tlb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion

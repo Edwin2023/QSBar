@@ -19,11 +19,12 @@
     <p>感谢您使用 QSBar！本次更新已成功安装。</p>
     
     <div class="feature-list">
-        <p><span class="version">当前版本：<!-- VERSION_START -->1.0.0.13<!-- VERSION_END --></span></p>
+        <p><span class="version">当前版本：<!-- VERSION_START -->1.0.0.14<!-- VERSION_END --></span></p>
         <h3>✨ 本次更新重点：</h3>
         <ul id="update-log">
             <!-- LOG_START -->
-            <li>Fix installer issue: add manual HKCU CLSID registration for user-mode installs (supports 32-bit WPS)</li>
+            <li>Ship Interop DLLs (Office.dll, Microsoft.Office.Interop.Excel.dll, etc.) with CopyLocal=True to resolve RegAsm warnings on WPS-only machines, while keeping EmbedInteropTypes=True for compatibility.</li>
+
 
 
 
