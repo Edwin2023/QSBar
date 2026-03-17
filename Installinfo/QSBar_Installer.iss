@@ -23,7 +23,7 @@ OutputDir=..\Release
 OutputBaseFilename=QSBar_Setup_v{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 ; Run in 64-bit mode on 64-bit systems to access both registry views easily
 ArchitecturesAllowed=x86 x64
 ArchitecturesInstallIn64BitMode=x64
@@ -65,6 +65,7 @@ Type: files; Name: "{app}\QSBar.dll.config"
 
 [Files]
 Source: "{#SourcePath}\QSBar.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.tlb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -83,12 +84,22 @@ Source: "SHOW2_WPS_BAR.bmp"; Flags: dontcopy
 
 [Registry]
 ; --- Office/WPS 加载项注册 (部分由 Register-QSBar.ps1 处理) ---
-; 强制将 WPS 白名单写入当前用户的 HKCU，防止 PowerShell 提权后 HKCU 漂移导致白名单失效
+; 注意：Installer 运行在 Admin 模式，HKCU 指向 Admin 用户的 HKCU，而不是登录用户的 HKCU。
+; 因此，必须依靠 [Run] 部分的 runasoriginaluser 来注册当前用户的 HKCU。
+; 下面的 Registry 部分仅作为 Admin 用户的备份，或者 HKLM 注册。
+
+; 1. HKLM 注册 (所有用户) - 仅在 PrivilegesRequired=admin 时有效
+; 仅删除，不写入，避免干扰 RegAsm
+Root: HKLM; Subkey: "Software\Classes\CLSID\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"; Flags: uninsdeletekey dontcreatekey
+Root: HKLM; Subkey: "Software\Classes\QSBar.WpsAddIn"; Flags: uninsdeletekey dontcreatekey
+
+; 2. Admin 用户的 HKCU (可选，主要用于调试)
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
+
 Root: HKCU; Subkey: "Software\Kingsoft\Office\WPS\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\6.0\Common\AddinsWL"; ValueType: string; ValueName: "QSBar.WpsAddIn"; ValueData: "1"; Flags: uninsdeletevalue
 
-; 强制在 HKCU 也写入 Addins 注册表，确保 WPS/Excel 必定加载 (WPS 对 HKCU 的优先级最高)
+; 强制在 Admin HKCU 也写入 Addins 注册表
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "LoadBehavior"; ValueData: "3"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "FriendlyName"; ValueData: "QSBar (COM)"; Flags: uninsdeletevalue
 Root: HKCU; Subkey: "Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn"; ValueType: string; ValueName: "Description"; ValueData: "QSBar COM Add-in for Excel and WPS"; Flags: uninsdeletevalue
@@ -105,14 +116,22 @@ Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; Val
 Root: HKCU; Subkey: "Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn"; ValueType: dword; ValueName: "CommandLineSafe"; ValueData: "1"; Flags: uninsdeletevalue
 
 [Run]
-; 安装前清理旧的注册信息
-Filename: "{app}\Register.bat"; Parameters: ""; WorkingDir: "{app}"; StatusMsg: "Registering QSBar (Finalizing)..."
+; 1. Admin Registration (System-wide HKLM) - Executed by Installer (Admin)
+Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flags: waituntilterminated; StatusMsg: "Registering QSBar (System-Level)..."
+
+; 2. User Registration (Current User HKCU) - Executed as Original User
+; This is CRITICAL for WPS/Excel to see the add-in in the user's profile
+Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flags: runasoriginaluser waituntilterminated; StatusMsg: "Registering QSBar (User-Level)..."
 
 Filename: "{app}\UpdateNotes.html"; Description: "View update instructions (查看更新说明)"; Flags: postinstall shellexec skipifsilent
 
 [UninstallRun]
-; 卸载时彻底反注册 COM 组件
-Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\Register-QSBar.ps1"" -Unregister"; WorkingDir: "{app}"; Flags: runhidden; StatusMsg: "Unregistering QSBar..."
+; 1. Unregister for User (HKCU) - Executed as Original User
+; Note: runasoriginaluser is NOT supported in [UninstallRun]
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\Register-QSBar.ps1"" -Unregister"; WorkingDir: "{app}"; Flags: runhidden
+
+; 2. Unregister for System (HKLM)
+Filename: "powershell.exe"; Parameters: "-ExecutionPolicy Bypass -File ""{app}\Register-QSBar.ps1"" -Unregister"; WorkingDir: "{app}"; Flags: runhidden
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

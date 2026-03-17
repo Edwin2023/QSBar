@@ -2,7 +2,8 @@ param(
     [string]$DllPath,
     [switch]$CleanHKLM,
     [switch]$RestartApps,
-    [switch]$Unregister
+    [switch]$Unregister,
+    [switch]$UserConfigOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -16,12 +17,17 @@ function Test-IsAdmin {
     return ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-# --- Determine Registry Root ---
+# --- Determine Mode ---
 $IsAdmin = Test-IsAdmin
-if ($IsAdmin) {
+
+if ($UserConfigOnly) {
+    Write-Host "Running in User Config Mode (Writing HKCU Only)" -ForegroundColor Cyan
+    $RegRoot = "HKCU:"
+} elseif ($IsAdmin) {
     $RegRoot = "HKLM:"
     Write-Host "Running as Administrator (Using HKLM - All Users)" -ForegroundColor Yellow
 } else {
+    # Fallback to HKCU if not admin and not explicitly UserConfigOnly (though RegAsm will fail)
     $RegRoot = "HKCU:"
     Write-Host "Running as Standard User (Using HKCU - Current User)" -ForegroundColor Cyan
 }
@@ -143,74 +149,47 @@ if (Test-Path $releaseKey) {
 try { Unblock-File -Path $DllPath -ErrorAction SilentlyContinue } catch {}
 
 # 1. Run RegAsm (Updates HKCR/HKLM if Admin, HKCU if User)
-$regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
-$regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
+if (-not $UserConfigOnly) {
+    $regasm32 = "C:\Windows\Microsoft.NET\Framework\v4.0.30319\RegAsm.exe"
+    $regasm64 = "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 
-$regSuccess = $false
+    $regSuccess = $false
 
-if (Test-Path $regasm32) {
-    Write-Host "Running RegAsm (32-bit)..."
-    $p = Start-Process -FilePath $regasm32 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
-    if ($p.ExitCode -eq 0) { $regSuccess = $true }
-    else { Write-Warning "RegAsm (32-bit) failed with exit code $($p.ExitCode)." }
-}
-if (Test-Path $regasm64) {
-    Write-Host "Running RegAsm (64-bit)..."
-    $p = Start-Process -FilePath $regasm64 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
-    if ($p.ExitCode -eq 0) { $regSuccess = $true }
-    else { Write-Warning "RegAsm (64-bit) failed with exit code $($p.ExitCode)." }
-}
-
-if (-not $regSuccess) {
-    Write-Warning "RegAsm failed to register the assembly. Attempting manual registry fallback..."
-}
-
-# 2. Force CLSID into Registry (Backup for RegAsm failure/quirks)
-# We always write to HKCU CLSID as a fallback because WPS heavily relies on HKCU.
-# Even if Admin (where RegAsm writes to HKLM), writing to HKCU ensures the current user can load it.
-try {
-    $asmName = [System.Reflection.AssemblyName]::GetAssemblyName($DllPath)
-    $asmVersion = $asmName.Version.ToString()
-    $pktBytes = $asmName.GetPublicKeyToken()
-    if ($pktBytes) {
-        $pkt = [BitConverter]::ToString($pktBytes).Replace("-", "").ToLower()
-    } else {
-        $pkt = "null"
+    if (Test-Path $regasm32) {
+        Write-Host "Running RegAsm (32-bit)..."
+        $p = Start-Process -FilePath $regasm32 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
+        if ($p.ExitCode -eq 0) { $regSuccess = $true }
+        else { Write-Warning "RegAsm (32-bit) failed with exit code $($p.ExitCode)." }
     }
-    $fullAsmName = "$($asmName.Name), Version=$asmVersion, Culture=$($asmName.CultureInfo.Name), PublicKeyToken=$pkt"
-    if ($asmName.CultureInfo.Name -eq "") { $fullAsmName = $fullAsmName.Replace("Culture=", "Culture=neutral") }
-} catch {
-    Write-Error "CRITICAL: Failed to load assembly metadata from $DllPath."
-    Write-Error $_.Exception.Message
-    exit 1
+    if (Test-Path $regasm64) {
+        Write-Host "Running RegAsm (64-bit)..."
+        $p = Start-Process -FilePath $regasm64 -ArgumentList "/codebase `"$DllPath`" /tlb" -PassThru -Wait -NoNewWindow
+        if ($p.ExitCode -eq 0) { $regSuccess = $true }
+        else { Write-Warning "RegAsm (64-bit) failed with exit code $($p.ExitCode)." }
+    }
+
+    if (-not $regSuccess) {
+        Write-Warning "RegAsm failed to register the assembly. Attempting manual registry fallback..."
+    }
+} else {
+    Write-Host "Skipping RegAsm (User Config Mode)" -ForegroundColor Yellow
 }
 
-# Always write CLSID to HKCU to ensure current user can load it regardless of UAC
-$targetRoots = @("HKCU:")
-if ($IsAdmin) { $targetRoots += "HKLM:" }
-
-foreach ($root in $targetRoots) {
-    $clsidRoot = "$root\Software\Classes\CLSID\$CLSID"
-    if (-not (Test-Path $clsidRoot)) { New-Item -Path $clsidRoot -Force | Out-Null }
-    Set-ItemProperty -Path $clsidRoot -Name "(Default)" -Value "QSBar.WpsExcelAddIn"
-
-    $inproc = New-Item -Path "$clsidRoot\InprocServer32" -Force
-    Set-ItemProperty -Path $inproc.PSPath -Name "(Default)" -Value "mscoree.dll"
-    Set-ItemProperty -Path $inproc.PSPath -Name "ThreadingModel" -Value "Both"
-    Set-ItemProperty -Path $inproc.PSPath -Name "Class" -Value "QSBar.WpsExcelAddIn"
-    Set-ItemProperty -Path $inproc.PSPath -Name "Assembly" -Value $fullAsmName
-    Set-ItemProperty -Path $inproc.PSPath -Name "RuntimeVersion" -Value "v4.0.30319"
-    Set-ItemProperty -Path $inproc.PSPath -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
-
-    $progIdKey = "$root\Software\Classes\$ProgID"
-    if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
-    Set-ItemProperty -Path $progIdKey -Name "(Default)" -Value "QSBar.WpsExcelAddIn"
-    
-    $clsidKey = New-Item -Path "$progIdKey\CLSID" -Force
-    Set-ItemProperty -Path $clsidKey.PSPath -Name "(Default)" -Value $CLSID
+# 2. Clean up any manual HKCU CLSID (Fix for v1.0.0.10 and earlier)
+# Manual HKCU CLSID shadows RegAsm's HKLM registration and often lacks Implemented Categories,
+# causing WPS to silently fail to load the add-in.
+$hkcuClsidRoot = "HKCU:\Software\Classes\CLSID\$CLSID"
+if (Test-Path $hkcuClsidRoot) {
+    Write-Host "Cleaning up legacy HKCU CLSID to unblock HKLM registration..." -ForegroundColor Yellow
+    Remove-Item -Path $hkcuClsidRoot -Recurse -Force -ErrorAction SilentlyContinue
+}
+$hkcuProgIdRoot = "HKCU:\Software\Classes\$ProgID"
+if (Test-Path $hkcuProgIdRoot) {
+    Remove-Item -Path $hkcuProgIdRoot -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # 3. Register Addin paths (Excel & WPS) - Use $RegRoot
+# Note: If UserConfigOnly is set, RegRoot is already set to HKCU: above.
 $comRegPaths = @(
     "$RegRoot\Software\Microsoft\Office\Excel\Addins\$ProgID",
     "$RegRoot\Software\Kingsoft\Office\ET\Addins\$ProgID",
@@ -242,7 +221,7 @@ foreach ($path in $wlPaths) {
 }
 
 # 5. WOW6432Node Support (If Admin/HKLM, ensure 32-bit apps see it too)
-if ($IsAdmin) {
+if ($IsAdmin -and -not $UserConfigOnly) {
     Write-Host "Adding WOW6432Node keys for 32-bit WPS/Office..." -ForegroundColor Cyan
     
     # 5.1 Addin Registration (WOW6432Node)

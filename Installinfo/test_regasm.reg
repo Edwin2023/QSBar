@@ -1,0 +1,337 @@
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\QSBar.HelpForm]
+@="QSBar.HelpForm"
+
+[HKEY_CLASSES_ROOT\QSBar.HelpForm\CLSID]
+@="{382A60A7-F92D-3F3D-98D3-D745E0AB793E}"
+
+[HKEY_CLASSES_ROOT\CLSID\{382A60A7-F92D-3F3D-98D3-D745E0AB793E}]
+@="QSBar.HelpForm"
+
+[HKEY_CLASSES_ROOT\CLSID\{382A60A7-F92D-3F3D-98D3-D745E0AB793E}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.HelpForm"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{382A60A7-F92D-3F3D-98D3-D745E0AB793E}\InprocServer32\1.0.0.11]
+"Class"="QSBar.HelpForm"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{382A60A7-F92D-3F3D-98D3-D745E0AB793E}\ProgId]
+@="QSBar.HelpForm"
+
+[HKEY_CLASSES_ROOT\CLSID\{382A60A7-F92D-3F3D-98D3-D745E0AB793E}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]
+
+[HKEY_CLASSES_ROOT\QSBar.BatchProcessForm]
+@="QSBar.BatchProcessForm"
+
+[HKEY_CLASSES_ROOT\QSBar.BatchProcessForm\CLSID]
+@="{F21ABF88-1E55-3F67-B9AB-2F37DA601330}"
+
+[HKEY_CLASSES_ROOT\CLSID\{F21ABF88-1E55-3F67-B9AB-2F37DA601330}]
+@="QSBar.BatchProcessForm"
+
+[HKEY_CLASSES_ROOT\CLSID\{F21ABF88-1E55-3F67-B9AB-2F37DA601330}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.BatchProcessForm"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{F21ABF88-1E55-3F67-B9AB-2F37DA601330}\InprocServer32\1.0.0.11]
+"Class"="QSBar.BatchProcessForm"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{F21ABF88-1E55-3F67-B9AB-2F37DA601330}\ProgId]
+@="QSBar.BatchProcessForm"
+
+[HKEY_CLASSES_ROOT\CLSID\{F21ABF88-1E55-3F67-B9AB-2F37DA601330}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]
+
+[HKEY_CLASSES_ROOT\QSBar.KeyboardHook]
+@="QSBar.KeyboardHook"
+
+[HKEY_CLASSES_ROOT\QSBar.KeyboardHook\CLSID]
+@="{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}"
+
+[HKEY_CLASSES_ROOT\CLSID\{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}]
+@="QSBar.KeyboardHook"
+
+[HKEY_CLASSES_ROOT\CLSID\{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.KeyboardHook"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}\InprocServer32\1.0.0.11]
+"Class"="QSBar.KeyboardHook"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}\ProgId]
+@="QSBar.KeyboardHook"
+
+[HKEY_CLASSES_ROOT\CLSID\{3C6D3AF6-03CB-37B3-B1E5-56C71885E2F2}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]
+
+[HKEY_CLASSES_ROOT\QSBar.WpsAddIn]
+@="QSBar.WpsExcelAddIn"
+
+[HKEY_CLASSES_ROOT\QSBar.WpsAddIn\CLSID]
+@="{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}"
+
+[HKEY_CLASSES_ROOT\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}]
+@="QSBar.WpsExcelAddIn"
+
+[HKEY_CLASSES_ROOT\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.WpsExcelAddIn"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\InprocServer32\1.0.0.11]
+"Class"="QSBar.WpsExcelAddIn"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\ProgId]
+@="QSBar.WpsAddIn"
+
+[HKEY_CLASSES_ROOT\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]
+
+[HKEY_CLASSES_ROOT\QSBar.UpdateManager]
+@="QSBar.UpdateManager"
+
+[HKEY_CLASSES_ROOT\QSBar.UpdateManager\CLSID]
+@="{6E572DE2-DB64-37AB-A4D5-34E27615978C}"
+
+[HKEY_CLASSES_ROOT\CLSID\{6E572DE2-DB64-37AB-A4D5-34E27615978C}]
+@="QSBar.UpdateManager"
+
+[HKEY_CLASSES_ROOT\CLSID\{6E572DE2-DB64-37AB-A4D5-34E27615978C}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.UpdateManager"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{6E572DE2-DB64-37AB-A4D5-34E27615978C}\InprocServer32\1.0.0.11]
+"Class"="QSBar.UpdateManager"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{6E572DE2-DB64-37AB-A4D5-34E27615978C}\ProgId]
+@="QSBar.UpdateManager"
+
+[HKEY_CLASSES_ROOT\CLSID\{6E572DE2-DB64-37AB-A4D5-34E27615978C}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]
+
+[HKEY_CLASSES_ROOT\Record\{C3B1CAF5-84D3-3680-AB81-0211312D6AAA}\1.0.0.11]
+"Class"="AddInDesignerObjects.ext_ConnectMode"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{BB0D2B17-BA4D-3921-8D30-B6E6FF720A31}\1.0.0.11]
+"Class"="AddInDesignerObjects.ext_DisconnectMode"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{C615E1D0-213F-364E-9574-A66D062A0EDF}\1.0.0.11]
+"Class"="Microsoft.Office.Core.MsoTriState"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{84C89CBA-C358-3311-BE81-B0851C9E3C33}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlBorderWeight"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{BF1DC157-9398-3E4A-A02D-34A3740CCFC3}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlCalculation"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{0A3BB431-8DF6-33A1-9F36-0455A6FA1521}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlCellType"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{9764BC27-565B-30F9-B3A7-7762F66B9440}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlColorIndex"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{EB97FF06-2049-3F51-858E-605DA81D5C42}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlCutCopyMode"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{9F79B3E5-8F44-3511-86A2-48A83BA8E125}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlFileFormat"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{984009F7-F7B3-3943-B2A0-C9AB99F5910E}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlFindLookIn"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{590EBC5A-043B-387C-A012-618D589A7AE4}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlHAlign"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{BE552436-3C59-3749-9E18-A7BF6C0E2CCD}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlLineStyle"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{74C3C931-7EB8-36E4-9B5F-ED86CDF5DA56}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlLink"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{DC86E910-955E-3705-AC69-5C5E87D5B6DC}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlLinkType"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{524F8AFD-ADEB-3171-BF86-E78505D936C1}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlListObjectSourceType"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{C20998F5-93EB-37A8-AD8C-CC395C340854}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlLookAt"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{9676D3AF-B55C-384A-A536-4E854F2ED383}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlPasteSpecialOperation"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{5A631F45-595D-3AF3-86A2-E3073B045DBE}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlPasteType"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{EC036CCA-E677-3493-9483-A0AC22128CFE}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlPattern"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{1A13E9A7-25AC-37C8-AB3C-44F7156CB03A}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlPlacement"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{2A61CDA6-3F8E-3F9E-8797-D86903DAC4F0}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlReferenceStyle"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{F1F116B8-BA4C-3C31-9AD1-9C1EB684A7E4}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlReferenceType"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{EAB3E35D-97B0-3B7F-BEBE-395897711E7F}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlSaveAsAccessMode"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{9627D6AA-20F6-3D65-B700-2AC1B77A0623}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlSearchDirection"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{52502492-8B70-3548-923A-9E37724362F1}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlSearchOrder"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{D2421A33-9C18-31F6-936E-180D00E929E7}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlSheetVisibility"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{6AB1DFC3-DCAF-34AB-A830-5B8A43E8A503}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlVAlign"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\Record\{CD59EF89-4360-3E6D-9A8C-C3D5AFD7C06B}\1.0.0.11]
+"Class"="Microsoft.Office.Interop.Excel.XlYesNoGuess"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\QSBar.UpdateManager+UpdateInfo]
+@="QSBar.UpdateManager+UpdateInfo"
+
+[HKEY_CLASSES_ROOT\QSBar.UpdateManager+UpdateInfo\CLSID]
+@="{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}"
+
+[HKEY_CLASSES_ROOT\CLSID\{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}]
+@="QSBar.UpdateManager+UpdateInfo"
+
+[HKEY_CLASSES_ROOT\CLSID\{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}\InprocServer32]
+@="mscoree.dll"
+"ThreadingModel"="Both"
+"Class"="QSBar.UpdateManager+UpdateInfo"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}\InprocServer32\1.0.0.11]
+"Class"="QSBar.UpdateManager+UpdateInfo"
+"Assembly"="QSBar, Version=1.0.0.11, Culture=neutral, PublicKeyToken=220e92fb657d89ec"
+"RuntimeVersion"="v4.0.30319"
+"CodeBase"="file:///e:/Code/qsbar/QSBar/bin/Release/QSBar.dll"
+
+[HKEY_CLASSES_ROOT\CLSID\{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}\ProgId]
+@="QSBar.UpdateManager+UpdateInfo"
+
+[HKEY_CLASSES_ROOT\CLSID\{4B7F510A-BD56-3E16-89C2-7183BFE4A53D}\Implemented Categories\{62C8FE65-4EBB-45E7-B440-6E39B2CDBF29}]

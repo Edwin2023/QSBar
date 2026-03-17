@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.10",
+    "version":  "1.0.0.12",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Switch to User-Mode Install (AppData) to fix WPS visibility issues and match Dev environment."
+    "changeLog":  "Fix WPS load error by adding QSBar.Core.dll to installer; fix register bat silent mode"
 }
