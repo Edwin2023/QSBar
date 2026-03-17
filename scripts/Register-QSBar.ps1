@@ -203,6 +203,39 @@ try {
     Set-ItemProperty -Path $inprocKey -Name "RuntimeVersion" -Value $runtimeVersion
     Set-ItemProperty -Path $inprocKey -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
     
+    # 2.2.1 Version Specific Key (Crucial for .NET COM resolution)
+    $versionKey = "$inprocKey\$($assembly.Version.ToString())"
+    if (-not (Test-Path $versionKey)) { New-Item -Path $versionKey -Force | Out-Null }
+    Set-ItemProperty -Path $versionKey -Name "Class" -Value "QSBar.WpsExcelAddIn"
+    Set-ItemProperty -Path $versionKey -Name "Assembly" -Value $assemblyName
+    Set-ItemProperty -Path $versionKey -Name "RuntimeVersion" -Value $runtimeVersion
+    Set-ItemProperty -Path $versionKey -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+    
+    # 2.2.2 WOW6432Node Support for HKCU (Crucial for 32-bit WPS)
+    $hkcuWow64ClsidRoot = "HKCU:\Software\Classes\Wow6432Node\CLSID\$CLSID"
+    $inprocKeyWow64 = "$hkcuWow64ClsidRoot\InprocServer32"
+    if (-not (Test-Path $inprocKeyWow64)) { New-Item -Path $inprocKeyWow64 -Force | Out-Null }
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "(default)" -Value "mscoree.dll"
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "ThreadingModel" -Value "Both"
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "Class" -Value "QSBar.WpsExcelAddIn"
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "Assembly" -Value $assemblyName
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "RuntimeVersion" -Value $runtimeVersion
+    Set-ItemProperty -Path $inprocKeyWow64 -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+    
+    $versionKeyWow64 = "$inprocKeyWow64\$($assembly.Version.ToString())"
+    if (-not (Test-Path $versionKeyWow64)) { New-Item -Path $versionKeyWow64 -Force | Out-Null }
+    Set-ItemProperty -Path $versionKeyWow64 -Name "Class" -Value "QSBar.WpsExcelAddIn"
+    Set-ItemProperty -Path $versionKeyWow64 -Name "Assembly" -Value $assemblyName
+    Set-ItemProperty -Path $versionKeyWow64 -Name "RuntimeVersion" -Value $runtimeVersion
+    Set-ItemProperty -Path $versionKeyWow64 -Name "CodeBase" -Value "file:///$($DllPath.Replace('\', '/'))"
+    
+    # WOW6432Node ProgId and Implemented Categories
+    $progIdKeyWow64 = "$hkcuWow64ClsidRoot\ProgId"
+    if (-not (Test-Path $progIdKeyWow64)) { New-Item -Path $progIdKeyWow64 -Force | Out-Null }
+    Set-ItemProperty -Path $progIdKeyWow64 -Name "(default)" -Value $ProgID
+    $catKeyWow64 = "$hkcuWow64ClsidRoot\Implemented Categories\{62C8FE65-4EBB-45e7-B440-6E39B2CDBF29}"
+    if (-not (Test-Path $catKeyWow64)) { New-Item -Path $catKeyWow64 -Force | Out-Null }
+    
     # 2.3 ProgId
     $progIdKey = "$hkcuClsidRoot\ProgId"
     if (-not (Test-Path $progIdKey)) { New-Item -Path $progIdKey -Force | Out-Null }
@@ -218,7 +251,7 @@ try {
     
     $clsidMapKey = "$hkcuProgIdRoot\CLSID"
     if (-not (Test-Path $clsidMapKey)) { New-Item -Path $clsidMapKey -Force | Out-Null }
-    Set-ItemProperty -Path $clsidMapKey -Name "(default)" -Value "{$CLSID}"
+    Set-ItemProperty -Path $clsidMapKey -Name "(default)" -Value $CLSID
     
     Write-Host "HKCU CLSID Registration Successful." -ForegroundColor Green
 } catch {

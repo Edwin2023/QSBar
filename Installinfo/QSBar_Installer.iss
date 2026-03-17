@@ -4,7 +4,7 @@
 #define MyAppExeName "QSBar.dll"
 #define SourcePath "..\QSBar\bin\Release"
 #define ScriptPath "..\scripts"
-#define MyAppVersion GetFileVersion("..\QSBar\bin\Release\QSBar.dll")
+#define MyAppVersion GetVersionNumbersString("..\QSBar\bin\Release\QSBar.dll")
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
