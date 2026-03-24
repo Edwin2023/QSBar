@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.0.15",
+    "version":  "1.0.1.1",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll",
-    "changeLog":  "Fix RegAsm warnings on WPS-only machines by removing PIA dependencies from public interface"
+    "changeLog":  "更新快捷键为Ctrl+3至Ctrl+0，增加滑动特效，修复项目加载和按键阻塞问题"
 }

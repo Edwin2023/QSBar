@@ -42,7 +42,7 @@ namespace QSBar
             ApplyAccountingNumberFormatLocal("_ * #,##0.000_ ;_ * -#,##0.000_ ;_ * \"-\"???_ ;_ @ ");
         }
 
-        static void ApplyAccountingNumberFormatLocal(string fmt)
+        private static void ApplyAccountingNumberFormatLocal(string fmt)
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
@@ -370,6 +370,39 @@ namespace QSBar
                 Excel.Range selection = app.Selection as Excel.Range;
                 if (selection == null) return;
                 selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Select();
+            }
+            catch { }
+        }
+
+        public static void SelectNonEmptyCells()
+        {
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+            try
+            {
+                Excel.Range selection = app.Selection as Excel.Range;
+                if (selection == null) return;
+                
+                // SpecialCells can only find one type at a time.
+                // We need to combine constants (xlCellTypeConstants = 2) and formulas (xlCellTypeFormulas = -4123)
+                Excel.Range constants = null;
+                Excel.Range formulas = null;
+                
+                try { constants = selection.SpecialCells(Excel.XlCellType.xlCellTypeConstants); } catch { }
+                try { formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas); } catch { }
+                
+                if (constants != null && formulas != null)
+                {
+                    app.Union(constants, formulas).Select();
+                }
+                else if (constants != null)
+                {
+                    constants.Select();
+                }
+                else if (formulas != null)
+                {
+                    formulas.Select();
+                }
             }
             catch { }
         }

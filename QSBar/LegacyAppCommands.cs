@@ -49,13 +49,9 @@ namespace QSBar
                                         Excel.XlReferenceType.xlAbsolute
                                     );
                                     
-                                    if (newFormula is string)
+                                    if (newFormula is string s && !string.IsNullOrEmpty(s))
                                     {
-                                        string s = (string)newFormula;
-                                        if (!string.IsNullOrEmpty(s))
-                                        {
-                                            cell.Formula = s;
-                                        }
+                                        cell.Formula = s;
                                     }
                                 }
                             }
@@ -114,12 +110,15 @@ namespace QSBar
                 if (app.Calculation == Excel.XlCalculation.xlCalculationAutomatic)
                 {
                     app.Calculation = Excel.XlCalculation.xlCalculationManual;
+                    ToastForm.ShowToast("✅ 已切换为: 手动计算");
                 }
                 else
                 {
                     app.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
+                    ToastForm.ShowToast("✅ 已切换为: 自动计算");
                 }
-                // QSRibbon.InvalidateCalcButtons();
+                // Update ribbon buttons state
+                WpsExcelAddIn.InvalidateCalcButtons();
             }
             catch { }
         }

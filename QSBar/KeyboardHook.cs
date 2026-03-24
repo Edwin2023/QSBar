@@ -66,8 +66,18 @@ namespace QSBar
                         if (ctrlPressed == _ctrlShortcuts[key] && altPressed == _altShortcuts[key])
                         {
                             Action action = _shortcuts[key];
-                            // 在本地钩子中，我们直接在当前 UI 线程执行
-                            try { action.Invoke(); } catch { }
+                            
+                            // 延迟执行，防止类似 ShowDialog() 这样的操作阻塞钩子，导致系统判定钩子超时并把按键透传给 Excel
+                            Timer t = new Timer();
+                            t.Interval = 10;
+                            t.Tick += (s, e) =>
+                            {
+                                t.Stop();
+                                t.Dispose();
+                                try { action.Invoke(); } catch { }
+                            };
+                            t.Start();
+
                             return (IntPtr)1; // 拦截按键，防止传给 Excel
                         }
                     }
