@@ -162,6 +162,24 @@ if (Test-Path $InstallerScript) {
     Write-Host "Successfully updated QSBar_Installer.iss version." -ForegroundColor Green
 }
 
+# 7.8 Compile Inno Setup Installer
+Write-Host "`n--- Compiling Inno Setup Installer ---" -ForegroundColor Cyan
+$isccPath = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+if (Test-Path $isccPath) {
+    if (Test-Path $InstallerScript) {
+        & $isccPath $InstallerScript
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Inno Setup compilation failed with exit code $LASTEXITCODE."
+        } else {
+            Write-Host "Successfully compiled installer to Release folder." -ForegroundColor Green
+        }
+    } else {
+        Write-Warning "Installer script not found at $InstallerScript"
+    }
+} else {
+    Write-Warning "Inno Setup compiler (ISCC.exe) not found at $isccPath. Skipping installer generation."
+}
+
 
 # 8. Push to Gitee
 Write-Host "Pushing to Gitee..." -ForegroundColor Cyan
