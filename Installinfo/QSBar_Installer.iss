@@ -69,7 +69,6 @@ Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Office.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Microsoft.Office.Interop.Excel.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Interop.AddInDesignerObjects.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourcePath}\stdole.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\QSBar.tlb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
