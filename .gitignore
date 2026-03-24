@@ -22,6 +22,12 @@ BMToolkits/
 
 # Build results
 [Dd]ebug/
-[Rr]elease/
+# [Rr]elease/  (Removed to allow committing release builds and installers)
 x64/
 x86/
+
+# Ensure the root Release folder is NOT ignored
+!/Release/
+!/Release/*
+!/Release/*.exe
+!/Release/*.dll
