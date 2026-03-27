@@ -74,7 +74,7 @@
             supertip='将计算模式切换为手动' />
           <button id='btnCalcManual' label='切到自动计算' keytip='F10' getVisible='GetCalcManualVisible'
             onAction='OnToggleCalculation' imageMso='CalculateFull' size='large'
-            screentip='当前:手动计算' supertip='将计算模式切换为自动' />1
+            screentip='当前:手动计算' supertip='将计算模式切换为自动' />
         </group>
 
         <group id='groupHelpUpdate' label='帮助更新'>
