@@ -117,7 +117,7 @@ Write-Host "Successfully copied latest DLL to publish directory." -ForegroundCol
 # 7. Update version.json
 $jsonObj = New-Object PSObject
 $jsonObj | Add-Member NoteProperty "version" $Version
-$jsonObj | Add-Member NoteProperty "downloadUrl" "https://gitee.com/kevin137/qsbar/raw/master/publish/QSBar.dll"
+$jsonObj | Add-Member NoteProperty "downloadUrl" "https://gitee.com/kevin137/qsbar/raw/master/Release/QSBar.dll"
 $jsonObj | Add-Member NoteProperty "changeLog" $Log
 
 $jsonString = $jsonObj | ConvertTo-Json
