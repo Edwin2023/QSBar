@@ -183,38 +183,28 @@ namespace QSBar
                 File.WriteAllText(logPath, info.ChangeLog);
 
                 string excelExe = Process.GetCurrentProcess().MainModule.FileName;
-                string batchContent = string.Format(@"
-@echo off
-setlocal enabledelayedexpansion
-title QSBar Update Script
-
+                string batchContent = $@"@echo off
+title QSBar Update
 echo Waiting for Excel/WPS to close...
-set /a count=0
-:WAIT_LOOP
-taskkill /im excel.exe /im wps.exe > nul 2>&1
-timeout /t 1 /nobreak > nul
-tasklist | findstr /i ""excel.exe wps.exe"" > nul
-if %errorlevel% equ 0 (
-    set /a count+=1
-    if !count! gtr 3 (
-        echo Force killing Excel/WPS...
-        taskkill /f /im excel.exe /f /im wps.exe > nul 2>&1
-    )
-    goto WAIT_LOOP
-)
+timeout /t 3 /nobreak > nul
 
-echo Updating files...
-copy /y ""{0}"" ""{1}""
+echo Closing processes...
+taskkill /f /im excel.exe > nul 2>&1
+taskkill /f /im wps.exe > nul 2>&1
+taskkill /f /im et.exe > nul 2>&1
+timeout /t 2 /nobreak > nul
+
+echo Starting installer...
+start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 echo Cleanup...
-del ""{0}""
+del ""{tempFile}""
 
 echo Starting Excel...
-start """" ""{2}""
+start """" ""{excelExe}""
 
 echo Done!
-del ""%~f0""
-", tempFile, currentPath, excelExe);
+del ""%~f0""";
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
 
                 Process.Start(new ProcessStartInfo
