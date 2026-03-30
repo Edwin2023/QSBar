@@ -124,6 +124,27 @@ if ($Unregister) {
         }
     }
 
+    # Also try to clean HKLM if running as Admin
+    if ($IsAdmin) {
+        $hklmClsid = "HKLM:\Software\Classes\CLSID\$CLSID"
+        if (Test-Path $hklmClsid) { Remove-Item -Path $hklmClsid -Recurse -Force; Write-Host "Removed HKLM CLSID" }
+        
+        $hklmProg = "HKLM:\Software\Classes\$ProgID"
+        if (Test-Path $hklmProg) { Remove-Item -Path $hklmProg -Recurse -Force; Write-Host "Removed HKLM ProgID" }
+        
+        $hklmAddin = "HKLM:\Software\Microsoft\Office\Excel\Addins\$ProgID"
+        if (Test-Path $hklmAddin) { Remove-Item -Path $hklmAddin -Recurse -Force; Write-Host "Removed HKLM Addin Key" }
+        
+        $hklmWowClsid = "HKLM:\Software\WOW6432Node\Classes\CLSID\$CLSID"
+        if (Test-Path $hklmWowClsid) { Remove-Item -Path $hklmWowClsid -Recurse -Force; Write-Host "Removed HKLM WOW64 CLSID" }
+        
+        $hklmWowProg = "HKLM:\Software\WOW6432Node\Classes\$ProgID"
+        if (Test-Path $hklmWowProg) { Remove-Item -Path $hklmWowProg -Recurse -Force; Write-Host "Removed HKLM WOW64 ProgID" }
+        
+        $hklmWowAddin = "HKLM:\Software\WOW6432Node\Microsoft\Office\Excel\Addins\$ProgID"
+        if (Test-Path $hklmWowAddin) { Remove-Item -Path $hklmWowAddin -Recurse -Force; Write-Host "Removed HKLM WOW64 Addin Key" }
+    }
+
     Write-Host "Unregistration Complete." -ForegroundColor Green
     exit
 }

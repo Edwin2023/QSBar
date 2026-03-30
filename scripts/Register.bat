@@ -21,7 +21,19 @@ echo.
 echo Registering QSBar...
 echo.
 
-powershell.exe -ExecutionPolicy Bypass -File "Register-QSBar.ps1" -DllPath "%~dp0QSBar.dll" -RestartApps %ADMIN_SWITCH%
+:: Default path is same folder as script (for Installer)
+set "DLL_PATH=%~dp0QSBar.dll"
+
+:: If running in dev environment (scripts folder), adjust path
+if not exist "%DLL_PATH%" (
+    if exist "%~dp0..\QSBar\bin\Release\QSBar.dll" (
+        set "DLL_PATH=%~dp0..\QSBar\bin\Release\QSBar.dll"
+    ) else if exist "%~dp0..\QSBar\bin\Debug\QSBar.dll" (
+        set "DLL_PATH=%~dp0..\QSBar\bin\Debug\QSBar.dll"
+    )
+)
+
+powershell.exe -ExecutionPolicy Bypass -File "Register-QSBar.ps1" -DllPath "%DLL_PATH%" -RestartApps %ADMIN_SWITCH%
 if %errorlevel% neq 0 (
     echo [ERROR] Registration failed with exit code %errorlevel%
     :: Only pause if not running in silent/installer mode (detect by checking if %1 is -Silent)
