@@ -185,8 +185,8 @@ namespace QSBar
                 string excelExe = Process.GetCurrentProcess().MainModule.FileName;
                 string batchContent = $@"@echo off
 title QSBar Update
-echo Waiting for Excel/WPS to close...
-timeout /t 2 /nobreak > nul
+echo Waiting for Excel/WPS to close gracefully...
+timeout /t 1 /nobreak > nul
 
 echo Force closing Excel/WPS processes...
 :KILL_LOOP
@@ -195,6 +195,10 @@ taskkill /f /im wps.exe /t > nul 2>&1
 taskkill /f /im et.exe /t > nul 2>&1
 taskkill /f /im wpp.exe /t > nul 2>&1
 
+:: Force kill using WMI for completely frozen processes
+wmic process where name=""excel.exe"" call terminate > nul 2>&1
+wmic process where name=""wps.exe"" call terminate > nul 2>&1
+
 :: Double check if processes are still alive
 tasklist /fi ""imagename eq excel.exe"" | find /i ""excel.exe"" > nul
 if %errorlevel% equ 0 (
@@ -202,7 +206,7 @@ if %errorlevel% equ 0 (
     goto KILL_LOOP
 )
 
-timeout /t 2 /nobreak > nul
+timeout /t 1 /nobreak > nul
 
 echo Starting installer...
 start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
@@ -215,17 +219,18 @@ del ""%~f0""";
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
 
                 Process.Start(new ProcessStartInfo
-                {
-                    FileName = batchFile,
-                    CreateNoWindow = false,
-                    UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Normal
-                });
+                  {
+                      FileName = batchFile,
+                      CreateNoWindow = false,
+                      UseShellExecute = true,
+                      WindowStyle = ProcessWindowStyle.Normal
+                  });
 
-                Application.Exit();
-                Environment.Exit(0);
-            }
-            catch (Exception ex)
+                  // We should not just exit the environment abruptly while Excel COM is still active
+                  // Instead, we just let the batch file handle the killing of the excel process from the outside.
+                  // Application.Exit() and Environment.Exit(0) inside a COM addin can cause Excel to hang.
+              }
+              catch (Exception ex)
             {
                 MessageBox.Show(string.Format("更新失败: {0}", ex.Message), "更新错误");
             }
