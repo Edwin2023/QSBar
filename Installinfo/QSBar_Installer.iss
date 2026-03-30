@@ -126,7 +126,9 @@ Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flag
 ; This is CRITICAL for WPS/Excel to see the add-in in the user's profile
 Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flags: runasoriginaluser waituntilterminated; StatusMsg: "Registering QSBar (User-Level)..."
 
-Filename: "{app}\UpdateNotes.html"; Description: "View update instructions (查看更新说明)"; Flags: postinstall shellexec skipifsilent
+; 3. Auto-launch Excel after install (instead of showing notes)
+Filename: "excel.exe"; Description: "Launch Excel now (立即启动 Excel)"; Flags: postinstall nowait shellexec skipifsilent
+
 
 [UninstallRun]
 ; 1. Unregister for User (HKCU) - Executed as Original User
@@ -143,6 +145,16 @@ Type: filesandordirs; Name: "{app}"
 [Code]
 var
   ExcelImage, WpsImage: TBitmapImage;
+
+procedure TaskKillOffice();
+var
+  ResultCode: Integer;
+begin
+  Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(3000); // 确保进程已完全退出并释放文件锁
+end;
 
 // 获取已安装版本的卸载字符串
 function GetUninstallString(): String;
@@ -171,6 +183,9 @@ var
   Release: Cardinal;
 begin
   Result := True;
+  
+  // 强制关闭 Office，防止文件占用导致卸载/安装失败
+  TaskKillOffice();
   
   // Check for .NET Framework 4.8
   if RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full') then
@@ -223,15 +238,6 @@ function IsDotNet40Installed: Boolean;
 begin
   // 简化版检测：只要存在该注册表项，就认为已安装 .NET 4.0
   Result := RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full');
-end;
-
-procedure TaskKillOffice();
-var
-  ResultCode: Integer;
-begin
-  Exec('taskkill.exe', '/f /im excel.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec('taskkill.exe', '/f /im wps.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec('taskkill.exe', '/f /im et.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
 // 获取符合 URL 格式的 CodeBase 路径
