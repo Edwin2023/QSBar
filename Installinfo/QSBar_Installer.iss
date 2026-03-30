@@ -1,4 +1,4 @@
-﻿﻿﻿﻿; QSBar One-Click Installer Script for Inno Setup
+; QSBar One-Click Installer Script for Inno Setup
 #define MyAppName "QSBar"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"
@@ -195,21 +195,17 @@ begin
   end;
 
   if IsInstalled() then
-  begin
-    sUnInstallString := RemoveQuotes(GetUninstallString());
-    
-    // 如果卸载程序文件已经不存在了（比如被用户手动删除了文件夹），则直接允许覆盖安装
-    if not FileExists(sUnInstallString) then
     begin
-      Result := True;
-      Exit;
-    end;
+      sUnInstallString := RemoveQuotes(GetUninstallString());
 
-    V := MsgBox('A version of QSBar is already installed. Do you want to uninstall it before continuing?' + #13#10 +
-                '检测到已安装旧版本，是否在继续安装前先卸载？', mbConfirmation, MB_YESNO);
-    if V = IDYES then
-    begin
-      // 确保使用 ShellExecute 方式调用
+      // 如果卸载程序文件已经不存在了（比如被用户手动删除了文件夹），则直接允许覆盖安装
+      if not FileExists(sUnInstallString) then
+      begin
+        Result := True;
+        Exit;
+      end;
+
+      // 静默调用旧版卸载程序，不再弹窗询问
       if ShellExec('', sUnInstallString, '/SILENT /VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
       begin
         // 卸载成功后继续
@@ -217,13 +213,11 @@ begin
       end
       else
       begin
-        MsgBox('Uninstallation failed. Please uninstall manually and try again.' + #13#10 +
-               '自动卸载失败，请手动卸载后再试。', mbError, MB_OK);
-        Result := False;
+        // 卸载失败记录日志，但仍然允许继续安装覆盖
+        Result := True;
       end;
     end;
   end;
-end;
 
 function IsDotNet40Installed: Boolean;
 begin
@@ -256,13 +250,24 @@ procedure CurUninstallStepChanged(UninstallStep: TUninstallStep);
 begin
   if UninstallStep = usPostUninstall then
   begin
-    // 强制清理可能残留的注册表项
+    // 强制清理可能残留的注册表项 (HKCU)
     RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
     RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\QSBar.WpsAddIn');
+    RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\ET\AddinsWL', 'QSBar.WpsAddIn');
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\WPS\AddinsWL', 'QSBar.WpsAddIn');
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\Common\AddinsWL', 'QSBar.WpsAddIn');
     RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\6.0\AddinsWL', 'QSBar.WpsAddIn');
+    
+    // 强制清理可能残留的注册表项 (HKLM)
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Classes\QSBar.WpsAddIn');
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
+    
+    // 强制清理 WOW6432Node
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Classes\QSBar.WpsAddIn');
+    RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
   end;
 end;
 

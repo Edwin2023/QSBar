@@ -118,9 +118,9 @@ namespace QSBar
             if (LatestUpdateInfo == null) return;
 
             Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
-            var result = MessageBox.Show(string.Format("检测到新版本: {0}\n当前版本: {1}\n\n更新内容:\n{2}\n\n更新将尝试自动关闭 Excel/WPS 进程并替换文件。\n是否立即开始？", 
+            var result = MessageBox.Show(string.Format("检测到新版本: {0}\n当前版本: {1}\n\n更新内容:\n{2}\n\n是否现在开始更新？\n\n注意：更新需要重启 Excel，请提前保存好您的文件！",
                 LatestUpdateInfo.Version, currentVersion, LatestUpdateInfo.ChangeLog),
-                "确认重启更新", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                "发现新版本", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             if (result == DialogResult.Yes)
             {
