@@ -186,12 +186,22 @@ namespace QSBar
                 string batchContent = $@"@echo off
 title QSBar Update
 echo Waiting for Excel/WPS to close...
-timeout /t 3 /nobreak > nul
+timeout /t 2 /nobreak > nul
 
-echo Closing processes...
-taskkill /f /im excel.exe > nul 2>&1
-taskkill /f /im wps.exe > nul 2>&1
-taskkill /f /im et.exe > nul 2>&1
+echo Force closing Excel/WPS processes...
+:KILL_LOOP
+taskkill /f /im excel.exe /t > nul 2>&1
+taskkill /f /im wps.exe /t > nul 2>&1
+taskkill /f /im et.exe /t > nul 2>&1
+taskkill /f /im wpp.exe /t > nul 2>&1
+
+:: Double check if processes are still alive
+tasklist /fi ""imagename eq excel.exe"" | find /i ""excel.exe"" > nul
+if %errorlevel% equ 0 (
+    timeout /t 1 /nobreak > nul
+    goto KILL_LOOP
+)
+
 timeout /t 2 /nobreak > nul
 
 echo Starting installer...
@@ -199,9 +209,6 @@ start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 echo Cleanup...
 del ""{tempFile}""
-
-echo Starting Excel...
-start """" ""{excelExe}""
 
 echo Done!
 del ""%~f0""";

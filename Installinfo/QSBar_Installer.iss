@@ -79,7 +79,7 @@ Source: "{#SourcePath}\System.ComponentModel.Annotations.dll"; DestDir: "{app}";
 Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register-QSBar.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "UpdateNotes.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ScriptPath}\DeepClean-QSBar.ps1"; DestDir: "{tmp}"; Flags: dontcopy
 Source: "SHOW1_EXCEL_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW2_WPS_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "SHOW1_EXCEL_BAR.bmp"; Flags: dontcopy
@@ -175,11 +175,71 @@ begin
   Result := (GetUninstallString() <> '');
 end;
 
+// 解析版本号字符串为数字，用于比较
+procedure DecodeVersion(verstr: String; var v1, v2, v3, v4: Integer);
+var
+  i, p: Integer;
+  s: String;
+begin
+  v1 := 0; v2 := 0; v3 := 0; v4 := 0;
+  s := verstr;
+  for i := 1 to 4 do
+  begin
+    p := Pos('.', s);
+    if p > 0 then
+    begin
+      if i = 1 then v1 := StrToIntDef(Copy(s, 1, p - 1), 0)
+      else if i = 2 then v2 := StrToIntDef(Copy(s, 1, p - 1), 0)
+      else if i = 3 then v3 := StrToIntDef(Copy(s, 1, p - 1), 0);
+      s := Copy(s, p + 1, Length(s));
+    end
+    else
+    begin
+      if i = 1 then v1 := StrToIntDef(s, 0)
+      else if i = 2 then v2 := StrToIntDef(s, 0)
+      else if i = 3 then v3 := StrToIntDef(s, 0)
+      else if i = 4 then v4 := StrToIntDef(s, 0);
+      break;
+    end;
+  end;
+end;
+
+// 比较版本号：如果 Ver1 > Ver2 返回 1，Ver1 < Ver2 返回 -1，相等返回 0
+function CompareVersion(ver1, ver2: String): Integer;
+var
+  v1_1, v1_2, v1_3, v1_4: Integer;
+  v2_1, v2_2, v2_3, v2_4: Integer;
+begin
+  DecodeVersion(ver1, v1_1, v1_2, v1_3, v1_4);
+  DecodeVersion(ver2, v2_1, v2_2, v2_3, v2_4);
+  
+  if v1_1 > v2_1 then Result := 1 else if v1_1 < v2_1 then Result := -1
+  else if v1_2 > v2_2 then Result := 1 else if v1_2 < v2_2 then Result := -1
+  else if v1_3 > v2_3 then Result := 1 else if v1_3 < v2_3 then Result := -1
+  else if v1_4 > v2_4 then Result := 1 else if v1_4 < v2_4 then Result := -1
+  else Result := 0;
+end;
+
+// 获取已安装程序的版本号
+function GetInstalledVersion(): String;
+var
+  sUnInstPath: String;
+  sVersion: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1');
+  sVersion := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'DisplayVersion', sVersion) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'DisplayVersion', sVersion);
+  Result := sVersion;
+end;
+
 function InitializeSetup(): Boolean;
 var
   V: Integer;
   iResultCode: Integer;
   sUnInstallString: String;
+  InstalledVer: String;
+  CurrentVer: String;
   Release: Cardinal;
 begin
   Result := True;
@@ -210,29 +270,28 @@ begin
   end;
 
   if IsInstalled() then
+  begin
+    InstalledVer := GetInstalledVersion();
+    CurrentVer := '{#MyAppVersion}';
+    
+    // 如果系统中的版本高于当前安装包的版本，提示用户
+    if (InstalledVer <> '') and (CompareVersion(InstalledVer, CurrentVer) > 0) then
     begin
-      sUnInstallString := RemoveQuotes(GetUninstallString());
-
-      // 如果卸载程序文件已经不存在了（比如被用户手动删除了文件夹），则直接允许覆盖安装
-      if not FileExists(sUnInstallString) then
+      V := MsgBox('检测到系统中已安装了更高版本的 QSBar (v' + InstalledVer + ')。' + #13#10 + 
+             '您当前正在尝试安装较低的版本 (v' + CurrentVer + ')。' + #13#10#13#10 + 
+             '继续安装将会覆盖高版本，是否确定继续？', mbConfirmation, MB_YESNO);
+      if V = IDNO then
       begin
-        Result := True;
+        Result := False;
         Exit;
       end;
-
-      // 静默调用旧版卸载程序，不再弹窗询问
-      if ShellExec('', sUnInstallString, '/SILENT /VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
-      begin
-        // 卸载成功后继续
-        Result := True;
-      end
-      else
-      begin
-        // 卸载失败记录日志，但仍然允许继续安装覆盖
-        Result := True;
-      end;
     end;
+
+    // 释放并执行 DeepClean 脚本进行深度清理
+    ExtractTemporaryFile('DeepClean-QSBar.ps1');
+    Exec('powershell.exe', '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false', '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
   end;
+end;
 
 function IsDotNet40Installed: Boolean;
 begin
