@@ -51,12 +51,7 @@ namespace QSBar
                 {
                     if (promptOnNewVersion)
                     {
-                        var result = MessageBox.Show(string.Format("检测到新版本 v{0}。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？", info.Version),
-                            "QS工具箱", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
-                        if (result == DialogResult.Yes)
-                        {
-                            await PerformUpdate(info);
-                        }
+                        await StartUpdateFlow();
                     }
                     return;
                 }
@@ -189,6 +184,7 @@ namespace QSBar
                 string batchContent = $@"@echo off
 timeout /t 1 /nobreak > nul
 
+set RETRIES=0
 :KILL_LOOP
 taskkill /f /pid {hostProcessId} > nul 2>&1
 taskkill /f /im excel.exe /t > nul 2>&1
@@ -203,17 +199,13 @@ wmic process where name=""wps.exe"" call terminate > nul 2>&1
 :: Double check by PID first
 tasklist /fi ""pid eq {hostProcessId}"" | find ""{hostProcessId}"" > nul
 if %errorlevel% equ 0 (
+    set /a RETRIES+=1
+    if %RETRIES% geq 20 goto INSTALL_NOW
     timeout /t 1 /nobreak > nul
     goto KILL_LOOP
 )
 
-:: Then check by image name
-tasklist /fi ""imagename eq excel.exe"" | find /i ""excel.exe"" > nul
-if %errorlevel% equ 0 (
-    timeout /t 1 /nobreak > nul
-    goto KILL_LOOP
-)
-
+:INSTALL_NOW
 timeout /t 1 /nobreak > nul
 
 start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART

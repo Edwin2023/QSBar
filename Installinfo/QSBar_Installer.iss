@@ -145,6 +145,8 @@ Type: filesandordirs; Name: "{app}"
 [Code]
 var
   ExcelImage, WpsImage: TBitmapImage;
+  NeedPreInstallCleanup: Boolean;
+  PreInstallCleanupDone: Boolean;
 
 procedure TaskKillOffice();
 var
@@ -233,18 +235,83 @@ begin
   Result := sVersion;
 end;
 
+procedure ForceCleanupFallback();
+var
+  Rc: Integer;
+begin
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\Wow6432Node\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Classes\Wow6432Node\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn');
+  RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\ET\AddinsWL', 'QSBar.WpsAddIn');
+  RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\WPS\AddinsWL', 'QSBar.WpsAddIn');
+  RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\Common\AddinsWL', 'QSBar.WpsAddIn');
+  RegDeleteValue(HKEY_CURRENT_USER, 'Software\Kingsoft\Office\6.0\AddinsWL', 'QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Classes\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Classes\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn');
+  RegDeleteKeyIncludingSubkeys(HKEY_CURRENT_USER, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1');
+  RegDeleteKeyIncludingSubkeys(HKEY_LOCAL_MACHINE, 'Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1');
+  Exec('cmd.exe', '/c rmdir /s /q "' + ExpandConstant('{localappdata}\QSBar') + '"', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+end;
+
+procedure ForceCleanupUserFallback();
+var
+  Rc: Integer;
+begin
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Classes\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Classes\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Classes\Wow6432Node\CLSID\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Classes\Wow6432Node\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Microsoft\Office\Excel\Addins\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\ET\Addins\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\ET\AddinsData\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\WPS\Addins\QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\ET\AddinsWL" /v "QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\WPS\AddinsWL" /v "QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\Common\AddinsWL" /v "QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Kingsoft\Office\6.0\AddinsWL" /v "QSBar.WpsAddIn" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('reg.exe', 'delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\{D8A7F4B2-1234-4A32-B8E5-9F1E8A9C82DF}_is1" /f', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+  ExecAsOriginalUser('cmd.exe', '/c rmdir /s /q "' + ExpandConstant('{localappdata}\QSBar') + '"', '', SW_HIDE, ewWaitUntilTerminated, Rc);
+end;
+
+procedure RunPreInstallCleanup();
+var
+  iResultCode: Integer;
+  OkAdmin: Boolean;
+  OkUser: Boolean;
+  CmdLine: String;
+begin
+  if PreInstallCleanupDone then Exit;
+  TaskKillOffice();
+  ExtractTemporaryFile('DeepClean-QSBar.ps1');
+  CmdLine := '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false';
+  OkAdmin := Exec('powershell.exe', CmdLine, '', SW_HIDE, ewWaitUntilTerminated, iResultCode) and (iResultCode = 0);
+  OkUser := ExecAsOriginalUser('powershell.exe', CmdLine, '', SW_HIDE, ewWaitUntilTerminated, iResultCode) and (iResultCode = 0);
+  if not (OkAdmin or OkUser) then
+    ForceCleanupFallback();
+  ForceCleanupUserFallback();
+  PreInstallCleanupDone := True;
+end;
+
 function InitializeSetup(): Boolean;
 var
   V: Integer;
-  iResultCode: Integer;
   InstalledVer: String;
   CurrentVer: String;
   Release: Cardinal;
 begin
   Result := True;
-  
-  // 强制关闭 Office，防止文件占用导致卸载/安装失败
-  TaskKillOffice();
+  NeedPreInstallCleanup := True;
+  PreInstallCleanupDone := False;
   
   // Check for .NET Framework 4.8
   if RegKeyExists(HKEY_LOCAL_MACHINE, 'SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full') then
@@ -287,8 +354,12 @@ begin
     end;
   end;
 
-  ExtractTemporaryFile('DeepClean-QSBar.ps1');
-  Exec('powershell.exe', '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false', '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep = ssInstall) and NeedPreInstallCleanup then
+    RunPreInstallCleanup();
 end;
 
 function IsDotNet40Installed: Boolean;
