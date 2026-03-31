@@ -23,6 +23,7 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
+        private static Timer _startupUpdateTimer;
         private static KeyboardHook _keyboardHook;
         private static uint _currentProcessId;
 
@@ -148,18 +149,23 @@ namespace QSBar
             {
                 _ribbon = ribbon;
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
-                var syncContext = System.Threading.SynchronizationContext.Current;
-                var startupUpdateTask = Task.Run(async () =>
+                if (_startupUpdateTimer == null)
                 {
-                    await UpdateManager.CheckForUpdateAsync(true, false);
-                    if (UpdateManager.HasNewVersion && syncContext != null)
+                    _startupUpdateTimer = new Timer();
+                    _startupUpdateTimer.Interval = 3000;
+                    _startupUpdateTimer.Tick += async (s, e) =>
                     {
-                        syncContext.Post(async state =>
+                        _startupUpdateTimer.Stop();
+                        _startupUpdateTimer.Dispose();
+                        _startupUpdateTimer = null;
+                        await UpdateManager.CheckForUpdateAsync(true, false);
+                        if (UpdateManager.HasNewVersion)
                         {
                             await UpdateManager.StartUpdateFlow();
-                        }, null);
-                    }
-                });
+                        }
+                    };
+                    _startupUpdateTimer.Start();
+                }
             }
             catch (Exception ex)
             {
