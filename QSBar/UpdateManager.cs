@@ -51,8 +51,8 @@ namespace QSBar
                 {
                     if (promptOnNewVersion)
                     {
-                        var result = MessageBox.Show("检测到新版本。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？",
-                            "发现新版本", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                        var result = MessageBox.Show(string.Format("检测到新版本 v{0}。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？", info.Version),
+                            "QS工具箱", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                         if (result == DialogResult.Yes)
                         {
                             await PerformUpdate(info);
@@ -123,8 +123,8 @@ namespace QSBar
         {
             if (LatestUpdateInfo == null) return;
 
-            var result = MessageBox.Show("请确认已保存好当前文件。\n\n是否现在关闭 Excel 并执行更新？",
-                "重启更新确认", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            var result = MessageBox.Show(string.Format("将更新到 v{0}。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？", LatestUpdateInfo.Version),
+                "QS工具箱", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             if (result == DialogResult.Yes)
             {

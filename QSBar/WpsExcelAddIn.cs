@@ -149,8 +149,7 @@ namespace QSBar
                 _ribbon = ribbon;
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
             
-                // 启动时检查更新：若有新版本则提示用户更新
-                var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, true));
+                var _ = UpdateManager.CheckForUpdateAsync(true, true);
             }
             catch (Exception ex)
             {
