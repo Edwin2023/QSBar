@@ -76,6 +76,8 @@ Write-Host "`n--- Step 2: Cleaning Current User (HKCU) Registry ---" -Foreground
 # CLSID and ProgID
 Remove-RegistryKeySafely "HKCU:\Software\Classes\CLSID\$CLSID"
 Remove-RegistryKeySafely "HKCU:\Software\Classes\$ProgID"
+Remove-RegistryKeySafely "HKCU:\Software\Classes\Wow6432Node\CLSID\$CLSID"
+Remove-RegistryKeySafely "HKCU:\Software\Classes\Wow6432Node\$ProgID"
 
 # Addins (Excel & WPS)
 Remove-RegistryKeySafely "HKCU:\Software\Microsoft\Office\Excel\Addins\$ProgID"
