@@ -117,10 +117,8 @@ namespace QSBar
         {
             if (LatestUpdateInfo == null) return;
 
-            Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
-            var result = MessageBox.Show(string.Format("检测到新版本: {0}\n当前版本: {1}\n\n更新内容:\n{2}\n\n是否现在开始更新？\n\n注意：更新需要重启 Excel，请提前保存好您的文件！",
-                LatestUpdateInfo.Version, currentVersion, LatestUpdateInfo.ChangeLog),
-                "发现新版本", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            var result = MessageBox.Show("请确认已保存好当前文件。\n\n是否现在关闭 Excel 并执行更新？",
+                "重启更新确认", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             if (result == DialogResult.Yes)
             {
@@ -176,7 +174,6 @@ namespace QSBar
 
                 string currentPath = Assembly.GetExecutingAssembly().Location;
                 string currentDir = Path.GetDirectoryName(currentPath);
-                string dllName = Path.GetFileName(currentPath); // 动态获取 DLL 文件名
                 string batchFile = Path.Combine(Path.GetTempPath(), "qs_update.bat");
 
                 string logPath = Path.Combine(currentDir, UPDATE_LOG_FILE);
@@ -184,11 +181,8 @@ namespace QSBar
 
                 int hostProcessId = Process.GetCurrentProcess().Id;
                 string batchContent = $@"@echo off
-title QSBar Update
-echo Waiting for Excel/WPS to close gracefully...
 timeout /t 1 /nobreak > nul
 
-echo Force closing Excel/WPS processes...
 :KILL_LOOP
 taskkill /f /pid {hostProcessId} > nul 2>&1
 taskkill /f /im excel.exe /t > nul 2>&1
@@ -216,22 +210,23 @@ if %errorlevel% equ 0 (
 
 timeout /t 1 /nobreak > nul
 
-echo Starting installer...
 start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
-echo Cleanup...
-del ""{tempFile}""
+if %errorlevel% equ 0 (
+    start """" excel.exe
+)
 
-echo Done!
+del ""{tempFile}""
 del ""%~f0""";
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
 
                 Process.Start(new ProcessStartInfo
                   {
-                      FileName = batchFile,
-                      CreateNoWindow = false,
-                      UseShellExecute = true,
-                      WindowStyle = ProcessWindowStyle.Normal
+                      FileName = "cmd.exe",
+                      Arguments = "/c \"" + batchFile + "\"",
+                      CreateNoWindow = true,
+                      UseShellExecute = false,
+                      WindowStyle = ProcessWindowStyle.Hidden
                   });
               }
               catch (Exception ex)
