@@ -182,7 +182,7 @@ namespace QSBar
                 string logPath = Path.Combine(currentDir, UPDATE_LOG_FILE);
                 File.WriteAllText(logPath, info.ChangeLog);
 
-                string excelExe = Process.GetCurrentProcess().MainModule.FileName;
+                int hostProcessId = Process.GetCurrentProcess().Id;
                 string batchContent = $@"@echo off
 title QSBar Update
 echo Waiting for Excel/WPS to close gracefully...
@@ -190,6 +190,7 @@ timeout /t 1 /nobreak > nul
 
 echo Force closing Excel/WPS processes...
 :KILL_LOOP
+taskkill /f /pid {hostProcessId} /t > nul 2>&1
 taskkill /f /im excel.exe /t > nul 2>&1
 taskkill /f /im wps.exe /t > nul 2>&1
 taskkill /f /im et.exe /t > nul 2>&1
@@ -199,7 +200,14 @@ taskkill /f /im wpp.exe /t > nul 2>&1
 wmic process where name=""excel.exe"" call terminate > nul 2>&1
 wmic process where name=""wps.exe"" call terminate > nul 2>&1
 
-:: Double check if processes are still alive
+:: Double check by PID first
+tasklist /fi ""pid eq {hostProcessId}"" | find ""{hostProcessId}"" > nul
+if %errorlevel% equ 0 (
+    timeout /t 1 /nobreak > nul
+    goto KILL_LOOP
+)
+
+:: Then check by image name
 tasklist /fi ""imagename eq excel.exe"" | find /i ""excel.exe"" > nul
 if %errorlevel% equ 0 (
     timeout /t 1 /nobreak > nul
@@ -225,10 +233,6 @@ del ""%~f0""";
                       UseShellExecute = true,
                       WindowStyle = ProcessWindowStyle.Normal
                   });
-
-                  // We should not just exit the environment abruptly while Excel COM is still active
-                  // Instead, we just let the batch file handle the killing of the excel process from the outside.
-                  // Application.Exit() and Environment.Exit(0) inside a COM addin can cause Excel to hang.
               }
               catch (Exception ex)
             {
