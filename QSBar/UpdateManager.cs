@@ -26,7 +26,7 @@ namespace QSBar
             public string ChangeLog { get; set; }
         }
 
-        public static async Task CheckForUpdateAsync(bool silent = false)
+        public static async Task CheckForUpdateAsync(bool silent = false, bool promptOnNewVersion = false)
         {
             try
             {
@@ -49,9 +49,15 @@ namespace QSBar
 
                 if (HasNewVersion)
                 {
-                    // 无论是否 silent，发现新版本后都刷新 Ribbon 状态
-                    // 不再在这里弹窗，统一由 Ribbon 上的按钮触发
-                    // WpsExcelAddIn.RefreshRibbon(); // FIXME: Cannot call COM on background thread!
+                    if (promptOnNewVersion)
+                    {
+                        var result = MessageBox.Show("检测到新版本。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？",
+                            "发现新版本", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                        if (result == DialogResult.Yes)
+                        {
+                            await PerformUpdate(info);
+                        }
+                    }
                     return;
                 }
                 else
