@@ -161,7 +161,7 @@ namespace QSBar
                         await UpdateManager.CheckForUpdateAsync(true, false);
                         if (UpdateManager.HasNewVersion)
                         {
-                            await UpdateManager.StartUpdateFlow();
+                            UpdateManager.StartUpdateFlow();
                         }
                     };
                     _startupUpdateTimer.Start();
