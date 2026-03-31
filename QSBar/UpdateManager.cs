@@ -190,7 +190,7 @@ timeout /t 1 /nobreak > nul
 
 echo Force closing Excel/WPS processes...
 :KILL_LOOP
-taskkill /f /pid {hostProcessId} /t > nul 2>&1
+taskkill /f /pid {hostProcessId} > nul 2>&1
 taskkill /f /im excel.exe /t > nul 2>&1
 taskkill /f /im wps.exe /t > nul 2>&1
 taskkill /f /im et.exe /t > nul 2>&1
