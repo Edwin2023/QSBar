@@ -1,3 +1,7 @@
+param(
+    [switch]$NoPause = $true
+)
+
 $ErrorActionPreference = "Stop"
 
 $baseDir = "$PSScriptRoot\.."
@@ -53,6 +57,8 @@ finally {
     }
     
     Write-Host "`n[DONE] Environment fully restored. You can continue developing." -ForegroundColor Cyan
-    Write-Host "Press any key to exit..."
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    if (-not $NoPause) {
+        Write-Host "Press any key to exit..."
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
 }

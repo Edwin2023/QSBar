@@ -237,7 +237,6 @@ function InitializeSetup(): Boolean;
 var
   V: Integer;
   iResultCode: Integer;
-  sUnInstallString: String;
   InstalledVer: String;
   CurrentVer: String;
   Release: Cardinal;
@@ -269,12 +268,12 @@ begin
     Exit;
   end;
 
+  InstalledVer := '';
+  CurrentVer := '{#MyAppVersion}';
   if IsInstalled() then
   begin
     InstalledVer := GetInstalledVersion();
-    CurrentVer := '{#MyAppVersion}';
     
-    // 如果系统中的版本高于当前安装包的版本，提示用户
     if (InstalledVer <> '') and (CompareVersion(InstalledVer, CurrentVer) > 0) then
     begin
       V := MsgBox('检测到系统中已安装了更高版本的 QSBar (v' + InstalledVer + ')。' + #13#10 + 
@@ -286,11 +285,10 @@ begin
         Exit;
       end;
     end;
-
-    // 释放并执行 DeepClean 脚本进行深度清理
-    ExtractTemporaryFile('DeepClean-QSBar.ps1');
-    Exec('powershell.exe', '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false', '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
   end;
+
+  ExtractTemporaryFile('DeepClean-QSBar.ps1');
+  Exec('powershell.exe', '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false', '', SW_HIDE, ewWaitUntilTerminated, iResultCode);
 end;
 
 function IsDotNet40Installed: Boolean;
