@@ -23,6 +23,8 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
+        private static Timer _startupUpdateCheckTimer;
+        private static int _startupUpdateCheckAttempts;
         private static KeyboardHook _keyboardHook;
         private static uint _currentProcessId;
 
@@ -44,11 +46,40 @@ namespace QSBar
 
                 StartCalcTimer();
                 RegisterShortcuts();
+                StartStartupUpdateCheck();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error during QSBar connection: " + ex.Message);
             }
+        }
+
+        private void StartStartupUpdateCheck()
+        {
+            if (_startupUpdateCheckTimer != null) return;
+            _startupUpdateCheckAttempts = 0;
+            _startupUpdateCheckTimer = new Timer();
+            _startupUpdateCheckTimer.Interval = 1000;
+            _startupUpdateCheckTimer.Tick += async (s, e) =>
+            {
+                _startupUpdateCheckAttempts++;
+                await UpdateManager.CheckForUpdateAsync(true, false);
+                if (UpdateManager.HasNewVersion)
+                {
+                    _startupUpdateCheckTimer.Stop();
+                    _startupUpdateCheckTimer.Dispose();
+                    _startupUpdateCheckTimer = null;
+                    UpdateManager.StartUpdateFlow();
+                    return;
+                }
+                if (_startupUpdateCheckAttempts >= 6)
+                {
+                    _startupUpdateCheckTimer.Stop();
+                    _startupUpdateCheckTimer.Dispose();
+                    _startupUpdateCheckTimer = null;
+                }
+            };
+            _startupUpdateCheckTimer.Start();
         }
 
         private void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
@@ -134,6 +165,12 @@ namespace QSBar
         {
             UnregisterShortcuts();
             StopCalcTimer();
+            if (_startupUpdateCheckTimer != null)
+            {
+                _startupUpdateCheckTimer.Stop();
+                _startupUpdateCheckTimer.Dispose();
+                _startupUpdateCheckTimer = null;
+            }
             _application = null;
             App = null;
         }
@@ -148,18 +185,6 @@ namespace QSBar
             {
                 _ribbon = ribbon;
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
-                var syncContext = System.Threading.SynchronizationContext.Current;
-                var startupUpdateTask = Task.Run(async () =>
-                {
-                    await UpdateManager.CheckForUpdateAsync(true, false);
-                    if (UpdateManager.HasNewVersion && syncContext != null)
-                    {
-                        syncContext.Post(state =>
-                        {
-                            UpdateManager.StartUpdateFlow();
-                        }, null);
-                    }
-                });
             }
             catch (Exception ex)
             {
