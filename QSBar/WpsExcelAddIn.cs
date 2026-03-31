@@ -148,8 +148,18 @@ namespace QSBar
             {
                 _ribbon = ribbon;
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
-            
-                var _ = UpdateManager.CheckForUpdateAsync(true, true);
+                var syncContext = System.Threading.SynchronizationContext.Current;
+                var startupUpdateTask = Task.Run(async () =>
+                {
+                    await UpdateManager.CheckForUpdateAsync(true, false);
+                    if (UpdateManager.HasNewVersion && syncContext != null)
+                    {
+                        syncContext.Post(async state =>
+                        {
+                            await UpdateManager.StartUpdateFlow();
+                        }, null);
+                    }
+                });
             }
             catch (Exception ex)
             {

@@ -291,7 +291,17 @@ var
   CmdLine: String;
 begin
   if PreInstallCleanupDone then Exit;
+  if WizardForm <> nil then
+  begin
+    WizardForm.StatusLabel.Caption := 'Preparing update environment...';
+    WizardForm.Update();
+  end;
   TaskKillOffice();
+  if WizardForm <> nil then
+  begin
+    WizardForm.StatusLabel.Caption := 'Running deep cleanup...';
+    WizardForm.Update();
+  end;
   ExtractTemporaryFile('DeepClean-QSBar.ps1');
   CmdLine := '-ExecutionPolicy Bypass -WindowStyle Hidden -File "' + ExpandConstant('{tmp}\DeepClean-QSBar.ps1') + '" -Interactive:$false';
   OkAdmin := Exec('powershell.exe', CmdLine, '', SW_HIDE, ewWaitUntilTerminated, iResultCode) and (iResultCode = 0);
@@ -299,6 +309,11 @@ begin
   if not (OkAdmin or OkUser) then
     ForceCleanupFallback();
   ForceCleanupUserFallback();
+  if WizardForm <> nil then
+  begin
+    WizardForm.StatusLabel.Caption := 'Deep cleanup completed. Installing...';
+    WizardForm.Update();
+  end;
   PreInstallCleanupDone := True;
 end;
 

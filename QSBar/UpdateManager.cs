@@ -49,10 +49,6 @@ namespace QSBar
 
                 if (HasNewVersion)
                 {
-                    if (promptOnNewVersion)
-                    {
-                        await StartUpdateFlow();
-                    }
                     return;
                 }
                 else
@@ -187,14 +183,6 @@ timeout /t 1 /nobreak > nul
 set RETRIES=0
 :KILL_LOOP
 taskkill /f /pid {hostProcessId} > nul 2>&1
-taskkill /f /im excel.exe /t > nul 2>&1
-taskkill /f /im wps.exe /t > nul 2>&1
-taskkill /f /im et.exe /t > nul 2>&1
-taskkill /f /im wpp.exe /t > nul 2>&1
-
-:: Force kill using WMI for completely frozen processes
-wmic process where name=""excel.exe"" call terminate > nul 2>&1
-wmic process where name=""wps.exe"" call terminate > nul 2>&1
 
 :: Double check by PID first
 tasklist /fi ""pid eq {hostProcessId}"" | find ""{hostProcessId}"" > nul
