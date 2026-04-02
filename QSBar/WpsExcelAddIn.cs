@@ -23,8 +23,12 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
-        private static Timer _startupUpdateCheckTimer;
-        private static int _startupUpdateCheckAttempts;
+        private static bool _startupUpdateCheckRunning;
+        private static bool _startupUpdateCheckTriggered;
+        private static bool _startupCompleted;
+        private static bool _ribbonLoaded;
+        private static System.Threading.SynchronizationContext _uiContext;
+        private static Control _uiInvoker;
         private static KeyboardHook _keyboardHook;
         private static uint _currentProcessId;
 
@@ -40,13 +44,13 @@ namespace QSBar
                 _application = (Excel.Application)Application;
                 App = _application;
                 _currentProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+                _uiContext = System.Threading.SynchronizationContext.Current;
                 
                 // EPPlus License
                 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
                 StartCalcTimer();
                 RegisterShortcuts();
-                StartStartupUpdateCheck();
             }
             catch (Exception ex)
             {
@@ -54,32 +58,72 @@ namespace QSBar
             }
         }
 
-        private void StartStartupUpdateCheck()
+        private async Task StartStartupUpdateCheckAsync()
         {
-            if (_startupUpdateCheckTimer != null) return;
-            _startupUpdateCheckAttempts = 0;
-            _startupUpdateCheckTimer = new Timer();
-            _startupUpdateCheckTimer.Interval = 1000;
-            _startupUpdateCheckTimer.Tick += async (s, e) =>
+            if (_startupUpdateCheckRunning) return;
+            _startupUpdateCheckRunning = true;
+            try
             {
-                _startupUpdateCheckAttempts++;
                 await UpdateManager.CheckForUpdateAsync(true, false);
                 if (UpdateManager.HasNewVersion)
                 {
-                    _startupUpdateCheckTimer.Stop();
-                    _startupUpdateCheckTimer.Dispose();
-                    _startupUpdateCheckTimer = null;
-                    UpdateManager.StartUpdateFlow();
-                    return;
+                    await RunOnUiThreadAsync(() => UpdateManager.StartUpdateFlow());
                 }
-                if (_startupUpdateCheckAttempts >= 6)
+            }
+            finally
+            {
+                _startupUpdateCheckRunning = false;
+            }
+        }
+
+        private void TryTriggerStartupUpdateCheck()
+        {
+            if (_startupUpdateCheckTriggered) return;
+            if (!_startupCompleted) return;
+            if (!_ribbonLoaded) return;
+            _startupUpdateCheckTriggered = true;
+            var _ = StartStartupUpdateCheckAsync();
+        }
+
+        private static Task RunOnUiThreadAsync(Func<Task> action)
+        {
+            if (action == null) return Task.CompletedTask;
+
+            if (_uiInvoker != null && !_uiInvoker.IsDisposed && _uiInvoker.IsHandleCreated)
+            {
+                if (!_uiInvoker.InvokeRequired) return action();
+                var tcsByControl = new TaskCompletionSource<bool>();
+                _uiInvoker.BeginInvoke(new Action(async () =>
                 {
-                    _startupUpdateCheckTimer.Stop();
-                    _startupUpdateCheckTimer.Dispose();
-                    _startupUpdateCheckTimer = null;
+                    try
+                    {
+                        await action();
+                        tcsByControl.SetResult(true);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcsByControl.SetException(ex);
+                    }
+                }));
+                return tcsByControl.Task;
+            }
+
+            if (_uiContext == null || System.Threading.SynchronizationContext.Current == _uiContext) return action();
+
+            var tcs = new TaskCompletionSource<bool>();
+            _uiContext.Post(async _ =>
+            {
+                try
+                {
+                    await action();
+                    tcs.SetResult(true);
                 }
-            };
-            _startupUpdateCheckTimer.Start();
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            }, null);
+            return tcs.Task;
         }
 
         private void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
@@ -165,18 +209,26 @@ namespace QSBar
         {
             UnregisterShortcuts();
             StopCalcTimer();
-            if (_startupUpdateCheckTimer != null)
+            _startupUpdateCheckRunning = false;
+            _startupUpdateCheckTriggered = false;
+            _startupCompleted = false;
+            _ribbonLoaded = false;
+            _uiContext = null;
+            if (_uiInvoker != null)
             {
-                _startupUpdateCheckTimer.Stop();
-                _startupUpdateCheckTimer.Dispose();
-                _startupUpdateCheckTimer = null;
+                try { _uiInvoker.Dispose(); } catch { }
+                _uiInvoker = null;
             }
             _application = null;
             App = null;
         }
 
         public void OnAddInsUpdate(ref Array custom) { }
-        public void OnStartupComplete(ref Array custom) { }
+        public void OnStartupComplete(ref Array custom)
+        {
+            _startupCompleted = true;
+            TryTriggerStartupUpdateCheck();
+        }
         public void OnBeginShutdown(ref Array custom) { }
 
         public void OnLoad(Office.IRibbonUI ribbon)
@@ -184,7 +236,14 @@ namespace QSBar
             try
             {
                 _ribbon = ribbon;
+                _ribbonLoaded = true;
+                if (_uiInvoker == null || _uiInvoker.IsDisposed)
+                {
+                    _uiInvoker = new Control();
+                    var _ = _uiInvoker.Handle;
+                }
                 RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
+                TryTriggerStartupUpdateCheck();
             }
             catch (Exception ex)
             {
@@ -230,9 +289,9 @@ namespace QSBar
             return UpdateManager.HasNewVersion;
         }
 
-        public void OnRestartUpdate(Office.IRibbonControl control)
+        public async void OnRestartUpdate(Office.IRibbonControl control)
         {
-            UpdateManager.StartUpdateFlow();
+            await UpdateManager.StartUpdateFlow();
         }
 
         public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
