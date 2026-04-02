@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.2",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/Release/QSBar_Setup_v1.0.1.2.exe",
-    "changeLog":  "配置双仓发布策略，使用公开仓库提供安装包和更新支持，保护核心源码。"
+    "version":  "1.0.1.3",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.3.exe",
+    "changeLog":  "优化发布脚本：引入优雅的嵌套 Git 仓库模式。现在 Release 目录作为独立的公开仓库直连 Gitee Release，自动脱敏并分发安装包与说明文档，完美保护主仓库私有源码安全。"
 }

@@ -117,7 +117,7 @@ Write-Host "Successfully copied latest DLL to publish directory." -ForegroundCol
 # 7. Update version.json
 $jsonObj = New-Object PSObject
 $jsonObj | Add-Member NoteProperty "version" $Version
-$jsonObj | Add-Member NoteProperty "downloadUrl" "https://gitee.com/kevin137/qsbar-release/raw/master/Release/QSBar_Setup_v$Version.exe"
+$jsonObj | Add-Member NoteProperty "downloadUrl" "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v$Version.exe"
 $jsonObj | Add-Member NoteProperty "changeLog" $Log
 
 $jsonString = $jsonObj | ConvertTo-Json
@@ -194,40 +194,38 @@ try {
     Write-Warning "Source git push failed. Please push manually."
 }
 
-# 9. Update Release Repo (Public)
-$ReleaseRepoDir = Join-Path $rootDir "..\QSBar-release"
-Write-Host "`n--- Pushing to Release Repo (Public) at $ReleaseRepoDir ---" -ForegroundColor Cyan
+# 9. Update Release Repo (Public) - The Release folder itself is the repo
+Write-Host "`n--- Pushing to Release Repo (Public) at $PublishDir ---" -ForegroundColor Cyan
 
-if (-not (Test-Path $ReleaseRepoDir)) {
-    Write-Host "Release repo not found at $ReleaseRepoDir. Cloning..." -ForegroundColor Yellow
-    Push-Location (Join-Path $rootDir "..")
-    git clone https://gitee.com/kevin137/QSBar-release.git
-    Pop-Location
-}
-
-if (Test-Path $ReleaseRepoDir) {
+if (Test-Path $PublishDir) {
     try {
-        # Copy necessary files to Release Repo
-        Copy-Item "$rootDir\README.md" -Destination "$ReleaseRepoDir\README.md" -Force
-        Copy-Item "$rootDir\version.json" -Destination "$ReleaseRepoDir\version.json" -Force
+        # Initialize Git repo in Release folder if not already initialized
+        Push-Location $PublishDir
+        if (-not (Test-Path ".git")) {
+            Write-Host "Initializing Git repository in Release folder..." -ForegroundColor Yellow
+            git init
+            git remote add origin https://gitee.com/kevin137/QSBar-release.git
+        }
+        Pop-Location
+
+        # Copy necessary files from Source to Release Repo
+        Copy-Item "$rootDir\README.md" -Destination "$PublishDir\README.md" -Force
+        Copy-Item "$rootDir\version.json" -Destination "$PublishDir\version.json" -Force
         
-        # Create Release and Installinfo directories in Release Repo if not exist
-        $relReleaseDir = Join-Path $ReleaseRepoDir "Release"
-        $relInstallinfoDir = Join-Path $ReleaseRepoDir "Installinfo"
-        if (-not (Test-Path $relReleaseDir)) { New-Item -ItemType Directory -Path $relReleaseDir | Out-Null }
+        $relInstallinfoDir = Join-Path $PublishDir "Installinfo"
         if (-not (Test-Path $relInstallinfoDir)) { New-Item -ItemType Directory -Path $relInstallinfoDir | Out-Null }
         
-        # Copy installer and resources
-        Copy-Item "$PublishDir\QSBar_Setup_v$Version.exe" -Destination "$relReleaseDir\" -Force
+        # Copy resources
         Copy-Item "$InstallInfoDir\*.bmp" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\version.json" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\UpdateNotes.html" -Destination "$relInstallinfoDir\" -Force
         
         # Push Release Repo
-        Push-Location $ReleaseRepoDir
+        Push-Location $PublishDir
         git add .
         git commit -m "Release v$Version : $Log"
-        git push origin master
+        # Push forcefully to ensure the remote matches the local Release folder
+        git push origin master -f
         Pop-Location
         
         Write-Host "--- Publish to Public Release Repo Successful! ---" -ForegroundColor Green
@@ -237,5 +235,5 @@ if (Test-Path $ReleaseRepoDir) {
         Write-Warning $_
     }
 } else {
-    Write-Warning "Release repo could not be set up at $ReleaseRepoDir. Skipping public push."
+    Write-Warning "Release directory not found at $PublishDir. Skipping public push."
 }
