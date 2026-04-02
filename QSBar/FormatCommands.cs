@@ -121,55 +121,59 @@ namespace QSBar
 
                 if (rng == null) return;
 
+                // 全局一次性设置字体，极大减少 COM 调用
+                try { rng.Font.Name = "Microsoft YaHei UI"; } catch { }
+
                 foreach (Excel.Range area in rng.Areas)
                 {
                     int rowCount = area.Rows.Count;
+                    int colCount = area.Columns.Count;
                     if (rowCount <= 0) continue;
+
+                    // 性能优化：一次性读入当前 Area 的数据
+                    object[,] dataValues = null;
+                    if (rowCount > 1 || colCount > 1)
+                    {
+                        dataValues = area.Value2 as object[,];
+                    }
+                    else
+                    {
+                        dataValues = new object[2, 2];
+                        dataValues[1, 1] = area.Value2;
+                    }
+
+                    int currentLevel = -1;
+                    int blockStart = 1;
 
                     for (int i = 1; i <= rowCount; i++)
                     {
-                        Excel.Range row = area.Rows[i] as Excel.Range;
-                        if (row == null) continue;
-
-                        int level = 0;
-                        try { level = (int)row.OutlineLevel; } catch { }
-                        if (level == 0) 
+                        // 直接从内存数组判断级别
+                        int level = 4;
+                        for (int c = 1; c <= colCount; c++)
                         {
-                            try { level = (int)row.EntireRow.OutlineLevel; } catch { }
+                            object val = dataValues[i, c];
+                            string v = val == null ? "" : val.ToString();
+                            
+                            if (Like(v, "*【*")) { level = 1; break; }
+                            else if (Like(v, "*《*")) { level = 2; break; }
+                            else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
                         }
 
-                        row.Font.Name = "Microsoft YaHei UI";
+                        if (level != currentLevel)
+                        {
+                            if (currentLevel >= 1 && currentLevel <= 3)
+                            {
+                                ApplyStyleToBlock(area, blockStart, i - 1, currentLevel);
+                            }
+                            currentLevel = level;
+                            blockStart = i;
+                        }
+                    }
 
-                        if (level == 1)
-                        {
-                            // 截图配色：深蓝灰色 (#333F4F) - 顶层大纲
-                            row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
-                            row.Interior.TintAndShade = 0;
-                            row.Font.Color = ColorTranslator.ToOle(Color.White);
-                            row.Font.TintAndShade = 0;
-                            row.Font.Bold = true;
-                        }
-                        else if (level == 2)
-                        {
-                            // 截图配色：淡蓝色 (Excel 风格) - 二级分类
-                            row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
-                            row.Interior.TintAndShade = 0;
-                            row.Font.Color = Color.Black.ToArgb(); // 黑色文字
-                            row.Font.TintAndShade = 0;
-                            row.Font.Bold = true;
-                        }
-                        else if (level == 3)
-                        {
-                            // 截图配色：淡橙色 (截图底部效果) - 三级明细
-                            row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                            row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
-                            row.Interior.TintAndShade = 0;
-                            row.Font.Color = Color.Black.ToArgb();
-                            row.Font.TintAndShade = 0;
-                            row.Font.Bold = false;
-                        }
+                    // 处理最后一块
+                    if (currentLevel >= 1 && currentLevel <= 3)
+                    {
+                        ApplyStyleToBlock(area, blockStart, rowCount, currentLevel);
                     }
                 }
             }
@@ -183,6 +187,46 @@ namespace QSBar
                 app.Calculation = originalCalc;
                 app.EnableEvents = originalEvents;
             }
+        }
+
+        private static void ApplyStyleToBlock(Excel.Range area, int startRow, int endRow, int level)
+        {
+            try
+            {
+                Excel.Range block = area.Range[area.Cells[startRow, 1], area.Cells[endRow, area.Columns.Count]];
+
+                if (level == 1)
+                {
+                    // 截图配色：深蓝灰色 (#333F4F) - 顶层大纲
+                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
+                    block.Interior.TintAndShade = 0;
+                    block.Font.Color = ColorTranslator.ToOle(Color.White);
+                    block.Font.TintAndShade = 0;
+                    block.Font.Bold = true;
+                }
+                else if (level == 2)
+                {
+                    // 截图配色：淡蓝色 (Excel 风格) - 二级分类
+                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
+                    block.Interior.TintAndShade = 0;
+                    block.Font.Color = ColorTranslator.ToOle(Color.Black); // 黑色文字
+                    block.Font.TintAndShade = 0;
+                    block.Font.Bold = true;
+                }
+                else if (level == 3)
+                {
+                    // 截图配色：淡橙色 (截图底部效果) - 三级明细
+                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
+                    block.Interior.TintAndShade = 0;
+                    block.Font.Color = ColorTranslator.ToOle(Color.Black);
+                    block.Font.TintAndShade = 0;
+                    block.Font.Bold = false;
+                }
+            }
+            catch { }
         }
 
         
@@ -238,15 +282,6 @@ namespace QSBar
                 Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
                 if (rng == null) return;
 
-                // 2) 智能判断列索引
-                // 如果只选了 1 列，或者选区是从 B 列开始的，则判断选区内的第 1 列
-                // 否则默认判断选区内的第 2 列
-                int colInRng = 2;
-                if (selection.Columns.Count == 1 || selection.Column == 2)
-                {
-                    colInRng = 1;
-                }
-                
                 // 性能优化：一次性将整个区域的数据读入内存数组
                 // 这比循环数千次读取单元格要快 100 倍以上
                 object[,] dataValues = null;
@@ -266,16 +301,20 @@ namespace QSBar
 
                 // 3) 循环数组并设置等级
                 int rowCount = rng.Rows.Count;
+                int colCount = rng.Columns.Count;
                 for (int i = 1; i <= rowCount; i++)
                 {
-                    // 从数组中取值，无需访问 Excel 接口
-                    object val = dataValues[i, colInRng];
-                    string v = val == null ? "" : val.ToString();
-                    
                     int level = 4;
-                    if (Like(v, "*【*")) level = 1;
-                    else if (Like(v, "*《*")) level = 2;
-                    else if (Like(v, "*{*") || Like(v, "*｛*")) level = 3;
+                    // 遍历该行的所有选中列，寻找分级标志
+                    for (int c = 1; c <= colCount; c++)
+                    {
+                        object val = dataValues[i, c];
+                        string v = val == null ? "" : val.ToString();
+                        
+                        if (Like(v, "*【*")) { level = 1; break; }
+                        else if (Like(v, "*《*")) { level = 2; break; }
+                        else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
+                    }
                     
                     // 只有在等级不同时才设置，进一步优化
                     Excel.Range row = (Excel.Range)rng.Rows[i];
@@ -301,7 +340,11 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Range rng = app.Selection as Excel.Range;
+            Excel.Range selection = app.Selection as Excel.Range;
+            Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
+            if (selection == null || activeSheet == null) return;
+
+            Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
             if (rng == null) return;
             
             ClearStyleInternal(rng);

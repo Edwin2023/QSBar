@@ -152,13 +152,13 @@ namespace QSBar
                                     val = (double)(p / 100.0);
                                 }
                             }
-                            else if (DateTime.TryParse(s, out dt))
-                            {
-                                val = dt;
-                            }
                             else if (double.TryParse(s, out num))
                             {
                                 val = num;
+                            }
+                            else if (DateTime.TryParse(s, out dt))
+                            {
+                                val = dt;
                             }
                         }
                     }
@@ -217,15 +217,15 @@ namespace QSBar
                         }
                     }
 
-                    if (DateTime.TryParse(s, out dt))
-                    {
-                        data[i, j] = dt;
-                        continue;
-                    }
-
                     if (double.TryParse(s, out num))
                     {
                         data[i, j] = num;
+                        continue;
+                    }
+
+                    if (DateTime.TryParse(s, out dt))
+                    {
+                        data[i, j] = dt;
                         continue;
                     }
                 }
