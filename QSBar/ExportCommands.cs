@@ -54,9 +54,12 @@ namespace QSBar
                 if (fileName.Length > 50) fileName = fileName.Substring(0, 50);
                 fileName += ".xlsx";
 
-                // Path Processing (Desktop)
-                string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                if (!savePath.EndsWith("\\")) savePath += "\\";
+                // Path Processing (Same as Workbook)
+                string savePath = app.ActiveWorkbook.Path;
+                if (string.IsNullOrEmpty(savePath))
+                {
+                    savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                }
                 string fullPath = Path.Combine(savePath, fileName);
 
                 // Copy Sheet (creates new workbook)
