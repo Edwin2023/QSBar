@@ -91,11 +91,11 @@ namespace QSBar
                                "【计算模式】快速切换自动/手动计算模式。";
 
             // Download Link
-            lnkDownload.Text = "下载地址: https://gitee.com/kevin137/qsbar";
+            lnkDownload.Text = "下载地址: https://gitee.com/kevin137/qsbar-release";
             lnkDownload.Location = new Point(25, 540);
             lnkDownload.Size = new Size(500, 30);
             lnkDownload.LinkClicked += (s, e) => {
-                try { Process.Start("https://gitee.com/kevin137/qsbar"); }
+                try { Process.Start("https://gitee.com/kevin137/qsbar-release"); }
                 catch { MessageBox.Show("无法打开链接。"); }
             };
 

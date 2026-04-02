@@ -11,8 +11,8 @@ namespace QSBar
 {
     public class UpdateManager
     {
-        // Gitee 仓库配置
-        private const string VERSION_URL = "https://gitee.com/kevin137/qsbar/raw/master/version.json";
+        // Gitee 仓库配置 (使用公开的 release 仓库)
+        private const string VERSION_URL = "https://gitee.com/kevin137/qsbar-release/raw/master/version.json";
         private const string UPDATE_LOG_FILE = "updated.txt";
         private const string UPDATE_TRACE_FILE = "QSBar.Update.Trace.log";
         
