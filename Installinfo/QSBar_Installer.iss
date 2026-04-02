@@ -1,4 +1,4 @@
-; QSBar One-Click Installer Script for Inno Setup
+﻿; QSBar One-Click Installer Script for Inno Setup
 #define MyAppName "QSBar"
 #define MyAppPublisher "Bookmen"
 #define MyAppExeName "QSBar.dll"

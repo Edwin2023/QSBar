@@ -1,5 +1,5 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿{
-    "version": "1.0.1.1",
-    "downloadUrl": "https://gitee.com/kevin137/qsbar/raw/master/Release/QSBar_Setup_v1.0.1.1.exe",
-    "changeLog": "更新快捷键为Ctrl+3至Ctrl+0，增加滑动特效，修复项目加载和按键阻塞问题"
+﻿{
+    "version":  "1.0.1.1",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar/raw/master/Release/QSBar.dll",
+    "changeLog":  "1. 修复了数值化功能中带有小数点的文本错误转换为日期的问题；2. 深度优化了设置分级和分级样式功能，引入内存数组处理并增加 UsedRange 范围限制，彻底解决了数据量大时导致卡死的问题，执行速度提升百倍。"
 }
