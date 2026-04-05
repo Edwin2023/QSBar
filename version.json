@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.8",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.8.exe",
-    "changeLog":  "更新安装包图标为新版猫头鹰 Logo"
+    "version":  "1.0.1.9",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.9.exe",
+    "changeLog":  "测试图标缓存"
 }
