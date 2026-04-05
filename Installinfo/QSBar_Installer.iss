@@ -435,8 +435,8 @@ begin
   end;
 
   // 提取临时图片文件
-  ExtractTemporaryFile('SHOW1_EXCEL_BAR.bmp');
-  ExtractTemporaryFile('SHOW2_WPS_BAR.bmp');
+  ExtractTemporaryFile('Ribbon_EXCEL.bmp');
+  ExtractTemporaryFile('Ribbon_WPS.bmp');
 
   // 调整 ReadyMemo（准备安装界面的文本框）的位置 and 高度，为图片腾出空间
   // ReadyPage 是安装前的最后一个确认页面
@@ -451,7 +451,7 @@ begin
   ExcelImage.Width := ScaleX(400);
   ExcelImage.Height := ScaleY(50);
   ExcelImage.Stretch := True;
-  ExcelImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\SHOW1_EXCEL_BAR.bmp'));
+  ExcelImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\Ribbon_EXCEL.bmp'));
   ExcelImage.BringToFront;
 
   ExcelLabel := TLabel.Create(WizardForm);
@@ -470,7 +470,7 @@ begin
   WpsImage.Width := ScaleX(400);
   WpsImage.Height := ScaleY(50);
   WpsImage.Stretch := True;
-  WpsImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\SHOW2_WPS_BAR.bmp'));
+  WpsImage.Bitmap.LoadFromFile(ExpandConstant('{tmp}\Ribbon_WPS.bmp'));
   WpsImage.BringToFront;
 
   WpsLabel := TLabel.Create(WizardForm);
