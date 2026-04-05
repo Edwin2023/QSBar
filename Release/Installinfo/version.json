@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.4",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.4.exe",
-    "changeLog":  "优化：修改导出当前报表功能，现在导出的文件将默认保存在与当前工作簿相同的目录中，与标准/内部报表的逻辑保持一致（如果当前工作簿未保存过，则回退到桌面）。"
+    "version":  "1.0.1.5",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.5.exe",
+    "changeLog":  "增加logo"
 }
