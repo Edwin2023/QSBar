@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.5",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.5.exe",
-    "changeLog":  "增加logo"
+    "version":  "1.0.1.6",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.6.exe",
+    "changeLog":  "修复安装包无法正确显示更新说明图片的问题"
 }

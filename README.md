@@ -4,8 +4,8 @@
   <img src="Installinfo/logo_horizontal.png" alt="QSBar Logo" width="400"/>
 </div>
 
-![Excel Bar](Installinfo/SHOW1_EXCEL_BAR.bmp)
-![WPS Bar](Installinfo/SHOW2_WPS_BAR.bmp)
+![Excel Bar](Installinfo/Ribbon_EXCEL.bmp)
+![WPS Bar](Installinfo/Ribbon_WPS.bmp)
 
 **QSBar** 是一款高效的表格辅助插件，提供一套统一的代码同时兼容 **Microsoft Excel** (包括 Excel 2021) 和 **WPS 表格**。本插件旨在通过集成批量处理、格式排版、一键导出等功能，大幅提升您的办公效率。
 

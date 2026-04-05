@@ -82,9 +82,9 @@ Source: "{#ScriptPath}\Register.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register-QSBar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\DeepClean-QSBar.ps1"; DestDir: "{tmp}"; Flags: dontcopy
 Source: "Ribbon_EXCEL.bmp"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Ribbon_WPS.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "qsbar.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "Ribbon_EXCEL.bmp"; Flags: dontcopy
-Source: "Ribbon_WPS.bmp"; Flags: dontcopy
+Source: "logo_horizontal.png"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
 ; --- Office/WPS 加载项注册 (部分由 Register-QSBar.ps1 处理) ---
