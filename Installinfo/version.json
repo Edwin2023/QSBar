@@ -1,5 +1,5 @@
 ﻿{
     "version":  "1.0.1.9",
     "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.9.exe",
-    "changeLog":  "测试图标缓存"
+    "changeLog":  "真正修复安装包图标未生效的问题（脚本异常导致旧图标未被替换）"
 }
