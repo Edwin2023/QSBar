@@ -1,7 +1,7 @@
 # QSBar (COM Version) 开发指南
 
-![Excel Bar](Installinfo/SHOW1_EXCEL_BAR.bmp)
-![WPS Bar](Installinfo/SHOW2_WPS_BAR.bmp)
+![Excel Bar](Installinfo/Ribbon_EXCEL.bmp)
+![WPS Bar](Installinfo/Ribbon_WPS.bmp)
 
 本项目是 QSBar 插件的 COM 版本，旨在提供一套代码同时兼容 **Microsoft Excel** (包括 Excel 2021) 和 **WPS 表格** 的统一解决方案。
 

@@ -35,7 +35,8 @@ InfoBeforeFile=InstallInfo.rtf
 ; Simplify installation process
 DisableProgramGroupPage=yes
 DisableReadyPage=no
-; SetupIconFile=QSBar.ico
+SetupIconFile=qsbar.ico
+UninstallDisplayIcon={app}\qsbar.ico
 
 ; Digital Signing Configuration
 ; You need to configure a SignTool named 'Standard' in Inno Setup IDE:
@@ -80,10 +81,10 @@ Source: "{#SourcePath}\QSBar.dll.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\Register-QSBar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#ScriptPath}\DeepClean-QSBar.ps1"; DestDir: "{tmp}"; Flags: dontcopy
-Source: "SHOW1_EXCEL_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SHOW2_WPS_BAR.bmp"; DestDir: "{app}"; Flags: ignoreversion
-Source: "SHOW1_EXCEL_BAR.bmp"; Flags: dontcopy
-Source: "SHOW2_WPS_BAR.bmp"; Flags: dontcopy
+Source: "Ribbon_EXCEL.bmp"; DestDir: "{app}"; Flags: ignoreversion
+Source: "qsbar.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "Ribbon_EXCEL.bmp"; Flags: dontcopy
+Source: "Ribbon_WPS.bmp"; Flags: dontcopy
 
 [Registry]
 ; --- Office/WPS 加载项注册 (部分由 Register-QSBar.ps1 处理) ---

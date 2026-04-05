@@ -217,6 +217,8 @@ if (Test-Path $PublishDir) {
         
         # Copy resources
         Copy-Item "$InstallInfoDir\*.bmp" -Destination "$relInstallinfoDir\" -Force
+        Copy-Item "$InstallInfoDir\*.png" -Destination "$relInstallinfoDir\" -Force
+        Copy-Item "$InstallInfoDir\*.ico" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\version.json" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\UpdateNotes.html" -Destination "$relInstallinfoDir\" -Force
         

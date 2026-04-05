@@ -1,5 +1,9 @@
 # QSBar (COM 插件版) 使用指南
 
+<div align="center">
+  <img src="Installinfo/logo_horizontal.png" alt="QSBar Logo" width="400"/>
+</div>
+
 ![Excel Bar](Installinfo/SHOW1_EXCEL_BAR.bmp)
 ![WPS Bar](Installinfo/SHOW2_WPS_BAR.bmp)
 
