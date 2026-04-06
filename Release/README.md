@@ -1,4 +1,4 @@
-# QSBar (COM 插件版) 使用指南
+﻿# QSBar (COM 插件版) 使用指南
 
 <div align="center">
   <img src="Installinfo/logo_horizontal.png" alt="QSBar Logo" width="400"/>

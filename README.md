@@ -34,7 +34,7 @@
 
 ## 🛠️ 安装说明
 
-📥 **[👉 点击此处下载最新版安装包 (ZIP压缩格式)](https://gitee.com/kevin137/QSBar-release/raw/master/QSBar_Setup.zip)**
+📥 **[👉 点击此处下载最新版安装包 (ZIP压缩格式)](https://gitee.com/kevin137/QSBar-release/raw/master/QSBar_Setup_v1.0.1.10.zip)**
 
 1. 下载上方的 `.zip` 压缩包并解压（以防 Gitee 乱码）。
 2. 双击运行解压出来的安装程序（`.exe` 文件），按照提示完成安装。

@@ -241,6 +241,9 @@ if (Test-Path $PublishDir) {
         Copy-Item "$InstallInfoDir\version.json" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\UpdateNotes.html" -Destination "$relInstallinfoDir\" -Force
         
+        # Remove intermediate DLLs from Release folder before pushing
+        Get-ChildItem -Path $PublishDir -Filter "*.dll" | Remove-Item -Force
+        
         # Push Release Repo
         Push-Location $PublishDir
         git add .

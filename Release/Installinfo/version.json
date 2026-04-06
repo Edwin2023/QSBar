@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.10",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.10.exe",
-    "changeLog":  "优化下载体验：提供 QSBar_Setup.zip 压缩包供用户手动下载，彻底解决 Gitee 直接下载 exe 文件可能出现的乱码渲染问题。"
+    "version":  "1.0.1.11",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.11.exe",
+    "changeLog":  "优化发布仓库：ZIP压缩包现在带有版本号，Readme中的下载链接会自动同步更新；清理了Release中不必要的缓存图片以保持纯净。"
 }
