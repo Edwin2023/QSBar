@@ -208,6 +208,12 @@ if (Test-Path $PublishDir) {
         }
         Pop-Location
 
+        # Create a ZIP file for manual human download to avoid Gitee text rendering
+        $zipPath = Join-Path $PublishDir "QSBar_Setup.zip"
+        if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+        Compress-Archive -Path "$PublishDir\QSBar_Setup_v$Version.exe" -DestinationPath $zipPath -Force
+        Write-Host "Created ZIP archive for manual download: $zipPath" -ForegroundColor Cyan
+        
         # Copy necessary files from Source to Release Repo
         Copy-Item "$rootDir\README.md" -Destination "$PublishDir\README.md" -Force
         Copy-Item "$rootDir\version.json" -Destination "$PublishDir\version.json" -Force

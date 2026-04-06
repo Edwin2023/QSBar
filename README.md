@@ -34,8 +34,10 @@
 
 ## 🛠️ 安装说明
 
-1. 请获取最新的安装包（如打包好的 `QSBar_Installer.exe`）。
-2. 双击运行安装程序，按照提示完成安装。
+📥 **[👉 点击此处下载最新版安装包 (ZIP压缩格式)](https://gitee.com/kevin137/QSBar-release/raw/master/QSBar_Setup.zip)**
+
+1. 下载上方的 `.zip` 压缩包并解压（以防 Gitee 乱码）。
+2. 双击运行解压出来的安装程序（`.exe` 文件），按照提示完成安装。
 3. 安装完成后，重启 Microsoft Excel 或 WPS 表格。
 4. 在顶部菜单栏即可看到 **“QS工具箱”**。
 
