@@ -209,22 +209,35 @@ if (Test-Path $PublishDir) {
         Pop-Location
 
         # Create a ZIP file for manual human download to avoid Gitee text rendering
-        $zipPath = Join-Path $PublishDir "QSBar_Setup.zip"
-        if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+        # Cleanup old zip files
+        Get-ChildItem -Path $PublishDir -Filter "QSBar_Setup_v*.zip" | Remove-Item -Force
+        
+        $zipName = "QSBar_Setup_v$Version.zip"
+        $zipPath = Join-Path $PublishDir $zipName
         Compress-Archive -Path "$PublishDir\QSBar_Setup_v$Version.exe" -DestinationPath $zipPath -Force
         Write-Host "Created ZIP archive for manual download: $zipPath" -ForegroundColor Cyan
         
         # Copy necessary files from Source to Release Repo
         Copy-Item "$rootDir\README.md" -Destination "$PublishDir\README.md" -Force
+        
+        # Rewrite README.md in Release repo to dynamically point to the current zip file version
+        $releaseReadmePath = Join-Path $PublishDir "README.md"
+        $readmeContent = [System.IO.File]::ReadAllText($releaseReadmePath, [System.Text.Encoding]::UTF8)
+        $readmeContent = $readmeContent -replace 'QSBar_Setup_v.*?\.zip', $zipName
+        [System.IO.File]::WriteAllText($releaseReadmePath, $readmeContent, [System.Text.Encoding]::UTF8)
+        
         Copy-Item "$rootDir\version.json" -Destination "$PublishDir\version.json" -Force
         
         $relInstallinfoDir = Join-Path $PublishDir "Installinfo"
         if (-not (Test-Path $relInstallinfoDir)) { New-Item -ItemType Directory -Path $relInstallinfoDir | Out-Null }
         
-        # Copy resources
-        Copy-Item "$InstallInfoDir\*.bmp" -Destination "$relInstallinfoDir\" -Force
-        Copy-Item "$InstallInfoDir\*.png" -Destination "$relInstallinfoDir\" -Force
-        Copy-Item "$InstallInfoDir\*.ico" -Destination "$relInstallinfoDir\" -Force
+        # Clean up existing files in Release/Installinfo to prevent accumulation
+        Get-ChildItem -Path $relInstallinfoDir -File | Remove-Item -Force
+        
+        # Copy ONLY necessary resources for README and Installer UI
+        Copy-Item "$InstallInfoDir\Ribbon_EXCEL.bmp" -Destination "$relInstallinfoDir\" -Force
+        Copy-Item "$InstallInfoDir\Ribbon_WPS.bmp" -Destination "$relInstallinfoDir\" -Force
+        Copy-Item "$InstallInfoDir\logo_horizontal.png" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\version.json" -Destination "$relInstallinfoDir\" -Force
         Copy-Item "$InstallInfoDir\UpdateNotes.html" -Destination "$relInstallinfoDir\" -Force
         

@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.9",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.9.exe",
-    "changeLog":  "真正修复安装包图标未生效的问题（使用标准64x64无压缩ICO格式）"
+    "version":  "1.0.1.10",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.10.exe",
+    "changeLog":  "优化下载体验：提供 QSBar_Setup.zip 压缩包供用户手动下载，彻底解决 Gitee 直接下载 exe 文件可能出现的乱码渲染问题。"
 }
