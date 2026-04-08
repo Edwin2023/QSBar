@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.11",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.11.exe",
-    "changeLog":  "优化发布仓库：ZIP压缩包现在带有版本号，Readme中的下载链接会自动同步更新；清理了Release中不必要的缓存图片以保持纯净。"
+    "version":  "1.0.1.12",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.12.exe",
+    "changeLog":  "清理 Release 仓库：不再推送编译产生的 QSBar.dll 文件，仅保留用户需要的安装包、ZIP 及其配套说明文件。"
 }
