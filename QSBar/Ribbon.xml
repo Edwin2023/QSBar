@@ -80,8 +80,10 @@
         <group id='groupHelpUpdate' label='帮助更新'>
           <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large'
             screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
+          <button id='btnCheckUpdate' label='检查更新' onAction='OnCheckUpdate' imageMso='Refresh'
+            size='normal' screentip='检查更新' supertip='手动检查是否有新版本可用' />
           <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible'
-            onAction='OnRestartUpdate' imageMso='Refresh' size='large' screentip='重启更新'
+            onAction='OnRestartUpdate' imageMso='Refresh' size='normal' screentip='重启更新'
             supertip='检测到新版本，请点击并确认重启以完成更新' />
         </group>
       </tab>

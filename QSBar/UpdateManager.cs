@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -11,14 +10,19 @@ namespace QSBar
 {
     public class UpdateManager
     {
-        // Gitee 仓库配置 (使用公开的 release 仓库)
-        private const string VERSION_URL = "https://gitee.com/kevin137/qsbar-release/raw/master/version.json";
+        private const string VERSION_URL_PRIMARY = "https://gitee.com/kevin137/qsbar-release/raw/master/version.json";
+        private const string VERSION_URL_FALLBACK = "https://raw.githubusercontent.com/pengkang135/QSBar/master/version.json";
+        private const int VERSION_REQUEST_TIMEOUT_MS = 3000;
         private const string UPDATE_LOG_FILE = "updated.txt";
         private const string UPDATE_TRACE_FILE = "QSBar.Update.Trace.log";
-        
-        // 缓存最新的更新信息
+
         public static UpdateInfo LatestUpdateInfo { get; private set; }
         public static bool HasNewVersion { get; private set; }
+
+        static UpdateManager()
+        {
+            try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
+        }
 
         public class UpdateInfo
         {
@@ -52,16 +56,17 @@ namespace QSBar
             try
             {
                 WriteTrace(string.Format("CheckForUpdateAsync start silent={0}", silent));
-                // 确保使用 TLS 1.2
-                try { ServicePointManager.SecurityProtocol = (SecurityProtocolType)3072; } catch { }
 
-                UpdateInfo info = await GetLatestVersionInfo();
-                
+                // 整个网络操作跑在后台线程，绝不碰 UI 线程
+                UpdateInfo info = await Task.Run(() => GetLatestVersionInfo()).ConfigureAwait(false);
+
                 LatestUpdateInfo = info;
                 Version currentVersion = typeof(UpdateManager).Assembly.GetName().Version;
-                
+
                 if (string.IsNullOrEmpty(info.Version))
                 {
+                    LatestUpdateInfo = null;
+                    HasNewVersion = false;
                     if (!silent) MessageBox.Show("服务器返回的版本信息格式不正确。", "更新错误");
                     return;
                 }
@@ -72,6 +77,10 @@ namespace QSBar
 
                 if (HasNewVersion)
                 {
+                    if (promptOnNewVersion)
+                    {
+                        await StartUpdateFlow();
+                    }
                     return;
                 }
                 else
@@ -81,62 +90,74 @@ namespace QSBar
             }
             catch (Exception ex)
             {
+                LatestUpdateInfo = null;
+                HasNewVersion = false;
                 WriteTrace("CheckForUpdateAsync exception: " + ex);
                 if (!silent) MessageBox.Show(string.Format("检查更新时出错: {0}", ex.Message), "更新错误");
             }
         }
 
-        private static async Task<UpdateInfo> GetLatestVersionInfo()
+        private static UpdateInfo GetLatestVersionInfo()
         {
+            string[] urls = { VERSION_URL_PRIMARY, VERSION_URL_FALLBACK };
+            Exception lastException = null;
             string json = "";
-            try
+
+            foreach (string baseUrl in urls)
             {
-                WriteTrace("GetLatestVersionInfo begin");
-                using (WebClient client = new WebClient())
+                try
                 {
-                    // 禁用代理，防止本地代理软件（如 Clash）未开启导致的连接失败
-                    client.Proxy = null;
-                    client.Encoding = System.Text.Encoding.UTF8;
-                    client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                    client.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
-                    
-                    json = await client.DownloadStringTaskAsync(VERSION_URL + "?t=" + DateTime.Now.Ticks);
+                    WriteTrace("GetLatestVersionInfo trying " + baseUrl);
+                    string url = baseUrl + "?t=" + DateTime.Now.Ticks;
+
+                    using (WebClient client = new WebClient())
+                    {
+                        client.Proxy = null;
+                        client.Encoding = System.Text.Encoding.UTF8;
+                        client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+                        client.CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore);
+
+                        var downloadTask = client.DownloadStringTaskAsync(url);
+                        if (!downloadTask.Wait(VERSION_REQUEST_TIMEOUT_MS))
+                        {
+                            try { client.CancelAsync(); } catch { }
+                            throw new TimeoutException(string.Format("访问更新服务器超时（>{0}ms）。", VERSION_REQUEST_TIMEOUT_MS));
+                        }
+
+                        json = downloadTask.Result;
+                    }
+
                     WriteTrace("GetLatestVersionInfo downloaded json length=" + (json == null ? "null" : json.Length.ToString()));
-                    
-                    // 强力清洗：去除 BOM 字符和前后空白
+
                     if (!string.IsNullOrEmpty(json))
                     {
-                        json = json.Trim().Trim('\uFEFF', '\u200B');
+                        json = json.Trim().Trim('﻿', '​');
                     }
 
                     if (string.IsNullOrWhiteSpace(json))
                     {
                         throw new Exception("服务器返回了空内容。");
                     }
+
                     return ParseUpdateInfo(json);
                 }
+                catch (Exception ex)
+                {
+                    WriteTrace(string.Format("GetLatestVersionInfo failed for {0}: {1}", baseUrl, ex.Message));
+                    lastException = ex;
+                    // 立即尝试下一个 URL
+                }
             }
-            catch (Exception ex)
-            {
-                WriteTrace("GetLatestVersionInfo exception: " + ex);
-                throw new Exception(string.Format("获取版本信息失败: {0}\n\n服务器响应内容: {1}", ex.Message, (json.Length > 100 ? json.Substring(0, 100) : json)));
-            }
+
+            throw new Exception(string.Format("所有更新源均无法访问。最后错误: {0}", lastException?.Message ?? "未知错误"));
         }
 
         private static UpdateInfo ParseUpdateInfo(string json)
         {
-            try
-            {
-                var info = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
-                if (info == null) throw new Exception("JSON 反序列化结果为空。");
-                WriteTrace(string.Format("ParseUpdateInfo ok version={0}", info.Version));
-                return info;
-            }
-            catch (Exception ex)
-            {
-                WriteTrace("ParseUpdateInfo exception: " + ex);
-                throw new Exception(string.Format("解析 JSON 失败: {0}\n\n原始 JSON: {1}", ex.Message, json));
-            }
+            var info = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
+            if (info == null) throw new Exception("JSON 反序列化结果为空。");
+            WriteTrace(string.Format("ParseUpdateInfo ok version={0}", info.Version));
+            return info;
         }
 
         public static async Task StartUpdateFlow()
@@ -166,29 +187,31 @@ namespace QSBar
             try
             {
                 WriteTrace("PerformUpdate begin downloadUrl=" + info.DownloadUrl);
-                using (WebClient client = new WebClient())
-                {
-                    client.Headers.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                    
-                    using (ProgressDialog progress = new ProgressDialog("正在下载更新..."))
-                    {
-                        int lastLoggedProgress = -10;
-                        progress.Show();
-                        WriteTrace("PerformUpdate progress dialog shown");
-                        
-                        client.DownloadProgressChanged += (s, e) => {
-                            progress.UpdateProgress(e.ProgressPercentage);
-                            if (e.ProgressPercentage >= lastLoggedProgress + 10 || e.ProgressPercentage == 100)
-                            {
-                                lastLoggedProgress = e.ProgressPercentage;
-                                WriteTrace("Download progress " + e.ProgressPercentage + "%");
-                            }
-                        };
 
-                        await client.DownloadFileTaskAsync(info.DownloadUrl, tempFile);
-                        WriteTrace("PerformUpdate download finished tempFile=" + tempFile);
+                // 下载也包在 Task.Run 中
+                await Task.Run(() =>
+                {
+                    using (WebClient client = new WebClient())
+                    {
+                        client.Proxy = null;
+                        client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+
+                        using (ProgressDialog progress = new ProgressDialog("正在下载更新..."))
+                        {
+                            progress.Show();
+                            WriteTrace("PerformUpdate progress dialog shown");
+
+                            client.DownloadProgressChanged += (s, e) =>
+                            {
+                                progress.UpdateProgress(e.ProgressPercentage);
+                            };
+
+                            var downloadTask = client.DownloadFileTaskAsync(info.DownloadUrl, tempFile);
+                            downloadTask.Wait();
+                            WriteTrace("PerformUpdate download finished tempFile=" + tempFile);
+                        }
                     }
-                }
+                }).ConfigureAwait(false);
 
                 if (!File.Exists(tempFile) || new FileInfo(tempFile).Length == 0)
                 {
@@ -198,17 +221,16 @@ namespace QSBar
                 }
                 WriteTrace("PerformUpdate downloaded file size=" + new FileInfo(tempFile).Length);
 
-                // 检查下载的 DLL 版本是否正确
                 try
                 {
                     var downloadedVersion = FileVersionInfo.GetVersionInfo(tempFile).FileVersion;
                     Version vDownloaded = new Version(downloadedVersion);
                     Version vLatest = new Version(info.Version);
-                    
+
                     if (vDownloaded < vLatest)
                     {
                         WriteTrace(string.Format("PerformUpdate version check failed downloaded={0} latest={1}", downloadedVersion, info.Version));
-                        MessageBox.Show(string.Format("警告：下载的文件版本 ({0}) 低于目标版本 ({1})。\n这可能是由于 Gitee 缓存或上传文件错误导致的。更新已取消。", downloadedVersion, info.Version), "更新校验失败");
+                        MessageBox.Show(string.Format("警告：下载的文件版本 ({0}) 低于目标版本 ({1})。\n更新已取消。", downloadedVersion, info.Version), "更新校验失败");
                         return;
                     }
                     WriteTrace(string.Format("PerformUpdate version check ok downloaded={0} latest={1}", downloadedVersion, info.Version));
@@ -216,7 +238,6 @@ namespace QSBar
                 catch (Exception ex)
                 {
                     WriteTrace("PerformUpdate version check exception: " + ex);
-                    // 如果无法读取版本，记录但不阻断，除非文件确实损坏
                     Debug.WriteLine("Version check failed: " + ex.Message);
                 }
 
@@ -268,16 +289,16 @@ del ""%~f0""";
                 WriteTrace("PerformUpdate batch written path=" + batchFile);
 
                 Process.Start(new ProcessStartInfo
-                  {
-                      FileName = "cmd.exe",
-                      Arguments = "/c \"" + batchFile + "\"",
-                      CreateNoWindow = true,
-                      UseShellExecute = false,
-                      WindowStyle = ProcessWindowStyle.Hidden
-                  });
+                {
+                    FileName = "cmd.exe",
+                    Arguments = "/c \"" + batchFile + "\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                });
                 WriteTrace("PerformUpdate batch launched");
-              }
-              catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 WriteTrace("PerformUpdate exception: " + ex);
                 MessageBox.Show(string.Format("更新失败: {0}", ex.Message), "更新错误");
@@ -293,7 +314,6 @@ del ""%~f0""";
 
                 if (File.Exists(logPath))
                 {
-                    // 仅静默删除日志文件，不再弹窗提示
                     File.Delete(logPath);
                 }
             }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Threading.Tasks;
@@ -23,14 +22,8 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
-        private static bool _startupUpdateCheckRunning;
-        private static bool _startupUpdateCheckTriggered;
-        private static bool _startupCompleted;
-        private static bool _ribbonLoaded;
-        private static System.Threading.SynchronizationContext _uiContext;
         private static Control _uiInvoker;
         private static KeyboardHook _keyboardHook;
-        private static uint _currentProcessId;
 
         public static void RefreshRibbon()
         {
@@ -43,87 +36,19 @@ namespace QSBar
             {
                 _application = (Excel.Application)Application;
                 App = _application;
-                _currentProcessId = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
-                _uiContext = System.Threading.SynchronizationContext.Current;
-                
-                // EPPlus License
+
                 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
                 StartCalcTimer();
                 RegisterShortcuts();
+
+                // 启动时执行一次静默更新检查，完全脱离 UI 线程
+                var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, false));
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error during QSBar connection: " + ex.Message);
             }
-        }
-
-        private async Task StartStartupUpdateCheckAsync()
-        {
-            if (_startupUpdateCheckRunning) return;
-            _startupUpdateCheckRunning = true;
-            try
-            {
-                await UpdateManager.CheckForUpdateAsync(true, false);
-                if (UpdateManager.HasNewVersion)
-                {
-                    await RunOnUiThreadAsync(() => UpdateManager.StartUpdateFlow());
-                }
-            }
-            finally
-            {
-                _startupUpdateCheckRunning = false;
-            }
-        }
-
-        private void TryTriggerStartupUpdateCheck()
-        {
-            if (_startupUpdateCheckTriggered) return;
-            if (!_startupCompleted) return;
-            if (!_ribbonLoaded) return;
-            _startupUpdateCheckTriggered = true;
-            var _ = StartStartupUpdateCheckAsync();
-        }
-
-        private static Task RunOnUiThreadAsync(Func<Task> action)
-        {
-            if (action == null) return Task.CompletedTask;
-
-            if (_uiInvoker != null && !_uiInvoker.IsDisposed && _uiInvoker.IsHandleCreated)
-            {
-                if (!_uiInvoker.InvokeRequired) return action();
-                var tcsByControl = new TaskCompletionSource<bool>();
-                _uiInvoker.BeginInvoke(new Action(async () =>
-                {
-                    try
-                    {
-                        await action();
-                        tcsByControl.SetResult(true);
-                    }
-                    catch (Exception ex)
-                    {
-                        tcsByControl.SetException(ex);
-                    }
-                }));
-                return tcsByControl.Task;
-            }
-
-            if (_uiContext == null || System.Threading.SynchronizationContext.Current == _uiContext) return action();
-
-            var tcs = new TaskCompletionSource<bool>();
-            _uiContext.Post(async _ =>
-            {
-                try
-                {
-                    await action();
-                    tcs.SetResult(true);
-                }
-                catch (Exception ex)
-                {
-                    tcs.SetException(ex);
-                }
-            }, null);
-            return tcs.Task;
         }
 
         private void AddShortcuts(bool ctrl, bool alt, Keys mainKey, Keys numKey, Action action)
@@ -138,7 +63,7 @@ namespace QSBar
             try
             {
                 _keyboardHook = new KeyboardHook();
-                
+
                 // Ctrl + Key
                 AddShortcuts(true, false, Keys.D3, Keys.NumPad3, () => DataCommands.BatchProcess());
                 AddShortcuts(true, false, Keys.D4, Keys.NumPad4, () => FormatCommands.SelectNonEmptyCells());
@@ -209,11 +134,6 @@ namespace QSBar
         {
             UnregisterShortcuts();
             StopCalcTimer();
-            _startupUpdateCheckRunning = false;
-            _startupUpdateCheckTriggered = false;
-            _startupCompleted = false;
-            _ribbonLoaded = false;
-            _uiContext = null;
             if (_uiInvoker != null)
             {
                 try { _uiInvoker.Dispose(); } catch { }
@@ -224,11 +144,7 @@ namespace QSBar
         }
 
         public void OnAddInsUpdate(ref Array custom) { }
-        public void OnStartupComplete(ref Array custom)
-        {
-            _startupCompleted = true;
-            TryTriggerStartupUpdateCheck();
-        }
+        public void OnStartupComplete(ref Array custom) { }
         public void OnBeginShutdown(ref Array custom) { }
 
         public void OnLoad(Office.IRibbonUI ribbon)
@@ -236,18 +152,15 @@ namespace QSBar
             try
             {
                 _ribbon = ribbon;
-                _ribbonLoaded = true;
                 if (_uiInvoker == null || _uiInvoker.IsDisposed)
                 {
                     _uiInvoker = new Control();
                     var _ = _uiInvoker.Handle;
                 }
-                RegisterShortcuts(); // 确保 Ribbon 加载后也尝试注册快捷键
-                TryTriggerStartupUpdateCheck();
+                RegisterShortcuts();
             }
             catch (Exception ex)
             {
-                // 记录日志或忽略，避免阻断加载
                 System.Diagnostics.Debug.WriteLine("OnLoad Error: " + ex.ToString());
             }
         }
@@ -289,9 +202,33 @@ namespace QSBar
             return UpdateManager.HasNewVersion;
         }
 
+        public async void OnCheckUpdate(Office.IRibbonControl control)
+        {
+            try
+            {
+                await UpdateManager.CheckForUpdateAsync(false, false);
+                if (UpdateManager.HasNewVersion)
+                {
+                    await UpdateManager.StartUpdateFlow();
+                }
+                RefreshRibbon();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("检查更新时出错: " + ex.Message, "更新错误");
+            }
+        }
+
         public async void OnRestartUpdate(Office.IRibbonControl control)
         {
-            await UpdateManager.StartUpdateFlow();
+            try
+            {
+                await UpdateManager.StartUpdateFlow();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("启动更新时出错: " + ex.Message, "更新错误");
+            }
         }
 
         public void OnBatchProcess(Office.IRibbonControl control) { DataCommands.BatchProcess(); }
@@ -299,9 +236,9 @@ namespace QSBar
         public void OnExportStandardReport(Office.IRibbonControl control) { ExportCommands.ExportStandardReport(); }
         public void OnExportInternalReport(Office.IRibbonControl control) { ExportCommands.ExportInternalReport(); }
         public void OnConvertAllToValues(Office.IRibbonControl control) { ExportCommands.ConvertAllToValues(); }
-        public void OnShowHelp(Office.IRibbonControl control) 
-        { 
-            LegacyAppCommands.ShowHelp(); 
+        public void OnShowHelp(Office.IRibbonControl control)
+        {
+            LegacyAppCommands.ShowHelp();
         }
         public void OnNormalizeNumbers(Office.IRibbonControl control) { DataCommands.NormalizeNumbers(); }
         public void OnTextify(Office.IRibbonControl control) { DataCommands.Textify(); }
@@ -318,12 +255,12 @@ namespace QSBar
         public void OnMultiAreaGroup(Office.IRibbonControl control) { FormatCommands.MultiAreaGroup(); }
         public void OnMultiAreaUngroup(Office.IRibbonControl control) { FormatCommands.MultiAreaUngroup(); }
         public void OnSelectVisibleCells(Office.IRibbonControl control) { FormatCommands.SelectVisibleCells(); }
-        public void OnResizePictures(Office.IRibbonControl control) 
-        { 
+        public void OnResizePictures(Office.IRibbonControl control)
+        {
             int factor = 1;
             int f;
             if (control.Tag != null && int.TryParse(control.Tag, out f)) factor = f;
-            PhotoCommands.ResizePictures(factor); 
+            PhotoCommands.ResizePictures(factor);
         }
         public void OnSelectAllPictures(Office.IRibbonControl control) { PhotoCommands.SelectAllPictures(); }
         public void OnCreateSheetIndex(Office.IRibbonControl control) { SheetCommands.CreateSheetIndex(); }

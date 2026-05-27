@@ -127,53 +127,17 @@ namespace QSBar
                 foreach (Excel.Range area in rng.Areas)
                 {
                     int rowCount = area.Rows.Count;
-                    int colCount = area.Columns.Count;
                     if (rowCount <= 0) continue;
-
-                    // 性能优化：一次性读入当前 Area 的数据
-                    object[,] dataValues = null;
-                    if (rowCount > 1 || colCount > 1)
-                    {
-                        dataValues = area.Value2 as object[,];
-                    }
-                    else
-                    {
-                        dataValues = new object[2, 2];
-                        dataValues[1, 1] = area.Value2;
-                    }
-
-                    int currentLevel = -1;
-                    int blockStart = 1;
 
                     for (int i = 1; i <= rowCount; i++)
                     {
-                        // 直接从内存数组判断级别
-                        int level = 4;
-                        for (int c = 1; c <= colCount; c++)
+                        try
                         {
-                            object val = dataValues[i, c];
-                            string v = val == null ? "" : val.ToString();
-                            
-                            if (Like(v, "*【*")) { level = 1; break; }
-                            else if (Like(v, "*《*")) { level = 2; break; }
-                            else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
+                            Excel.Range row = (Excel.Range)area.Rows[i];
+                            int level = (int)row.OutlineLevel;
+                            ApplyStyleToRow(row, level);
                         }
-
-                        if (level != currentLevel)
-                        {
-                            if (currentLevel >= 1 && currentLevel <= 3)
-                            {
-                                ApplyStyleToBlock(area, blockStart, i - 1, currentLevel);
-                            }
-                            currentLevel = level;
-                            blockStart = i;
-                        }
-                    }
-
-                    // 处理最后一块
-                    if (currentLevel >= 1 && currentLevel <= 3)
-                    {
-                        ApplyStyleToBlock(area, blockStart, rowCount, currentLevel);
+                        catch { }
                     }
                 }
             }
@@ -189,41 +153,41 @@ namespace QSBar
             }
         }
 
-        private static void ApplyStyleToBlock(Excel.Range area, int startRow, int endRow, int level)
+        private static void ApplyStyleToRow(Excel.Range row, int level)
         {
             try
             {
-                Excel.Range block = area.Range[area.Cells[startRow, 1], area.Cells[endRow, area.Columns.Count]];
+                if (row == null) return;
 
                 if (level == 1)
                 {
                     // 截图配色：深蓝灰色 (#333F4F) - 顶层大纲
-                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
-                    block.Interior.TintAndShade = 0;
-                    block.Font.Color = ColorTranslator.ToOle(Color.White);
-                    block.Font.TintAndShade = 0;
-                    block.Font.Bold = true;
+                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
+                    row.Interior.TintAndShade = 0;
+                    row.Font.Color = ColorTranslator.ToOle(Color.White);
+                    row.Font.TintAndShade = 0;
+                    row.Font.Bold = true;
                 }
                 else if (level == 2)
                 {
                     // 截图配色：淡蓝色 (Excel 风格) - 二级分类
-                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
-                    block.Interior.TintAndShade = 0;
-                    block.Font.Color = ColorTranslator.ToOle(Color.Black); // 黑色文字
-                    block.Font.TintAndShade = 0;
-                    block.Font.Bold = true;
+                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
+                    row.Interior.TintAndShade = 0;
+                    row.Font.Color = ColorTranslator.ToOle(Color.Black); // 黑色文字
+                    row.Font.TintAndShade = 0;
+                    row.Font.Bold = true;
                 }
                 else if (level == 3)
                 {
                     // 截图配色：淡橙色 (截图底部效果) - 三级明细
-                    block.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    block.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
-                    block.Interior.TintAndShade = 0;
-                    block.Font.Color = ColorTranslator.ToOle(Color.Black);
-                    block.Font.TintAndShade = 0;
-                    block.Font.Bold = false;
+                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
+                    row.Interior.TintAndShade = 0;
+                    row.Font.Color = ColorTranslator.ToOle(Color.Black);
+                    row.Font.TintAndShade = 0;
+                    row.Font.Bold = false;
                 }
             }
             catch { }
