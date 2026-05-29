@@ -19,9 +19,9 @@ namespace QSBar.Core.Formatting
             return new Dictionary<int, RowStyle>
             {
                 { 0, new RowStyle { ColorIndex = null, Bold = false, BorderLeft = false } },
-                { 1, new RowStyle { ColorIndex = 15, Bold = true, BorderLeft = false } },
-                { 2, new RowStyle { ColorIndex = 14, Bold = true, BorderLeft = false } },
-                { 3, new RowStyle { ColorIndex = 13, Bold = true, BorderLeft = true } },
+                { 1, new RowStyle { ColorRgb = 198 | (217 << 8) | (241 << 16), Bold = true, BorderLeft = false } },
+                { 2, new RowStyle { ColorRgb = 238 | (242 << 8) | (250 << 16), Bold = true, BorderLeft = false } },
+                { 3, new RowStyle { ColorRgb = 251 | (229 << 8) | (214 << 16), Bold = true, BorderLeft = true } },
             };
         }
 

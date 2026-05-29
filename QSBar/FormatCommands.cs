@@ -161,33 +161,30 @@ namespace QSBar
 
                 if (level == 1)
                 {
-                    // 截图配色：深蓝灰色 (#333F4F) - 顶层大纲
                     row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); 
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(198, 217, 241)); // #C6D9F1
                     row.Interior.TintAndShade = 0;
-                    row.Font.Color = ColorTranslator.ToOle(Color.White);
+                    row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26)); // #1A1A1A
                     row.Font.TintAndShade = 0;
                     row.Font.Bold = true;
                 }
                 else if (level == 2)
                 {
-                    // 截图配色：淡蓝色 (Excel 风格) - 二级分类
                     row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(238, 242, 250)); // #EEF2FA
                     row.Interior.TintAndShade = 0;
-                    row.Font.Color = ColorTranslator.ToOle(Color.Black); // 黑色文字
+                    row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26)); // #1A1A1A
                     row.Font.TintAndShade = 0;
                     row.Font.Bold = true;
                 }
                 else if (level == 3)
                 {
-                    // 截图配色：淡橙色 (截图底部效果) - 三级明细
                     row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(252, 228, 214));
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(251, 229, 214)); // #FBE5D6
                     row.Interior.TintAndShade = 0;
-                    row.Font.Color = ColorTranslator.ToOle(Color.Black);
+                    row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26)); // #1A1A1A
                     row.Font.TintAndShade = 0;
-                    row.Font.Bold = false;
+                    row.Font.Bold = true;
                 }
             }
             catch { }

@@ -15,9 +15,9 @@ namespace QSBar.Core.Formatting
                 RowStyle ov;
                 if (Overrides.TryGetValue(level, out ov)) return ov;
                 if (level <= 0) return new RowStyle { ColorIndex = null, Bold = false, BorderLeft = false };
-                if (level == 1) return new RowStyle { ColorIndex = 15, Bold = true, BorderLeft = false };
-                if (level == 2) return new RowStyle { ColorIndex = 14, Bold = true, BorderLeft = false };
-                return new RowStyle { ColorIndex = 13, Bold = true, BorderLeft = true };
+                if (level == 1) return new RowStyle { ColorRgb = 198 | (217 << 8) | (241 << 16), Bold = true, BorderLeft = false };
+                if (level == 2) return new RowStyle { ColorRgb = 238 | (242 << 8) | (250 << 16), Bold = true, BorderLeft = false };
+                return new RowStyle { ColorRgb = 251 | (229 << 8) | (214 << 16), Bold = true, BorderLeft = true };
             }
         }
 
