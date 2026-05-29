@@ -1,5 +1,5 @@
-{
-    "version":  "1.0.1.12",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.12.exe",
-    "changeLog":  "修复海外或异常网络环境下启动插件时的更新检查问题：联网失败、超时或版本解析异常不会再导致 Excel/WPS 闪退。"
+﻿{
+    "version":  "1.0.1.13",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.13.exe",
+    "changeLog":  "统一分级样式配色与pk-boq合并报表技能一致：L1 #C6D9F1/L2 #EEF2FA/L3 #FBE5D6，字体#1A1A1A加粗"
 }
