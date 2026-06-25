@@ -57,7 +57,7 @@ namespace QSBar
             {
                 WriteTrace(string.Format("CheckForUpdateAsync start silent={0}", silent));
 
-                // 整个网络操作跑在后台线程，绝不碰 UI 线程
+                // Keep all network work on a background thread; do not touch the UI thread.
                 UpdateInfo info = await Task.Run(() => GetLatestVersionInfo()).ConfigureAwait(false);
 
                 LatestUpdateInfo = info;
@@ -67,7 +67,7 @@ namespace QSBar
                 {
                     LatestUpdateInfo = null;
                     HasNewVersion = false;
-                    if (!silent) MessageBox.Show("服务器返回的版本信息格式不正确。", "更新错误");
+                    if (!silent) MessageBox.Show("The server returned an invalid version payload.", "Update Error");
                     return;
                 }
 
@@ -85,7 +85,7 @@ namespace QSBar
                 }
                 else
                 {
-                    if (!silent) MessageBox.Show(string.Format("当前已是最新版本 (v{0})。", currentVersion), "更新检测");
+                    if (!silent) MessageBox.Show(string.Format("You are already on the latest version (v{0}).", currentVersion), "Update Check");
                 }
             }
             catch (Exception ex)
@@ -93,7 +93,7 @@ namespace QSBar
                 LatestUpdateInfo = null;
                 HasNewVersion = false;
                 WriteTrace("CheckForUpdateAsync exception: " + ex);
-                if (!silent) MessageBox.Show(string.Format("检查更新时出错: {0}", ex.Message), "更新错误");
+                if (!silent) MessageBox.Show(string.Format("Error while checking for updates: {0}", ex.Message), "Update Error");
             }
         }
 
@@ -121,7 +121,7 @@ namespace QSBar
                         if (!downloadTask.Wait(VERSION_REQUEST_TIMEOUT_MS))
                         {
                             try { client.CancelAsync(); } catch { }
-                            throw new TimeoutException(string.Format("访问更新服务器超时（>{0}ms）。", VERSION_REQUEST_TIMEOUT_MS));
+                            throw new TimeoutException(string.Format("Timed out while contacting the update server (>{0}ms).", VERSION_REQUEST_TIMEOUT_MS));
                         }
 
                         json = downloadTask.Result;
@@ -136,7 +136,7 @@ namespace QSBar
 
                     if (string.IsNullOrWhiteSpace(json))
                     {
-                        throw new Exception("服务器返回了空内容。");
+                        throw new Exception("The server returned an empty response.");
                     }
 
                     return ParseUpdateInfo(json);
@@ -145,17 +145,18 @@ namespace QSBar
                 {
                     WriteTrace(string.Format("GetLatestVersionInfo failed for {0}: {1}", baseUrl, ex.Message));
                     lastException = ex;
-                    // 立即尝试下一个 URL
+                    // Try the next URL immediately.
                 }
             }
 
-            throw new Exception(string.Format("所有更新源均无法访问。最后错误: {0}", lastException?.Message ?? "未知错误"));
+            string lastMessage = lastException == null ? "Unknown error" : lastException.Message;
+            throw new Exception(string.Format("None of the update sources could be reached. Last error: {0}", lastMessage));
         }
 
         private static UpdateInfo ParseUpdateInfo(string json)
         {
             var info = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
-            if (info == null) throw new Exception("JSON 反序列化结果为空。");
+            if (info == null) throw new Exception("JSON deserialization returned null.");
             WriteTrace(string.Format("ParseUpdateInfo ok version={0}", info.Version));
             return info;
         }
@@ -170,8 +171,8 @@ namespace QSBar
 
             WriteTrace(string.Format("StartUpdateFlow prompt version={0}", LatestUpdateInfo.Version));
 
-            var result = MessageBox.Show(string.Format("将更新到 v{0}。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？", LatestUpdateInfo.Version),
-                "QS工具箱", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            var result = MessageBox.Show(string.Format("This will update to v{0}.\n\nPlease make sure the current file is saved. Close Excel now and run the update?", LatestUpdateInfo.Version),
+                "QS Toolbox", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
 
             WriteTrace("StartUpdateFlow dialog result=" + result);
 
@@ -188,7 +189,7 @@ namespace QSBar
             {
                 WriteTrace("PerformUpdate begin downloadUrl=" + info.DownloadUrl);
 
-                // 下载也包在 Task.Run 中
+                // Put the download work inside Task.Run as well.
                 await Task.Run(() =>
                 {
                     using (WebClient client = new WebClient())
@@ -196,7 +197,7 @@ namespace QSBar
                         client.Proxy = null;
                         client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
 
-                        using (ProgressDialog progress = new ProgressDialog("正在下载更新..."))
+                        using (ProgressDialog progress = new ProgressDialog("Downloading update..."))
                         {
                             progress.Show();
                             WriteTrace("PerformUpdate progress dialog shown");
@@ -216,7 +217,7 @@ namespace QSBar
                 if (!File.Exists(tempFile) || new FileInfo(tempFile).Length == 0)
                 {
                     WriteTrace("PerformUpdate downloaded file missing or empty");
-                    MessageBox.Show("下载文件失败或文件为空，请重试。", "更新错误");
+                    MessageBox.Show("The downloaded file is missing or empty. Please try again.", "Update Error");
                     return;
                 }
                 WriteTrace("PerformUpdate downloaded file size=" + new FileInfo(tempFile).Length);
@@ -230,7 +231,7 @@ namespace QSBar
                     if (vDownloaded < vLatest)
                     {
                         WriteTrace(string.Format("PerformUpdate version check failed downloaded={0} latest={1}", downloadedVersion, info.Version));
-                        MessageBox.Show(string.Format("警告：下载的文件版本 ({0}) 低于目标版本 ({1})。\n更新已取消。", downloadedVersion, info.Version), "更新校验失败");
+                        MessageBox.Show(string.Format("Warning: the downloaded file version ({0}) is lower than the target version ({1}).\nThe update has been canceled.", downloadedVersion, info.Version), "Update Validation Failed");
                         return;
                     }
                     WriteTrace(string.Format("PerformUpdate version check ok downloaded={0} latest={1}", downloadedVersion, info.Version));
@@ -251,17 +252,17 @@ namespace QSBar
 
                 int hostProcessId = Process.GetCurrentProcess().Id;
                 string tracePath = GetTracePath().Replace("\"", "\"\"");
-                string batchContent = $@"@echo off
-set ""TRACE_LOG={tracePath}""
->> ""%TRACE_LOG%"" echo [%date% %time%] batch start host_pid={hostProcessId}
+                string batchContent = string.Format(@"@echo off
+set ""TRACE_LOG={0}""
+>> ""%TRACE_LOG%"" echo [%date% %time%] batch start host_pid={1}
 timeout /t 1 /nobreak > nul
 
 set RETRIES=0
 :KILL_LOOP
-taskkill /f /pid {hostProcessId} > nul 2>&1
+taskkill /f /pid {1} > nul 2>&1
 >> ""%TRACE_LOG%"" echo [%date% %time%] taskkill attempt retries=%RETRIES%
 
-tasklist /fi ""pid eq {hostProcessId}"" | find ""{hostProcessId}"" > nul
+tasklist /fi ""pid eq {1}"" | find ""{1}"" > nul
 if %errorlevel% equ 0 (
     set /a RETRIES+=1
     >> ""%TRACE_LOG%"" echo [%date% %time%] host still alive retries=%RETRIES%
@@ -274,7 +275,7 @@ if %errorlevel% equ 0 (
 >> ""%TRACE_LOG%"" echo [%date% %time%] enter install phase
 timeout /t 1 /nobreak > nul
 
-start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+start /wait """" ""{2}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 >> ""%TRACE_LOG%"" echo [%date% %time%] installer exitcode=%errorlevel%
 
 if %errorlevel% equ 0 (
@@ -282,9 +283,9 @@ if %errorlevel% equ 0 (
     start """" excel.exe
 )
 
-del ""{tempFile}""
+del ""{2}""
 >> ""%TRACE_LOG%"" echo [%date% %time%] cleanup done
-del ""%~f0""";
+del ""%~f0""", tracePath, hostProcessId, tempFile);
                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
                 WriteTrace("PerformUpdate batch written path=" + batchFile);
 
@@ -301,7 +302,7 @@ del ""%~f0""";
             catch (Exception ex)
             {
                 WriteTrace("PerformUpdate exception: " + ex);
-                MessageBox.Show(string.Format("更新失败: {0}", ex.Message), "更新错误");
+                MessageBox.Show(string.Format("Update failed: {0}", ex.Message), "Update Error");
             }
         }
 
@@ -336,7 +337,7 @@ del ""%~f0""";
             this.MinimizeBox = false;
             this.TopMost = true;
 
-            lbl = new Label() { Text = "正在准备下载...", Left = 20, Top = 25, Width = 350, Font = new System.Drawing.Font("微软雅黑", 10) };
+            lbl = new Label() { Text = "Preparing download...", Left = 20, Top = 25, Width = 350, Font = new System.Drawing.Font("Microsoft YaHei", 10) };
             pb = new ProgressBar() { Left = 20, Top = 65, Width = 340, Height = 25, Maximum = 100 };
 
             this.Controls.Add(lbl);
@@ -352,7 +353,7 @@ del ""%~f0""";
                 return;
             }
             pb.Value = Math.Min(100, Math.Max(0, percentage));
-            lbl.Text = string.Format("已下载: {0}%", percentage);
+            lbl.Text = string.Format("Downloaded: {0}%", percentage);
         }
     }
 }

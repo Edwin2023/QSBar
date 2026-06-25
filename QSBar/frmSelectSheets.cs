@@ -22,9 +22,8 @@ namespace QSBar
             foreach (Excel.Worksheet sheet in workbook.Worksheets)
             {
                 string sheetName = sheet.Name;
-                
-                // 过滤掉 MergeSheet
-                if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) || 
+
+                if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) ||
                     sheetName.StartsWith("MergeSheet(", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -33,10 +32,10 @@ namespace QSBar
                 string displayName = sheetName;
                 if (sheet.Visible != Excel.XlSheetVisibility.xlSheetVisible)
                 {
-                    displayName += "（隐藏）";
+                    displayName += " (Hidden)";
                 }
-                
-                chkListSheets.Items.Add(displayName, true); // 默认全选
+
+                chkListSheets.Items.Add(displayName, true);
             }
         }
 
@@ -47,16 +46,16 @@ namespace QSBar
             {
                 string displayName = item.ToString();
                 string actualName = displayName;
-                if (displayName.EndsWith("（隐藏）"))
+                if (displayName.EndsWith(" (Hidden)"))
                 {
-                    actualName = displayName.Substring(0, displayName.Length - 4);
+                    actualName = displayName.Substring(0, displayName.Length - 9);
                 }
                 SelectedSheetNames.Add(actualName);
             }
 
             if (SelectedSheetNames.Count == 0)
             {
-                MessageBox.Show("请至少选择一个工作表。");
+                MessageBox.Show("Please select at least one worksheet.");
                 return;
             }
 

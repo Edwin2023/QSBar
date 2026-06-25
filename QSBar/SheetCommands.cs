@@ -85,12 +85,12 @@ namespace QSBar
 
                 Excel.Worksheet indexSheet = workbook.Worksheets.Add(Before: workbook.Worksheets[1]) as Excel.Worksheet;
                 if (indexSheet == null) return;
-                indexSheet.Name = "目录_" + DateTime.Now.ToString("HHmmss");
+                indexSheet.Name = "Index_" + DateTime.Now.ToString("HHmmss");
 
                 // 准备数据
                 int rowNum = 1;
-                indexSheet.Cells[rowNum, 1].Value = "序号";
-                indexSheet.Cells[rowNum, 2].Value = "工作表名称";
+                indexSheet.Cells[rowNum, 1].Value = "No.";
+                indexSheet.Cells[rowNum, 2].Value = "Worksheet Name";
                 rowNum++;
 
                 foreach (Excel.Worksheet sheet in workbook.Worksheets)
@@ -112,7 +112,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("生成表目录失败: " + ex.Message);
+                MessageBox.Show("Failed to generate the sheet index: " + ex.Message);
             }
             finally
             {
@@ -138,8 +138,8 @@ namespace QSBar
             catch { }
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "选择要生成目录的文件";
-            openFileDialog.Filter = "所有文件|*.*";
+            openFileDialog.Title = "Select files to index";
+            openFileDialog.Filter = "All Files|*.*";
             openFileDialog.Multiselect = true;
             if (!string.IsNullOrEmpty(initialDir))
             {
@@ -152,7 +152,7 @@ namespace QSBar
             {
                 app.ScreenUpdating = false;
 
-                string sheetName = "文件目录";
+                string sheetName = "File Index";
                 Excel.Worksheet indexSheet = null;
                 foreach (Excel.Worksheet ws in workbook.Worksheets)
                 {
@@ -172,9 +172,9 @@ namespace QSBar
 
                 // 准备数据
                 int rowNum = 1;
-                indexSheet.Cells[rowNum, 1].Value = "序号";
-                indexSheet.Cells[rowNum, 2].Value = "文件名";
-                indexSheet.Cells[rowNum, 3].Value = "完整路径";
+                indexSheet.Cells[rowNum, 1].Value = "No.";
+                indexSheet.Cells[rowNum, 2].Value = "File Name";
+                indexSheet.Cells[rowNum, 3].Value = "Full Path";
                 rowNum++;
 
                 foreach (string filePath in openFileDialog.FileNames)
@@ -192,11 +192,11 @@ namespace QSBar
                 ApplyModernStyle(indexSheet, rowNum - 1, 3);
                 indexSheet.Activate();
                 
-                MessageBox.Show(string.Format("文件目录生成完成！共计 {0} 个文件。", openFileDialog.FileNames.Length));
+                MessageBox.Show(string.Format("File index created successfully. Total files: {0}", openFileDialog.FileNames.Length));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("生成文件目录失败: " + ex.Message);
+                MessageBox.Show("Failed to generate the file index: " + ex.Message);
             }
             finally
             {
@@ -240,8 +240,8 @@ namespace QSBar
             if (targetWb == null) return;
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Title = "选择要合并的 Excel 文件";
-            openFileDialog.Filter = "Excel 文件|*.xls;*.xlsx;*.xlsm;*.xlsb|所有文件|*.*";
+            openFileDialog.Title = "Select Excel files to merge";
+            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.xlsb|All Files|*.*";
             openFileDialog.Multiselect = true;
 
             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
@@ -295,7 +295,7 @@ namespace QSBar
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(string.Format("打开或处理文件 {0} 时出错: {1}", System.IO.Path.GetFileName(filePath), ex.Message));
+                        MessageBox.Show(string.Format("Error opening or processing file {0}: {1}", System.IO.Path.GetFileName(filePath), ex.Message));
                     }
                     finally
                     {
@@ -308,11 +308,11 @@ namespace QSBar
                 }
 
                 targetSheet.Columns.AutoFit();
-                MessageBox.Show(string.Format("全表合并完成！已创建工作表: {0}", targetSheetName));
+                MessageBox.Show(string.Format("Workbook merge completed. Created sheet: {0}", targetSheetName));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("合并失败: " + ex.Message);
+                MessageBox.Show("Merge failed: " + ex.Message);
             }
             finally
             {
@@ -404,11 +404,11 @@ namespace QSBar
 
                 targetSheet.Columns.AutoFit();
                 targetSheet.Activate();
-                MessageBox.Show(string.Format("合并工作表完成！已创建/替换工作表: {0}", targetName));
+                MessageBox.Show(string.Format("Worksheet merge completed. Created/replaced sheet: {0}", targetName));
             }
             catch (Exception ex)
             {
-                MessageBox.Show("合并工作表失败: " + ex.Message);
+                MessageBox.Show("Worksheet merge failed: " + ex.Message);
             }
             finally
             {
@@ -454,7 +454,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("删除空行失败: " + ex.Message);
+                MessageBox.Show("Failed to delete empty rows: " + ex.Message);
             }
             finally
             {
@@ -480,7 +480,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("取消隐藏失败: " + ex.Message);
+                MessageBox.Show("Failed to unhide sheets: " + ex.Message);
             }
             finally
             {
@@ -504,12 +504,12 @@ namespace QSBar
                 }
                 else
                 {
-                    MessageBox.Show("文件尚未保存，无法打开目录。");
+                    MessageBox.Show("The file has not been saved yet, so the folder cannot be opened.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("打开目录失败: " + ex.Message);
+                MessageBox.Show("Failed to open folder: " + ex.Message);
             }
         }
     }

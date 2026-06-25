@@ -7,7 +7,7 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("QSBar")]
-[assembly: AssemblyDescription("QS工具箱 - 兼容 Excel 和 WPS 的高效办公插件")]
+[assembly: AssemblyDescription("QS Toolbox - a productivity add-in for Excel and WPS")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("QS Studio")]
 [assembly: AssemblyProduct("QSBar Professional")]

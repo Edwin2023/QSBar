@@ -50,7 +50,7 @@ namespace QSBar
 
             this.Size = new Size(600, 750);
 
-            this.Text = "批量处理";
+            this.Text = "Batch Process";
 
             this.StartPosition = FormStartPosition.CenterScreen;
 
@@ -82,19 +82,19 @@ namespace QSBar
 
             // Row 1: Left, Center, Right
 
-            Label lblLeft = new Label { Text = "前缀:", Location = new Point(margin, y + 5), Width = labelWidth, AutoSize = false };
+            Label lblLeft = new Label { Text = "Prefix:", Location = new Point(margin, y + 5), Width = labelWidth, AutoSize = false };
 
             txtLeft = new TextBox { Location = new Point(margin + labelWidth, y), Width = textBoxWidth };
 
             
 
-            Label lblCenter = new Label { Text = "主体:", Location = new Point(margin + labelWidth + textBoxWidth + 20, y + 5), Width = labelWidth, AutoSize = false };
+            Label lblCenter = new Label { Text = "Body:", Location = new Point(margin + labelWidth + textBoxWidth + 20, y + 5), Width = labelWidth, AutoSize = false };
 
             txtCenter = new TextBox { Location = new Point(margin + labelWidth * 2 + textBoxWidth + 20, y), Width = textBoxWidth };
 
             
 
-            Label lblRight = new Label { Text = "后缀:", Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2, y + 5), Width = labelWidth, AutoSize = false };
+            Label lblRight = new Label { Text = "Suffix:", Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2, y + 5), Width = labelWidth, AutoSize = false };
 
             txtRight = new TextBox { Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2 + labelWidth, y), Width = textBoxWidth };
 
@@ -120,7 +120,7 @@ namespace QSBar
 
             // GroupBox for Find/Replace
 
-            GroupBox grpReplace = new GroupBox { Text = "查找替换", Location = new Point(margin, y), Size = new Size(540, 120) };
+            GroupBox grpReplace = new GroupBox { Text = "Find and Replace", Location = new Point(margin, y), Size = new Size(540, 120) };
 
             
 
@@ -136,13 +136,13 @@ namespace QSBar
 
             // Row 2: Replace 1 inside GroupBox
 
-            Label lblFind1 = new Label { Text = "查找1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblFind1 = new Label { Text = "Find 1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtFind1 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
 
             
 
-            Label lblRep1 = new Label { Text = "替换1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblRep1 = new Label { Text = "Replace 1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtRep1 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
 
@@ -164,13 +164,13 @@ namespace QSBar
 
             // Row 3: Replace 2 inside GroupBox
 
-            Label lblFind2 = new Label { Text = "查找2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblFind2 = new Label { Text = "Find 2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtFind2 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
 
 
 
-            Label lblRep2 = new Label { Text = "替换2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblRep2 = new Label { Text = "Replace 2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtRep2 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
 
@@ -196,7 +196,7 @@ namespace QSBar
 
             // Row 4: Preview Label
 
-            Label lblPreview = new Label { Text = "预览结果:", Location = new Point(margin, y), Width = 200 };
+            Label lblPreview = new Label { Text = "Preview:", Location = new Point(margin, y), Width = 200 };
 
             this.Controls.Add(lblPreview);
 
@@ -256,7 +256,7 @@ namespace QSBar
 
             { 
 
-                Text = "确定", 
+                Text = "OK", 
 
                 Location = new Point(btnX, btnY), 
 
@@ -278,7 +278,7 @@ namespace QSBar
 
             { 
 
-                Text = "取消", 
+                Text = "Cancel", 
 
                 Location = new Point(btnX + btnWidth + btnGap, btnY), 
 
@@ -342,7 +342,7 @@ namespace QSBar
 
         {
 
-            txtCenter.Text = "<内容>";
+            txtCenter.Text = "<content>";
 
         }
 
@@ -358,11 +358,11 @@ namespace QSBar
 
             // Step 1: Center value logic
 
-            if (txtCenter.Text.Contains("<内容>"))
+            if (txtCenter.Text.Contains("<content>"))
 
             {
 
-                lastValue = txtCenter.Text.Replace("<内容>", everyValue);
+                lastValue = txtCenter.Text.Replace("<content>", everyValue);
 
             }
 
@@ -453,7 +453,7 @@ namespace QSBar
                     {
                         if (count >= maxPreview)
                         {
-                            sb.AppendLine("...仅显示前 50 项");
+                            sb.AppendLine("... only the first 50 items are shown");
                             break;
                         }
 
@@ -483,14 +483,14 @@ namespace QSBar
                 }
                 catch
                 {
-                    sb.AppendLine("无法获取选定区域的可见单元格");
+                    sb.AppendLine("Unable to get visible cells from the selected range");
                 }
 
                 txtPreview.Text = sb.ToString();
             }
             catch (Exception ex)
             {
-                txtPreview.Text = "预览更新失败: " + ex.Message;
+                txtPreview.Text = "Preview update failed: " + ex.Message;
             }
         }
 
@@ -552,12 +552,12 @@ namespace QSBar
 
                     if (errorAddresses.Count > 0)
                     {
-                        MessageBox.Show(BuildErrorMessage(errorAddresses), "处理完成(部分错误)");
+                        MessageBox.Show(BuildErrorMessage(errorAddresses), "Completed (Partial Errors)");
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("处理过程发生严重错误: " + ex.Message);
+                    MessageBox.Show("A fatal error occurred during processing: " + ex.Message);
                 }
                 finally
                 {
@@ -568,7 +568,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("错误: " + ex.Message);
+                MessageBox.Show("Error: " + ex.Message);
             }
         }
 
@@ -581,7 +581,7 @@ namespace QSBar
         {
             try { return (string)cell.Address[false, false]; } catch { }
             try { return (string)cell.Address; } catch { }
-            return "<未知>";
+            return "<unknown>";
         }
 
 
@@ -594,7 +594,7 @@ namespace QSBar
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("以下单元格在写入新内容时发生错误（公式非法或单元格受保护）：");
+            sb.AppendLine("The following cells failed while writing new content (invalid formulas or protected cells):");
 
 
 
@@ -618,7 +618,7 @@ namespace QSBar
 
                 sb.AppendLine();
 
-                sb.Append(string.Format("... 还有 {0} 个错误未列出", addresses.Count - max));
+                sb.Append(string.Format("... {0} more errors not listed", addresses.Count - max));
 
             }
 

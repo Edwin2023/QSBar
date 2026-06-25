@@ -52,7 +52,7 @@ namespace QSBar
             this.selectFile.Name = "selectFile";
             this.selectFile.Size = new System.Drawing.Size(102, 34);
             this.selectFile.TabIndex = 0;
-            this.selectFile.Text = "Select File";
+            this.selectFile.Text = "Add Files";
             this.selectFile.UseVisualStyleBackColor = false;
             this.selectFile.Click += new System.EventHandler(this.selectFile_Click);
             // 
@@ -65,7 +65,7 @@ namespace QSBar
             this.deleteSelected.Name = "deleteSelected";
             this.deleteSelected.Size = new System.Drawing.Size(137, 34);
             this.deleteSelected.TabIndex = 1;
-            this.deleteSelected.Text = "Delete Selected";
+            this.deleteSelected.Text = "Remove Selected";
             this.deleteSelected.UseVisualStyleBackColor = false;
             this.deleteSelected.Click += new System.EventHandler(this.deleteSelected_Click);
             // 
@@ -78,7 +78,7 @@ namespace QSBar
             this.clearList.Name = "clearList";
             this.clearList.Size = new System.Drawing.Size(113, 34);
             this.clearList.TabIndex = 2;
-            this.clearList.Text = "Clear List";
+            this.clearList.Text = "Clear All";
             this.clearList.UseVisualStyleBackColor = false;
             this.clearList.Click += new System.EventHandler(this.clearList_Click);
             // 
@@ -100,15 +100,15 @@ namespace QSBar
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(60, 20);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Control";
+            this.label2.Text = "Match Type";
             // 
             // control
             // 
             this.control.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.control.FormattingEnabled = true;
             this.control.Items.AddRange(new object[] {
-            "Equal",
-            "Contain"});
+            "Exact",
+            "Contains"});
             this.control.Location = new System.Drawing.Point(12, 261);
             this.control.Name = "control";
             this.control.Size = new System.Drawing.Size(147, 26);
@@ -129,7 +129,7 @@ namespace QSBar
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(160, 20);
             this.label1.TabIndex = 7;
-            this.label1.Text = "Sheet Name To Copy";
+            this.label1.Text = "Source Sheet Name";
             this.label1.UseWaitCursor = true;
             // 
             // customKeys
@@ -149,7 +149,7 @@ namespace QSBar
             this.isCustomKey.Name = "isCustomKey";
             this.isCustomKey.Size = new System.Drawing.Size(133, 24);
             this.isCustomKey.TabIndex = 9;
-            this.isCustomKey.Text = "Customize Key";
+            this.isCustomKey.Text = "Use Custom Keys";
             this.isCustomKey.UseVisualStyleBackColor = true;
             this.isCustomKey.CheckedChanged += new System.EventHandler(this.isCustomKey_CheckedChanged);
             // 
@@ -163,7 +163,7 @@ namespace QSBar
             this.summaryBtn.Name = "summaryBtn";
             this.summaryBtn.Size = new System.Drawing.Size(91, 34);
             this.summaryBtn.TabIndex = 10;
-            this.summaryBtn.Text = "Summary";
+            this.summaryBtn.Text = "Generate";
             this.summaryBtn.UseVisualStyleBackColor = false;
             this.summaryBtn.Click += new System.EventHandler(this.summaryBtn_Click);
             // 
@@ -175,7 +175,7 @@ namespace QSBar
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(131, 20);
             this.label3.TabIndex = 12;
-            this.label3.Text = "Add Sheet Name";
+            this.label3.Text = "Output Sheet Name";
             this.label3.UseWaitCursor = true;
             // 
             // sheetName

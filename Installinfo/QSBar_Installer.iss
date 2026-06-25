@@ -70,7 +70,6 @@ Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Office.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Microsoft.Office.Interop.Excel.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\..\..\..\lib\Interop.AddInDesignerObjects.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourcePath}\QSBar.tlb"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourcePath}\EPPlus.System.Drawing.dll"; DestDir: "{app}"; Flags: ignoreversion
@@ -128,7 +127,7 @@ Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flag
 Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flags: runasoriginaluser waituntilterminated; StatusMsg: "Registering QSBar (User-Level)..."
 
 ; 3. Auto-launch Excel after install (instead of showing notes)
-Filename: "excel.exe"; Description: "Launch Excel now (立即启动 Excel)"; Flags: postinstall nowait shellexec skipifsilent
+Filename: "excel.exe"; Description: "Launch Excel now"; Flags: postinstall nowait shellexec skipifsilent
 
 
 [UninstallRun]
@@ -359,9 +358,9 @@ begin
     
     if (InstalledVer <> '') and (CompareVersion(InstalledVer, CurrentVer) > 0) then
     begin
-      V := MsgBox('检测到系统中已安装了更高版本的 QSBar (v' + InstalledVer + ')。' + #13#10 + 
-             '您当前正在尝试安装较低的版本 (v' + CurrentVer + ')。' + #13#10#13#10 + 
-             '继续安装将会覆盖高版本，是否确定继续？', mbConfirmation, MB_YESNO);
+      V := MsgBox('A newer version of QSBar is already installed (v' + InstalledVer + ').' + #13#10 + 
+             'You are trying to install an older version (v' + CurrentVer + ').' + #13#10#13#10 + 
+             'Continuing will replace the newer version. Do you want to continue?', mbConfirmation, MB_YESNO);
       if V = IDNO then
       begin
         Result := False;

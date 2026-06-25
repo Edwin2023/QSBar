@@ -48,7 +48,7 @@ namespace QSBar
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(60, 20);
             this.label2.TabIndex = 0;
-            this.label2.Text = "Control";
+            this.label2.Text = "Match Type";
             // 
             // copySheetName
             // 
@@ -66,7 +66,7 @@ namespace QSBar
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(160, 20);
             this.label3.TabIndex = 3;
-            this.label3.Text = "Sheet Name To Copy";
+            this.label3.Text = "Source Sheet Name";
             // 
             // summaryBtn
             // 
@@ -78,7 +78,7 @@ namespace QSBar
             this.summaryBtn.Name = "summaryBtn";
             this.summaryBtn.Size = new System.Drawing.Size(91, 26);
             this.summaryBtn.TabIndex = 4;
-            this.summaryBtn.Text = "Summary";
+            this.summaryBtn.Text = "Generate";
             this.summaryBtn.UseVisualStyleBackColor = false;
             this.summaryBtn.Click += new System.EventHandler(this.summaryBtn_Click);
             // 
@@ -90,7 +90,7 @@ namespace QSBar
             this.control.ReadOnly = true;
             this.control.Size = new System.Drawing.Size(150, 26);
             this.control.TabIndex = 5;
-            this.control.Text = "Contain";
+            this.control.Text = "Contains";
             // 
             // isCustomKey
             // 
@@ -99,7 +99,7 @@ namespace QSBar
             this.isCustomKey.Name = "isCustomKey";
             this.isCustomKey.Size = new System.Drawing.Size(133, 24);
             this.isCustomKey.TabIndex = 6;
-            this.isCustomKey.Text = "Customize Key";
+            this.isCustomKey.Text = "Use Custom Keys";
             this.isCustomKey.UseVisualStyleBackColor = true;
             this.isCustomKey.CheckedChanged += new System.EventHandler(this.isCustomKey_CheckedChanged);
             // 
@@ -111,7 +111,7 @@ namespace QSBar
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(145, 20);
             this.label4.TabIndex = 8;
-            this.label4.Text = "Set custom to copy";
+            this.label4.Text = "Custom Keys";
             // 
             // customKeys
             // 
@@ -131,7 +131,7 @@ namespace QSBar
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(131, 20);
             this.label5.TabIndex = 11;
-            this.label5.Text = "Add Sheet Name";
+            this.label5.Text = "Output Sheet Name";
             // 
             // sheetName
             // 
@@ -161,7 +161,7 @@ namespace QSBar
             this.Name = "sameFileForm";
             this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Select Sheet";
+            this.Text = "Select Worksheet";
             this.ResumeLayout(false);
             this.PerformLayout();
 

@@ -42,7 +42,7 @@ namespace QSBar
                 StartCalcTimer();
                 RegisterShortcuts();
 
-                // 启动时执行一次静默更新检查，完全脱离 UI 线程
+                // Run one silent update check at startup, fully off the UI thread.
                 var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, false));
             }
             catch (Exception ex)
@@ -215,7 +215,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("检查更新时出错: " + ex.Message, "更新错误");
+                MessageBox.Show("Error while checking for updates: " + ex.Message, "Update Error");
             }
         }
 
@@ -227,7 +227,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("启动更新时出错: " + ex.Message, "更新错误");
+                MessageBox.Show("Error while starting the update: " + ex.Message, "Update Error");
             }
         }
 

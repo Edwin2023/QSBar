@@ -6,7 +6,6 @@ namespace QSBar
 {
     public static class LegacyAppCommands
     {
-        
         public static void LockFormula()
         {
             Excel.Application app = WpsExcelAddIn.App;
@@ -17,15 +16,13 @@ namespace QSBar
             app.ScreenUpdating = false;
             try
             {
-                // Find all cells with formulas in the selection
                 Excel.Range formulas = null;
                 try
                 {
                     formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
                 }
-                catch 
+                catch
                 {
-                    // No formulas found
                     return;
                 }
 
@@ -33,7 +30,6 @@ namespace QSBar
                 {
                     foreach (Excel.Range area in formulas.Areas)
                     {
-                        // Convert formulas to absolute references
                         foreach (Excel.Range cell in area)
                         {
                             try
@@ -41,28 +37,27 @@ namespace QSBar
                                 string f = (string)cell.Formula;
                                 if (!string.IsNullOrEmpty(f))
                                 {
-                                    // Convert A1 style references to absolute A1 style references
                                     object newFormula = app.ConvertFormula(
                                         f,
                                         Excel.XlReferenceStyle.xlA1,
                                         Excel.XlReferenceStyle.xlA1,
                                         Excel.XlReferenceType.xlAbsolute
                                     );
-                                    
-                                    if (newFormula is string s && !string.IsNullOrEmpty(s))
+
+                                    string s = newFormula as string;
+                                    if (!string.IsNullOrEmpty(s))
                                     {
                                         cell.Formula = s;
                                     }
                                 }
                             }
-                            catch { /* Ignore individual conversion errors */ }
+                            catch { }
                         }
                     }
                 }
             }
             catch
             {
-                // Ignore general errors
             }
             finally
             {
@@ -70,7 +65,6 @@ namespace QSBar
             }
         }
 
-        
         public static void OpenFileDirectory()
         {
             Excel.Application app = WpsExcelAddIn.App;
@@ -84,12 +78,12 @@ namespace QSBar
                 }
                 else
                 {
-                    MessageBox.Show("当前工作簿尚未保存！");
+                    MessageBox.Show("The current workbook has not been saved yet.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("打开目录失败: " + ex.Message);
+                MessageBox.Show("Failed to open folder: " + ex.Message);
             }
         }
 
@@ -110,20 +104,18 @@ namespace QSBar
                 if (app.Calculation == Excel.XlCalculation.xlCalculationAutomatic)
                 {
                     app.Calculation = Excel.XlCalculation.xlCalculationManual;
-                    ToastForm.ShowToast("✅ 已切换为: 手动计算");
+                    ToastForm.ShowToast("Calculation mode switched to: Manual");
                 }
                 else
                 {
                     app.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
-                    ToastForm.ShowToast("✅ 已切换为: 自动计算");
+                    ToastForm.ShowToast("Calculation mode switched to: Automatic");
                 }
-                // Update ribbon buttons state
                 WpsExcelAddIn.InvalidateCalcButtons();
             }
             catch { }
         }
 
-        
         public static void LockValidationCells()
         {
             Excel.Application app = WpsExcelAddIn.App;
@@ -137,7 +129,7 @@ namespace QSBar
                 {
                     try
                     {
-                        if (cell.Validation.Type != (int)Excel.XlDVType.xlValidateInputOnly) // xlValidateInputOnly = 0
+                        if (cell.Validation.Type != (int)Excel.XlDVType.xlValidateInputOnly)
                         {
                             cell.Locked = true;
                         }
@@ -149,4 +141,3 @@ namespace QSBar
         }
     }
 }
-
