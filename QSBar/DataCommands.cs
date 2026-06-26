@@ -166,7 +166,7 @@ namespace QSBar
 
                 target.Value2 = val;
                 target.ShrinkToFit = true;
-                target.NumberFormatLocal = " #,##0.00_ ;[Red] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
+                target.NumberFormatLocal = " #,##0.00_ ;[红色] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
                 return;
             }
 
@@ -233,7 +233,7 @@ namespace QSBar
 
             target.Value2 = data;
             target.ShrinkToFit = true;
-            target.NumberFormatLocal = " #,##0.00_ ;[Red] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
+            target.NumberFormatLocal = " #,##0.00_ ;[红色] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
         }
 
         private static bool IsExcelErrorCode(int iVal)

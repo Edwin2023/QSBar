@@ -27,7 +27,7 @@ namespace QSBar
         
         public static void Accounting0()
         {
-            ApplyAccountingNumberFormatLocal(" #,##0_ ;[Red] -#,##0_ ;_ \"\"\"\"?_ ;@");
+            ApplyAccountingNumberFormatLocal(" #,##0_ ;[红色] -#,##0_ ;_ \"\"\"\"?_ ;@");
         }
 
         
@@ -67,7 +67,7 @@ namespace QSBar
             if (sel == null) return;
 
             sel.ShrinkToFit = true;
-            sel.NumberFormatLocal = @"[<=-100000000]-0!.00,,""B"";[>=100000000]0!.00,,""B"";0!.0,""M""";
+            sel.NumberFormatLocal = @"[<=-100000000]-0!.00,,""亿元"";[>=100000000]0!.00,,""亿元"";0!.0,""万元""";
         }
 
         // =========================================================================================
