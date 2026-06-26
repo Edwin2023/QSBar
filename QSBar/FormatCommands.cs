@@ -162,20 +162,22 @@ namespace QSBar
                 if (level == 1)
                 {
                     row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(198, 217, 241)); // #C6D9F1
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79)); // #333F4F 深蓝灰
                     row.Interior.TintAndShade = 0;
-                    row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26)); // #1A1A1A
+                    row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(255, 255, 255)); // #FFFFFF 白色
                     row.Font.TintAndShade = 0;
                     row.Font.Bold = true;
+                    row.Borders[Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Excel.XlLineStyle.xlLineStyleNone;
                 }
                 else if (level == 2)
                 {
                     row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(238, 242, 250)); // #EEF2FA
+                    row.Interior.Color = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242)); // #D9E1F2 浅蓝
                     row.Interior.TintAndShade = 0;
                     row.Font.Color = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26)); // #1A1A1A
                     row.Font.TintAndShade = 0;
                     row.Font.Bold = true;
+                    row.Borders[Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Excel.XlLineStyle.xlLineStyleNone;
                 }
                 else if (level == 3)
                 {
@@ -411,6 +413,17 @@ namespace QSBar
             catch { }
         }
 
+        private struct CleanStats
+        {
+            public int ExtLinksFound;
+            public int CellsConverted;
+            public int NamesDeleted;
+            public int LinksBroken;
+            public int Errors;
+        }
+
+        private static readonly string[] ErrTokens = { "#REF!", "#VALUE!", "#N/A", "#NAME?", "#DIV/0!", "#NULL!", "#NUM!" };
+
         public static void BreakExternalLinks()
         {
             Excel.Application app = WpsExcelAddIn.App;
@@ -418,59 +431,293 @@ namespace QSBar
             Excel.Workbook workbook = app.ActiveWorkbook;
             if (workbook == null) return;
 
+            var stats = new CleanStats();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            bool oldScreenUpdating = app.ScreenUpdating;
+            Excel.XlCalculation oldCalc = app.Calculation;
+            bool oldEvents = app.EnableEvents;
+
             try
             {
                 app.ScreenUpdating = false;
+                app.Calculation = Excel.XlCalculation.xlCalculationManual;
+                app.EnableEvents = false;
 
-                // 1. 断开外部工作簿链接 (将公式转为数值)
-                object linksObj = workbook.LinkSources(Excel.XlLink.xlExcelLinks);
-                Array links = linksObj as Array;
-                if (links != null)
+                // Step 1: Scan external link sources and broken names
+                app.StatusBar = "Break Links: Scanning external links...";
+                System.Windows.Forms.Application.DoEvents();
+
+                ScanExternalLinks(workbook, ref stats);
+
+                if (stats.ExtLinksFound == 0)
                 {
-                    for (int i = links.GetLowerBound(0); i <= links.GetUpperBound(0); i++)
-                    {
-                        try
-                        {
-                            object link = links.GetValue(i);
-                            if (link != null)
-                            {
-                                workbook.BreakLink(link.ToString(), Excel.XlLinkType.xlLinkTypeExcelLinks);
-                            }
-                        }
-                        catch { }
-                    }
+                    app.StatusBar = false;
+                    MessageBox.Show("No external links detected. Cleanup is not needed.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
 
-                // 2. 清理定义名称 (Names)
-                Excel.Names names = workbook.Names;
-                for (int i = names.Count; i >= 1; i--)
-                {
-                    Excel.Name name = names.Item(i);
-                    string refersTo = "";
-                    try { refersTo = name.RefersTo; } catch { }
+                // Step 2: Convert formulas with external references to values
+                app.StatusBar = "Break Links: Converting formulas with external references to values...";
+                System.Windows.Forms.Application.DoEvents();
+                ConvertExternalFormulas(workbook, app, ref stats);
 
-                    // 删除原则：
-                    // 1) 包含报错 #REF!
-                    // 2) 包含外部工作簿引用标记 [ 
-                    // 3) 包含绝对路径标识 (:\ 或 \\) 且有工作表关联 !
-                    if (refersTo.Contains("#REF!") || 
-                        refersTo.Contains("[") || 
-                        (refersTo.Contains("!") && (refersTo.Contains(":\\") || refersTo.Contains("\\\\"))))
-                    {
-                        try { name.Delete(); } catch { }
-                    }
-                }
+                // Step 3: Delete broken defined names
+                app.StatusBar = "Break Links: Deleting broken names...";
+                System.Windows.Forms.Application.DoEvents();
+                DeleteBadNames(workbook, app, ref stats);
 
-                MessageBox.Show("All external links have been broken into values, and invalid defined names have been cleaned up.", "Completed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // Step 4: BreakLink all external link sources
+                app.StatusBar = "Break Links: Disconnecting link sources...";
+                System.Windows.Forms.Application.DoEvents();
+                BreakAllLinks(workbook, app, ref stats);
+
+                // Step 5: Clean hidden names
+                app.StatusBar = "Break Links: Cleaning hidden names...";
+                System.Windows.Forms.Application.DoEvents();
+                CleanHiddenNames(workbook, app, ref stats);
+
+                app.StatusBar = false;
+                sw.Stop();
+
+                MessageBox.Show(
+                    "All external links have been broken into values, and invalid defined names have been cleaned up.\n" +
+                    "---\n" +
+                    "External link sources / broken names detected: " + stats.ExtLinksFound + "\n" +
+                    "Formulas converted to values: " + stats.CellsConverted + "\n" +
+                    "Defined names deleted: " + stats.NamesDeleted + "\n" +
+                    "Links broken: " + stats.LinksBroken + "\n" +
+                    "Errors: " + stats.Errors + "\n" +
+                    "Time: " + sw.Elapsed.TotalSeconds.ToString("0.00") + " seconds\n" +
+                    "\nSave the workbook and reopen it. The \"update links\" prompt should no longer appear.",
+                    "Completed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
+                app.StatusBar = false;
                 MessageBox.Show("Error while removing external links: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
-                app.ScreenUpdating = true;
+                app.EnableEvents = oldEvents;
+                app.Calculation = oldCalc;
+                app.ScreenUpdating = oldScreenUpdating;
+                app.StatusBar = false;
             }
+        }
+
+        private static void ScanExternalLinks(Excel.Workbook wb, ref CleanStats stats)
+        {
+            Array links = wb.LinkSources(Excel.XlLink.xlExcelLinks) as Array;
+            if (links != null)
+                stats.ExtLinksFound += links.Length;
+
+            foreach (Excel.Name nm in wb.Names)
+            {
+                try
+                {
+                    if (IsBadNameRefersTo(nm.RefersTo as string))
+                        stats.ExtLinksFound++;
+                }
+                catch { }
+            }
+        }
+
+        private static void ConvertExternalFormulas(Excel.Workbook wb, Excel.Application app, ref CleanStats stats)
+        {
+            const int doEventsInterval = 200;
+
+            foreach (Excel.Worksheet ws in wb.Worksheets)
+            {
+                if (ws.Type != Excel.XlSheetType.xlWorksheet) continue;
+                Excel.Range usedRange = null;
+                try { usedRange = ws.UsedRange; } catch { continue; }
+                if (usedRange == null) continue;
+
+                Excel.Range formulaCells = null;
+                try { formulaCells = usedRange.SpecialCells(Excel.XlCellType.xlCellTypeFormulas); } catch { }
+                if (formulaCells == null) continue;
+
+                app.StatusBar = "删除外部链接: 处理工作表 " + ws.Name + " ...";
+                System.Windows.Forms.Application.DoEvents();
+
+                foreach (Excel.Range area in formulaCells.Areas)
+                {
+                    int rowCount = area.Rows.Count;
+                    int colCount = area.Columns.Count;
+
+                    if (rowCount == 1 && colCount == 1)
+                    {
+                        string f = "";
+                        try { f = area.Formula as string; } catch { }
+                        if (HasExternalRef(f))
+                        {
+                            try { area.Value = area.Value; stats.CellsConverted++; }
+                            catch { stats.Errors++; }
+                        }
+                        continue;
+                    }
+
+                    object[,] formulas = null;
+                    try { formulas = area.Formula as object[,]; } catch { }
+                    if (formulas == null) continue;
+
+                    bool hasExt = false;
+                    int lbR = formulas.GetLowerBound(0), ubR = formulas.GetUpperBound(0);
+                    int lbC = formulas.GetLowerBound(1), ubC = formulas.GetUpperBound(1);
+
+                    for (int r = lbR; r <= ubR && !hasExt; r++)
+                        for (int c = lbC; c <= ubC && !hasExt; c++)
+                            if (HasExternalRef(formulas[r, c] as string))
+                                hasExt = true;
+
+                    if (!hasExt) continue;
+
+                    object[,] values = null;
+                    try { values = area.Value as object[,]; } catch { }
+                    if (values == null) continue;
+
+                    int converted = 0;
+                    for (int r = lbR; r <= ubR; r++)
+                    {
+                        for (int c = lbC; c <= ubC; c++)
+                        {
+                            if (HasExternalRef(formulas[r, c] as string))
+                            {
+                                formulas[r, c] = values[r, c];
+                                converted++;
+                            }
+                        }
+                        if (r % doEventsInterval == 0)
+                            System.Windows.Forms.Application.DoEvents();
+                    }
+
+                    if (converted > 0)
+                    {
+                        area.Formula = formulas;
+                        stats.CellsConverted += converted;
+                    }
+                }
+            }
+        }
+
+        private static void DeleteBadNames(Excel.Workbook wb, Excel.Application app, ref CleanStats stats)
+        {
+            var badNames = new System.Collections.Generic.List<string>();
+
+            foreach (Excel.Name nm in wb.Names)
+            {
+                try
+                {
+                    if (IsBadNameRefersTo(nm.RefersTo as string))
+                        badNames.Add(nm.Name);
+                }
+                catch { }
+            }
+
+            for (int i = 0; i < badNames.Count; i++)
+            {
+                if (i % 50 == 0)
+                {
+                    app.StatusBar = "删除外部链接: 删除损坏名称 " + (i + 1) + "/" + badNames.Count + " ...";
+                    System.Windows.Forms.Application.DoEvents();
+                }
+
+                try { wb.Names.Item(badNames[i]).Delete(); stats.NamesDeleted++; }
+                catch { stats.Errors++; }
+            }
+        }
+
+        private static void BreakAllLinks(Excel.Workbook wb, Excel.Application app, ref CleanStats stats)
+        {
+            Array links = wb.LinkSources(Excel.XlLink.xlExcelLinks) as Array;
+            if (links == null) return;
+
+            for (int i = links.GetLowerBound(0); i <= links.GetUpperBound(0); i++)
+            {
+                app.StatusBar = "删除外部链接: 断开链接 " + (i + 1) + "/" + links.Length;
+                System.Windows.Forms.Application.DoEvents();
+
+                try
+                {
+                    object link = links.GetValue(i);
+                    if (link != null)
+                    {
+                        wb.BreakLink(link.ToString(), Excel.XlLinkType.xlLinkTypeExcelLinks);
+                        stats.LinksBroken++;
+                    }
+                }
+                catch { stats.Errors++; }
+            }
+        }
+
+        private static void CleanHiddenNames(Excel.Workbook wb, Excel.Application app, ref CleanStats stats)
+        {
+            var badNames = new System.Collections.Generic.List<string>();
+
+            foreach (Excel.Name nm in wb.Names)
+            {
+                try
+                {
+                    string n = nm.Name;
+                    if (n.Contains("!")) continue;
+                    if (n.StartsWith("_xlfn")) continue;
+                    if (n.StartsWith("_xlpm")) continue;
+                    if (n.StartsWith("_FilterDatabase")) continue;
+
+                    if (IsBadNameRefersTo(nm.RefersTo as string))
+                        badNames.Add(n);
+                }
+                catch { }
+            }
+
+            for (int i = 0; i < badNames.Count; i++)
+            {
+                if (i % 50 == 0)
+                {
+                    app.StatusBar = "删除外部链接: 清理隐藏名称 " + (i + 1) + "/" + badNames.Count + " ...";
+                    System.Windows.Forms.Application.DoEvents();
+                }
+
+                try { wb.Names.Item(badNames[i]).Delete(); stats.NamesDeleted++; }
+                catch { }
+            }
+        }
+
+        private static bool HasExternalRef(string formulaText)
+        {
+            if (string.IsNullOrEmpty(formulaText)) return false;
+
+            if (formulaText.Contains("[")) return true;
+
+            foreach (string t in ErrTokens)
+                if (formulaText.Contains(t)) return true;
+
+            if (formulaText.StartsWith("file://")) return true;
+
+            if (formulaText.StartsWith("\\\\") && formulaText.Length > 2 && char.IsLetter(formulaText[2]))
+                return true;
+
+            return false;
+        }
+
+        private static bool IsBadNameRefersTo(string refersTo)
+        {
+            if (string.IsNullOrEmpty(refersTo)) return true;
+
+            foreach (string t in ErrTokens)
+                if (refersTo.Contains(t)) return true;
+
+            if (refersTo.Contains("[")) return true;
+            if (refersTo.StartsWith("file://")) return true;
+
+            if (refersTo.StartsWith("\\\\") && refersTo.Length > 2 && char.IsLetter(refersTo[2]))
+                return true;
+
+            if (refersTo.Length >= 3 && refersTo[1] == ':' && refersTo[2] == '\\')
+                return true;
+
+            return false;
         }
     }
 }

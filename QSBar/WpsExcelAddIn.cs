@@ -190,7 +190,7 @@ namespace QSBar
 
                 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
-                StartCalcTimer();
+                // StartCalcTimer();  // 临时禁用：排查 Ribbon 黑条问题
                 RegisterShortcuts();
 
                 // Run one silent update check at startup, fully off the UI thread.

@@ -1,12 +1,12 @@
 VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} rateLibrary 
-   Caption         =   "×ÛºÏµ¥¼Û¿â"
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} rateLibrary
+   Caption         =   "ç»¼åˆå•ä»·åº“"
    ClientHeight    =   8268.001
    ClientLeft      =   288
    ClientTop       =   1188
    ClientWidth     =   12864
    OleObjectBlob   =   "rateLibrary.frx":0000
-   StartUpPosition =   1  'ËùÓĞÕßÖĞĞÄ
+   StartUpPosition =   1  'çª—å£æ‰€æœ‰è€…ä¸­å¿ƒ
 End
 Attribute VB_Name = "rateLibrary"
 Attribute VB_GlobalNameSpace = False
@@ -14,194 +14,34 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-
-' ÒÆ³ıÁËÓëVBE»·¾³²»¼æÈİµÄAttributeÊôĞÔ
-' VBAÖĞ£¬ÓÃ´úÂëÉèÖÃ´°Ìå¿Éµ÷Õû´óĞ¡µÄ¹¦ÄÜ´úÂë
-#If Win64 Then ' 64Î»ÏµÍ³
-    Private Declare PtrSafe Function GetWindowLong _
-        Lib "user32" Alias "GetWindowLongPtrA" ( _
-        ByVal Hwnd As LongPtr, _
-        ByVal nIndex As Long) _
-        As LongPtr
-
-    Private Declare PtrSafe Function SetWindowLong _
-        Lib "user32" Alias "SetWindowLongPtrA" ( _
-        ByVal Hwnd As LongPtr, _
-        ByVal nIndex As Long, _
-        ByVal dwNewLong As LongPtr) _
-        As LongPtr
-
-    Private Declare PtrSafe Function FindWindow _
-        Lib "user32" Alias "FindWindowA" ( _
-        ByVal lpClassName As String, _
-        ByVal lpWindowName As String) _
-        As LongPtr
-
-    Private Declare PtrSafe Function DrawMenuBar _
-        Lib "user32" ( _
-        ByVal Hwnd As LongPtr) _
-        As Long
-        
-    Private Declare PtrSafe Function SetWindowPos _
-        Lib "user32" ( _
-        ByVal Hwnd As LongPtr, _
-        ByVal hWndInsertAfter As LongPtr, _
-        ByVal X As Long, _
-        ByVal Y As Long, _
-        ByVal cx As Long, _
-        ByVal cy As Long, _
-        ByVal wFlags As Long) _
-        As Long
-    
-    Private hWndForm As LongPtr
-    Private FIstype As LongPtr
-#Else ' 32Î»ÏµÍ³
-    Private Declare Function GetWindowLong _
-        Lib "user32" Alias "GetWindowLongA" ( _
-        ByVal hwnd As Long, _
-        ByVal nIndex As Long) _
-        As Long
-
-    Private Declare Function SetWindowLong _
-        Lib "user32" Alias "SetWindowLongA" ( _
-        ByVal hwnd As Long, _
-        ByVal nIndex As Long, _
-        ByVal dwNewLong As Long) _
-        As Long
-
-    Private Declare Function FindWindow _
-        Lib "user32" Alias "FindWindowA" ( _
-        ByVal lpClassName As String, _
-        ByVal lpWindowName As String) _
-        As Long
-
-    Private Declare Function DrawMenuBar _
-        Lib "user32" ( _
-        ByVal hwnd As Long) _
-        As Long
-        
-    Private Declare Function SetWindowPos _
-        Lib "user32" ( _
-        ByVal hwnd As Long, _
-        ByVal hWndInsertAfter As Long, _
-        ByVal X As Long, _
-        ByVal Y As Long, _
-        ByVal cx As Long, _
-        ByVal cy As Long, _
-        ByVal wFlags As Long) _
-        As Long
-    
-    Private hWndForm As Long
-    Private FIstype As Long
-#End If
-
-Private Const GWL_STYLE = (-16)
-Private Const WS_THICKFRAME = &H40000
-Private Const SWP_NOSIZE = &H1
-Private Const SWP_NOZORDER = &H4
-
-' Êó±ê¹öÂÖÖ§³Ö±êÖ¾
-Private m_WheelEnabled As Boolean
-Private m_ActivateCount As Long
-
-Private Sub UserForm_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-
-End Sub
-
-' ====================================================================
-' ´°ÌåºËĞÄÊÂ¼ş´¦Àí
-' ====================================================================
+' ç»¼åˆå•ä»·åº“ - ç®€æ´ç‰ˆï¼Œæ—  Win32 API è°ƒç”¨
 
 Private Sub UserForm_Initialize()
     On Error Resume Next
-    Debug.Print "UserForm_Initialize ¿ªÊ¼"
-    
-    ' ÉèÖÃ´°¿Ú¿Éµ÷Õû´óĞ¡
-    hWndForm = FindWindow("ThunderDFrame", Me.Caption)
-    FIstype = GetWindowLong(hWndForm, GWL_STYLE)
-    FIstype = FIstype Or WS_THICKFRAME
-    SetWindowLong hWndForm, GWL_STYLE, FIstype
-    DrawMenuBar hWndForm
-    
-    ' »Ö¸´´°ÌåÎ»ÖÃ£¨Ê×´ÎÏÔÊ¾Ê±¾ÓÖĞ£¬Ö®ºó»Ö¸´µ½ÉÏ´ÎÎ»ÖÃ£©
-    Call RestoreFormPosition
-    
-    ' ÉèÖÃ±íÍ·±êÇ©£¨ÓëListBoxÁĞ¿í¶ÔÓ¦£º60;400;50;80°õ£©
+
+    ' è®¾ç½®è¡¨å¤´æ ‡ç­¾
     With Label1
-        .Caption = "  ±àºÅ" & String(8, " ") & "Ãû³Æ" & String(72, " ") & "µ¥Î»" & String(8, " ") & "µ¥¼Û"
+        .Caption = "  ç¼–å·" & String(8, " ") & "åç§°" & String(72, " ") & "å•ä½" & String(8, " ") & "å•ä»·"
         .Font.Name = "Consolas"
         .Font.Size = 9
         .BackColor = &H8000000F
         .BorderStyle = fmBorderStyleNone
     End With
-    
-    ' ³õÊ¼»¯Êó±ê¹öÂÖÖ§³Ö - ÔöÇ¿°æ
-    ' Ìí¼ÓÏêÏ¸µ÷ÊÔĞÅÏ¢ºÍ½¡×³µÄ³õÊ¼»¯Âß¼­
-    On Error GoTo WheelInitError
-    Debug.Print "=== ¿ªÊ¼³õÊ¼»¯Êó±ê¹öÂÖÖ§³Ö ==="
-    Debug.Print "´°Ìå±êÌâ: " & Me.Caption
-    Debug.Print "ListBox1Ãû³Æ: " & ListBox1.Name
-    Debug.Print "ListBox1¾ä±úÊÇ·ñ´æÔÚ: " & (hWndForm <> 0)
-    
-    ' È·±£ListBox1ÏÈ»ñµÃ½¹µã£¨Õâ¶Ô¹öÂÖ³õÊ¼»¯ºÜÖØÒª£©
-    ListBox1.SetFocus
-    Debug.Print "ListBox1½¹µãÉèÖÃ×´Ì¬: " & ListBox1.Enabled
-    
-    ' ÖØÖÃ×´Ì¬±êÖ¾
-    m_WheelEnabled = False
-    
-    ' ÏÈ³¢ÊÔ½ûÓÃÈÎºÎ¿ÉÄÜ´æÔÚµÄ¹öÂÖÖ§³Ö
-    On Error Resume Next
-    Call MouseWheelHandler.DisableMouseWheelSupport("³õÊ¼»¯Ç°ÇåÀí")
-    Debug.Print "ÇåÀí¾ÉµÄ¹öÂÖÖ§³ÖÍê³É"
-    On Error GoTo WheelInitError
-    
-    ' µ÷ÓÃMouseWheelHandlerÆôÓÃ¹öÂÖÖ§³Ö
-    Debug.Print "³¢ÊÔµ÷ÓÃMouseWheelHandler.EnableMouseWheelSupport..."
-    Dim initResult As Boolean
-    initResult = MouseWheelHandler.EnableMouseWheelSupport(Me.Caption, Me)
-    
-    If initResult Then
-        m_WheelEnabled = True
-        Debug.Print "=== Êó±ê¹öÂÖÖ§³Ö³õÊ¼»¯³É¹¦ ==="
-        
-        ' ÉèÖÃ»î¶¯ListBoxÒıÓÃ£¨¶îÍâ±£ÏÕ£©
-        MouseWheelHandler.SetActiveListBox ListBox1
-        Debug.Print "ListBoxÒıÓÃÒÑÉèÖÃ"
-        
-        ' Á¢¼´ÔËĞĞ²âÊÔÒÔÑéÖ¤³õÊ¼»¯
-        Debug.Print "ÔËĞĞ³õÊ¼»¯²âÊÔ..."
-        On Error Resume Next
-        MouseWheelHandler.TestMouseWheelCapture
-        On Error GoTo 0
-    Else
-        Debug.Print "=== Êó±ê¹öÂÖÖ§³Ö³õÊ¼»¯Ê§°Ü£¬µ«²»ÖĞ¶Ï³ÌĞò ==="
-    End If
-    
-    On Error GoTo 0
-    GoTo WheelInitContinue
-    
-WheelInitError:
-    Debug.Print "¹öÂÖ³õÊ¼»¯´íÎó: " & Err.Description & " (´íÎóºÅ: " & Err.Number & ")"
-    On Error Resume Next
-WheelInitContinue:
-    On Error GoTo 0
-    
-    ' ÉèÖÃListBoxÎª¶àÁĞÄ£Ê½£¬¹Ì¶¨ÁĞ¿í
+
+    ' è®¾ç½®ListBoxä¸ºå¤šåˆ—æ¨¡å¼
     With ListBox1
         .Font.Name = "Consolas"
         .Font.Size = 9
         .IntegralHeight = False
-        .ColumnCount = 4                    ' 4ÁĞ£º±àºÅ¡¢Ãû³Æ¡¢µ¥Î»¡¢µ¥¼Û
-        .ColumnWidths = "60;400;50;80"      ' ¹Ì¶¨Ã¿ÁĞ¿í¶È£¨µ¥Î»£º°õ£©
+        .ColumnCount = 4
+        .ColumnWidths = "60;400;50;80"
     End With
-    
-    ' ÉèÖÃËÑË÷Ïà¹Ø¿Ø¼ş
-    TextBox1.Text = ""  ' Çå¿ÕËÑË÷¿ò
-    CommandButton1.Caption = "ÉÏÒ»Ìõ"
-    CommandButton2.Caption = "ÏÂÒ»Ìõ"
-    
-    ' ÉèÖÃLabel2ÏÔÊ¾ËÑË÷½á¹ûÍ³¼Æ
+
+    ' åˆå§‹åŒ–æœç´¢æ§ä»¶
+    TextBox1.Text = ""
+    CommandButton1.Caption = "ä¸Šä¸€ä¸ª"
+    CommandButton2.Caption = "ä¸‹ä¸€ä¸ª"
+
     With Label2
         .Caption = "0/0"
         .Font.Name = "Consolas"
@@ -210,723 +50,218 @@ WheelInitContinue:
         .BackColor = &H8000000F
         .BorderStyle = fmBorderStyleNone
     End With
-    
-    ' ÎªTextBox1Ìí¼ÓÌáÊ¾£¨Í¨¹ıTagÊôĞÔ´æ´¢ÌáÊ¾ĞÅÏ¢£©
-    TextBox1.Tag = "ÊäÈëËÑË÷ÄÚÈİºó°´»Ø³µ¼üËÑË÷"
-    
-    ' ³õÊ¼»¯ËÑË÷¹ÜÀíÆ÷
+
+    TextBox1.Tag = "è¾“å…¥æœç´¢å†…å®¹åæŒ‰å›è½¦é”®æœç´¢"
+
+    ' åˆå§‹åŒ–æœç´¢ç®¡ç†å™¨
     SearchManager.InitializeSearchManager ListBox1, Label2
-    
- ' [ĞÂÔö] Ç¿ÖÆ¼ÓÔØ×îĞÂÊı¾İ
+
+    ' åŠ è½½æ•°æ®
     Call LoadRateData
-    
-    ' ÒÆ³ıResizeÊÂ¼şµ÷ÓÃ£¬±£³ÖÔ­Ê¼Éè¼Æ³ß´ç
-' UserForm_Resize - ÒÑ×¢ÊÍÒÔ±£³ÖÔ­Ê¼VBEÉè¼Æ³ß´ç
+
+    ' æ¢å¤çª—å£ä½ç½®
+    Call RestoreFormPosition
 End Sub
 
-' ´°Ìå¼¤»îÊ±ÖØĞÂÆôÓÃ¹öÂÖÖ§³Ö
-Private Sub UserForm_Activate()
-    On Error Resume Next
-    
-    m_ActivateCount = m_ActivateCount + 1
-    Debug.Print "UserForm_Activate µ÷ÓÃµÚ" & m_ActivateCount & "´Î"
-    
-    ' ÖØĞÂÆôÓÃ¹öÂÖÖ§³Ö
-    If Not m_WheelEnabled Then
-        Call EnableWheelSupport
-    Else
-        ' ÖØĞÂÓ¦ÓÃ¹öÂÖÖ§³Ö£¬È·±£´°¿Ú×ÓÀà»¯×´Ì¬ÕıÈ·
-        Call MouseWheelHandler.EnableMouseWheelSupport(Me.Caption, Me)
-        Debug.Print "¹öÂÖÖ§³ÖÒÑÖØĞÂÓ¦ÓÃ"
-    End If
-    
-    On Error GoTo 0
-End Sub
-
-' ´°ÌåÍ£ÓÃÊ±´¦Àí¹öÂÖÖ§³Ö
-Private Sub UserForm_Deactivate()
-    On Error Resume Next
-    Debug.Print "UserForm_Deactivate µ÷ÓÃ"
-    
-    ' ¿ÉÑ¡£º¿ÉÒÔÔÚÕâÀïÔİÊ±½ûÓÃ¹öÂÖÖ§³Ö£¬µ«Í¨³£MouseWheelHandler»á×Ô¶¯´¦Àí
-    On Error GoTo 0
-End Sub
-
-Private Sub UserForm_Resize()
-    On Error Resume Next
-    
-    ' ÒÆ³ıËùÓĞ´óĞ¡ÏŞÖÆºÍ¿Ø¼şµ÷ÕûÂß¼­
-    ' ÍêÈ«Ê¹ÓÃVBEÉè¼ÆÆ÷ÖĞÉèÖÃµÄÔ­Ê¼³ß´ç
-    
-End Sub
-
-' ´°Ìå¹Ø±ÕÊ±±£´æÎ»ÖÃ
 Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
-    ' ½ûÓÃ¹öÂÖÖ§³Ö²¢ÇåÀí
-    Call DisableWheelSupport("UserForm_QueryClose")
     Call SaveFormPosition
-    
-    ' ÇåÀíËÑË÷¹ÜÀíÆ÷
     SearchManager.CleanupSearchManager
 End Sub
 
 ' ====================================================================
-' ¿Ø¼şÊÂ¼ş´¦Àí
+' æ§ä»¶äº‹ä»¶å¤„ç†
 ' ====================================================================
-
-Private Sub ListBox1_Click()
-    ' È·±£ListBoxÓĞ½¹µã£¬ÕâÑù¼üÅÌÊÂ¼şÄÜÕı³£¹¤×÷
-    ListBox1.SetFocus
-End Sub
 
 Private Sub ListBox1_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     If ListBox1.ListIndex < 0 Then Exit Sub
-    
-    Dim selectedText As String
-    selectedText = ListBox1.List(ListBox1.ListIndex)
-    
-    ' »ñÈ¡±àºÅ£¨µÚÒ»ÁĞ£©
-    Dim ±àºÅ As String
-    ±àºÅ = ListBox1.List(ListBox1.ListIndex, 0)  ' Ö±½Ó»ñÈ¡µÚÒ»ÁĞµÄÖµ
-    
+
+    Dim ç¼–å· As String
+    ç¼–å· = ListBox1.List(ListBox1.ListIndex, 0)
+
     If Not Selection Is Nothing Then
-        Selection.Cells(1, 1).Value = ±àºÅ
+        Selection.Cells(1, 1).Value = ç¼–å·
     End If
-    
+
     Unload Me
 End Sub
 
-' Esc¼ü¹Ø±Õ´°ÌåºÍÆäËû¿ì½İ¼ü
 Private Sub ListBox1_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
     If KeyCode = vbKeyEscape Then
-        Debug.Print "¼ì²âµ½ESC¼ü"
         Unload Me
-    ' Ctrl+T ²âÊÔ¹öÂÖ¹¦ÄÜ (Shift=2±íÊ¾Ctrl¼ü)
-    ElseIf KeyCode = vbKeyT And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+T"
-        FormDebugHelper.TestWheelFunction Me
-    ' Ctrl+D Õï¶Ï¹¦ÄÜ
-    ElseIf KeyCode = vbKeyD And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+D"
-        FormDebugHelper.DiagnoseWheelIssue Me
-    ' Ctrl+S ÊÖ¶¯¹ö¶¯²âÊÔ
-    ElseIf KeyCode = vbKeyS And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+S"
-        FormDebugHelper.ManualTestScroll Me
-    ' Ctrl+V ÑéÖ¤ListBox¹öÂÖ
-    ElseIf KeyCode = vbKeyV And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+V"
-        ' Ö±½Óµ÷ÓÃ²âÊÔ·½·¨£¬²»ÒÀÀµFormDebugHelper
-        Call TestWheelFunction
-    ' Ctrl+B Ç¿ÖÆÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö
-    ElseIf KeyCode = vbKeyB And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+B - Ç¿ÖÆÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö"
-        Call ForceReinitializeWheelSupport
-    ' Ctrl+F ÏÔÊ¾½¹µã×´Ì¬
-    ElseIf KeyCode = vbKeyF And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+F"
-        FormDebugHelper.ShowFocusStatus Me
-    ' Ctrl+R Çå³ıËÑË÷²¢ÖØÖÃÏÔÊ¾
-    ElseIf KeyCode = vbKeyR And Shift = 2 Then
-        Debug.Print "¼ì²âµ½Ctrl+R"
+    ElseIf KeyCode = vbKeyR And Shift = 2 Then  ' Ctrl+R: æ¸…é™¤æœç´¢
         TextBox1.Text = ""
         SearchManager.ClearSearchResults
-        Debug.Print "ËÑË÷ÒÑÇå³ı£¬ÏÔÊ¾ËùÓĞÊı¾İ"
     End If
 End Sub
 
-Private Sub UserForm_Click()
-    ' µã»÷´°ÌåÊ±Ò²¸øListBoxÉèÖÃ½¹µã
-    ListBox1.SetFocus
-End Sub
-
-' TextBox1 °´»Ø³µ¼üÊ±½øĞĞËÑË÷
 Private Sub TextBox1_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
     If KeyCode = vbKeyReturn Then
         Call PerformSearch
-        ' ËÑË÷ºó±£³ÖTextBox1½¹µã£¬·½±ãÁ¬ĞøËÑË÷
     ElseIf KeyCode = vbKeyEscape Then
-        ' ESC¼üÇå¿ÕËÑË÷¿ò²¢·µ»ØListBox
         TextBox1.Text = ""
         SearchManager.ClearSearchResults
         ListBox1.SetFocus
     End If
 End Sub
 
-' TextBox1 »ñµÃ½¹µãÊ±ÏÔÊ¾ÌáÊ¾
-Private Sub TextBox1_Enter()
-    ' ÔÚ×´Ì¬À¸»òµ÷ÊÔ´°¿ÚÏÔÊ¾Ê¹ÓÃÌáÊ¾
-    Debug.Print "ËÑË÷ÌáÊ¾£º" & TextBox1.Tag
-End Sub
-
-' CommandButton1 µã»÷Ê±ÉÏÒ»Ìõ
 Private Sub CommandButton1_Click()
     If Not SearchManager.GotoPreviousResult() Then
-        MsgBox "ÇëÏÈÖ´ĞĞËÑË÷", vbInformation, "ÌáÊ¾"
+        MsgBox "æ— æ³•æ‰§è¡Œæ“ä½œ", vbInformation, "æç¤º"
         TextBox1.SetFocus
     End If
 End Sub
 
-' CommandButton2 µã»÷Ê±ÏÂÒ»Ìõ
 Private Sub CommandButton2_Click()
     If Not SearchManager.GotoNextResult() Then
-        MsgBox "ÇëÏÈÖ´ĞĞËÑË÷", vbInformation, "ÌáÊ¾"
+        MsgBox "æ— æ³•æ‰§è¡Œæ“ä½œ", vbInformation, "æç¤º"
         TextBox1.SetFocus
     End If
 End Sub
 
-' ÓÅ»¯µÄ½¹µã¹ÜÀí·½°¸
-' VBAÖĞ¹öÂÖÊÂ¼ş²¶»ñÓë½¹µãÃÜÇĞÏà¹Ø£¬ÎÒÃÇ²ÉÓÃÒÔÏÂ²ßÂÔ£º
-' 1. ¶ÔÓÚ·Ç½»»¥¿Ø¼ş£¨±êÇ©£©£¬Êó±êĞüÍ£Ê±ÈÃListBox»ñµÃ½¹µã
-' 2. ¶ÔÓÚ½»»¥¿Ø¼ş£¨ÎÄ±¾¿ò¡¢°´Å¥£©£¬±£³ÖÆäÕı³£µÄ½¹µãĞĞÎª
-' 3. Í¬Ê±Í¨¹ıMouseWheelHandlerÄ£¿é²¶»ñÈ«¾Ö¹öÂÖÊÂ¼ş
-
-Private Sub ListBox1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' È·±£ListBoxÓĞ½¹µãÒÔ½ÓÊÕ¼üÅÌÊÂ¼ş
-    If Not ListBox1.Enabled Then Exit Sub
-    ListBox1.SetFocus
-End Sub
-
-Private Sub Label1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' ±êÇ©ÇøÓòÊó±êĞüÍ£Ê±ÉèÖÃListBox½¹µã£¬ÕâÊÇ»ñÈ¡¹öÂÖÊÂ¼şµÄ»ù´¡·½Ê½
-    If Not ListBox1.Enabled Then Exit Sub
-    ListBox1.SetFocus
-End Sub
-
-Private Sub Label2_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' ±êÇ©ÇøÓòÊó±êĞüÍ£Ê±ÉèÖÃListBox½¹µã
-    If Not ListBox1.Enabled Then Exit Sub
-    ListBox1.SetFocus
-End Sub
-
-' TextBox1±£ÁôÔ­ÓĞ¹¦ÄÜ£¬²»×Ô¶¯ÉèÖÃ½¹µã
-Private Sub TextBox1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' ±£³ÖÄ¬ÈÏĞĞÎª£¬ÔÊĞíÓÃ»§Õı³£Ê¹ÓÃËÑË÷¿ò
-    ' ×¢Òâ£ºÔÚTextBoxÖĞÊ±¹öÂÖÊÂ¼ş¿ÉÄÜÎŞ·¨Ö±½Ó´«µİµ½ListBox
-    ' ÕâÊÇVBA±íµ¥µÄÏŞÖÆ£¬ÎÒÃÇÍ¨¹ıMouseWheelHandler¾¡Á¿´¦Àí
-End Sub
-
-' °´Å¥±£ÁôÔ­ÓĞ¹¦ÄÜ£¬²»×Ô¶¯ÉèÖÃ½¹µã
-Private Sub CommandButton1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' ±£³ÖÄ¬ÈÏĞĞÎª£¬ÔÊĞíÓÃ»§Õı³£µã»÷°´Å¥
-End Sub
-
-Private Sub CommandButton2_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' ±£³ÖÄ¬ÈÏĞĞÎª£¬ÔÊĞíÓÃ»§Õı³£µã»÷°´Å¥
-End Sub
-
-' Ìí¼ÓUserForm_MouseMoveÊÂ¼ş£¬µ±Êó±êÔÚ´°Ìå¿Õ°×ÇøÓòÊ±ÉèÖÃListBox½¹µã
-Private Sub UserForm_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
-    ' µ±Êó±êÔÚ´°Ìå¿Õ°×ÇøÓòÊ±£¬È·±£ListBoxÓĞ½¹µãÒÔ½ÓÊÕ¹öÂÖÊÂ¼ş
-    If Not ListBox1.Enabled Then Exit Sub
-    ListBox1.SetFocus
-End Sub
-
-' VBA±íµ¥²»Ô­ÉúÖ§³ÖUserForm_MouseWheelÊÂ¼ş£¬ÒÑÒÆ³ı
-' ¹öÂÖÖ§³Ö½«Í¨¹ıMouseWheelHandlerÄ£¿éµÄ´°¿Ú×ÓÀà»¯ÊµÏÖ
-
 ' ====================================================================
-' ºËĞÄ¹¦ÄÜ·½·¨
+' æ ¸å¿ƒåŠŸèƒ½æ–¹æ³•
 ' ====================================================================
 
-' Ö´ĞĞËÑË÷ - ¼ò»¯°æ£¬Ê¹ÓÃSearchManagerÄ£¿é
 Private Sub PerformSearch()
     If Trim(TextBox1.Text) = "" Then
-        MsgBox "ÇëÊäÈëÒªËÑË÷µÄÄÚÈİ", vbInformation, "ËÑË÷ÌáÊ¾"
+        MsgBox "è¯·è¾“å…¥è¦æœç´¢çš„å†…å®¹", vbInformation, "æœç´¢æç¤º"
         Exit Sub
     End If
-    
+
     Dim resultCount As Long
     resultCount = SearchManager.PerformNewSearch(TextBox1.Text)
-    
+
     If resultCount = 0 Then
-        MsgBox "Î´ÕÒµ½°üº¬ '" & Trim(TextBox1.Text) & "' µÄÏîÄ¿", vbInformation, "ËÑË÷½á¹û"
-        ' Ñ¡ÖĞËùÓĞÎÄ±¾±ãÓÚÖØĞÂÊäÈë
+        MsgBox "æœªæ‰¾åˆ°åŒ…å« '" & Trim(TextBox1.Text) & "' çš„é¡¹ç›®", vbInformation, "æœç´¢ç»“æœ"
         TextBox1.SelStart = 0
         TextBox1.SelLength = Len(TextBox1.Text)
     End If
 End Sub
 
-' È·±£Ö¸¶¨ÏîÔÚListBoxÖĞ¿É¼û²¢¾ÓÖĞÏÔÊ¾£¨¹«¹²·½·¨£©
 Public Sub EnsureItemVisibleInForm(itemIndex As Long)
     If itemIndex < 0 Or itemIndex >= ListBox1.ListCount Then Exit Sub
-    
-    ' Ê¹ÓÃListBoxµÄÊµ¼ÊĞĞ¸ß¼ÆËã¿É¼ûĞĞÊı£¬¶ø²»ÊÇ¹Ì¶¨Öµ
+
     Dim actualRowHeight As Single
     Dim visibleRows As Long
-    
-    ' Ê¹ÓÃVBE¼æÈİµÄ·½Ê½ÉèÖÃĞĞ¸ß
-    ' Ö±½ÓÊ¹ÓÃÄ¬ÈÏĞĞ¸ßÖµ£¬È·±£¼æÈİĞÔ
-    actualRowHeight = 15 ' ÔÚExcel VBAÖĞ£¬ÕâÊÇListBox¿Ø¼şµÄ±ê×¼Ä¬ÈÏĞĞ¸ß
-    
-    ' ¼ÆËãÊµ¼Ê¿É¼ûĞĞÊı£¨¿¼ÂÇListBoxµÄÊµ¼Ê¸ß¶È£©
+
+    actualRowHeight = 15
     visibleRows = Int(ListBox1.Height / actualRowHeight)
-    
-    ' È·±£ÖÁÉÙÓĞ1ĞĞ¿É¼û
     If visibleRows < 1 Then visibleRows = 1
-    
-    On Error GoTo 0
-    
-    ' ¼ÆËãÀíÏëµÄTopIndex£¬Ê¹Ñ¡ÖĞÏî¾¡Á¿¾ÓÖĞ
+
     Dim idealTopIndex As Long
     idealTopIndex = itemIndex - Int(visibleRows / 2)
-    
-    ' ±ß½ç¼ì²é
+
     If idealTopIndex < 0 Then idealTopIndex = 0
     If idealTopIndex > ListBox1.ListCount - visibleRows Then
         idealTopIndex = ListBox1.ListCount - visibleRows
-        ' È·±£²»Ğ¡ÓÚ0
         If idealTopIndex < 0 Then idealTopIndex = 0
     End If
-    
-    ' ¹Ø¼ü£ºÖ±½ÓÉèÖÃListIndexÈ»ºóÔÙÉèÖÃTopIndex£¬È·±£Ë÷ÒıÒ»ÖÂĞÔ
+
     ListBox1.ListIndex = itemIndex
     ListBox1.TopIndex = idealTopIndex
-    
-    ' Ç¿ÖÆË¢ĞÂÏÔÊ¾
+
     Me.Repaint
     DoEvents
 End Sub
 
-' ¹«¹²·½·¨£º¹©±ê×¼Ä£¿éµ÷ÓÃµÄ¹ö¶¯¹¦ÄÜ£¨ÔöÇ¿°æ£©
-Public Sub ScrollListBox(ByVal scrollLines As Long)
-    On Error GoTo ScrollError
-    
-    Debug.Print "=== ScrollListBox±»µ÷ÓÃ£¬¹ö¶¯ĞĞÊı: " & scrollLines & " ==="
-    
-    ' È·±£ListBox¿ÉÓÃ
-    If Not ListBox1.Enabled Then
-        Debug.Print "ListBoxÎ´ÆôÓÃ£¬ÎŞ·¨¹ö¶¯"
-        Exit Sub
-    End If
-    
-    If ListBox1.ListCount = 0 Then
-        Debug.Print "ListBoxÎª¿Õ£¬ÎŞ·¨¹ö¶¯"
-        Exit Sub
-    End If
-    
-    ' »ñÈ¡µ±Ç°Ë÷Òı£¬È·±£ÓĞĞ§
-    Dim currentIndex As Long
-    currentIndex = ListBox1.ListIndex
-    If currentIndex = -1 Then currentIndex = 0
-    
-    Debug.Print "µ±Ç°Ë÷Òı: " & currentIndex & ", ListBox×ÜÊı: " & ListBox1.ListCount
-    
-    ' ¼ÆËãĞÂµÄË÷Òı
-    Dim newIndex As Long
-    newIndex = currentIndex + scrollLines
-    
-    ' ±ß½ç¼ì²é
-    If newIndex < 0 Then newIndex = 0
-    If newIndex >= ListBox1.ListCount Then newIndex = ListBox1.ListCount - 1
-    
-    ' Ö»ÓĞË÷ÒıÕæÕı¸Ä±äÊ±²ÅÉèÖÃ
-    If newIndex <> currentIndex Then
-        ' ÏÈÉèÖÃListIndex
-        ListBox1.ListIndex = newIndex
-        
-        ' È·±£Ïî¿É¼û²¢¾ÓÖĞ
-        Call EnsureItemVisibleInForm(newIndex)
-        
-        Debug.Print "¹ö¶¯³É¹¦: " & currentIndex & " -> " & newIndex & ", TopIndex: " & ListBox1.TopIndex
-        
-        ' Ç¿ÖÆË¢ĞÂ
-        Me.Repaint
-        DoEvents
-    Else
-        Debug.Print "ÒÑµ½´ï±ß½ç£¬ÎŞ·¨¼ÌĞø¹ö¶¯"
-    End If
-    
-    Exit Sub
-    
-ScrollError:
-    Debug.Print "¹ö¶¯´íÎó: " & Err.Description & " (´íÎóºÅ: " & Err.Number & ")"
-    On Error Resume Next
-End Sub
-
 ' ====================================================================
-' ¹öÂÖÖ§³Ö¹¦ÄÜ
+' æ•°æ®åŠ è½½
 ' ====================================================================
 
-' ÆôÓÃ¹öÂÖÖ§³Ö£¨ÔöÇ¿°æ£©
-Private Sub EnableWheelSupport()
-    On Error GoTo ErrorHandler
-    
-    If m_WheelEnabled Then
-        Debug.Print "¹öÂÖÖ§³ÖÒÑ¾­ÆôÓÃ£¬Ìø¹ıÖØ¸´µ÷ÓÃ"
-        Exit Sub
-    End If
-    
-    Debug.Print "=== ¿ªÊ¼ÆôÓÃ¹öÂÖÖ§³Ö ==="
-    
-    ' È·±£ListBox1»ñµÃ½¹µã
-    ListBox1.SetFocus
-    Debug.Print "ListBox1½¹µã×´Ì¬: " & ListBox1.Enabled
-    
-    ' ÏÈÇåÀí¾ÉµÄÖ§³Ö£¨Èç¹ûÓĞ£©
-    On Error Resume Next
-    MouseWheelHandler.DisableMouseWheelSupport ("EnableWheelSupportÇ°ÇåÀí")
-    On Error GoTo ErrorHandler
-    
-    ' µ÷ÓÃMouseWheelHandlerÆôÓÃ¹öÂÖÖ§³Ö
-    Debug.Print "µ÷ÓÃMouseWheelHandler.EnableMouseWheelSupport..."
-    Dim result As Boolean
-    result = MouseWheelHandler.EnableMouseWheelSupport(Me.Caption, Me)
-    
-    If result Then
-        m_WheelEnabled = True
-        Debug.Print "¹öÂÖÖ§³ÖÒÑ³É¹¦ÆôÓÃ"
-        
-        ' ¶îÍâÉèÖÃListBoxÒıÓÃ
-        MouseWheelHandler.SetActiveListBox ListBox1
-        Debug.Print "ÒÑÉèÖÃ»î¶¯ListBoxÒıÓÃ"
-        
-        ' ²âÊÔ¹öÂÖ²¶»ñ
-        Debug.Print "Ö´ĞĞ¹öÂÖ²¶»ñ²âÊÔ..."
-        On Error Resume Next
-        MouseWheelHandler.TestMouseWheelCapture
-        On Error GoTo ErrorHandler
-    Else
-        Debug.Print "¹öÂÖÖ§³ÖÆôÓÃÊ§°Ü£¬µ«¼ÌĞøÖ´ĞĞ"
-    End If
-    
-    Exit Sub
-    
-ErrorHandler:
-    Debug.Print "¹öÂÖÆôÓÃ³ö´í: " & Err.Description & " (´íÎóºÅ: " & Err.Number & ")"
-    On Error Resume Next
-    ListBox1.SetFocus ' ³ö´íÊ±ÖÁÉÙÈ·±£ListBoxÓĞ½¹µã
-End Sub
-
-' ÇåÀí¹öÂÖÖ§³Ö£¨ÔöÇ¿°æ£©
-Private Sub DisableWheelSupport(Optional ByVal caller As String = "Î´Öª")
-    On Error Resume Next
-    
-    Debug.Print "=== ¿ªÊ¼½ûÓÃ¹öÂÖÖ§³Ö - µ÷ÓÃÀ´Ô´: " & caller & " ==="
-    
-    ' ÎŞÂÛÊÇ·ñÆôÓÃ¶¼³¢ÊÔÇåÀí£¬È·±£×ÊÔ´ÊÍ·Å
-    Dim wasEnabled As Boolean
-    wasEnabled = m_WheelEnabled
-    
-    ' ÇåÀíMouseWheelHandler
-    MouseWheelHandler.DisableMouseWheelSupport caller
-    
-    ' ÖØÖÃ×´Ì¬
-    m_WheelEnabled = False
-    
-    If wasEnabled Then
-        Debug.Print "¹öÂÖÖ§³ÖÒÑ³É¹¦½ûÓÃ - µ÷ÓÃÀ´Ô´: " & caller
-    Else
-        Debug.Print "¹öÂÖÖ§³Ö±¾À´¾ÍÊÇ½ûÓÃ×´Ì¬ - µ÷ÓÃÀ´Ô´: " & caller
-    End If
-    
-    On Error GoTo 0
-End Sub
-
-' ²âÊÔ¹öÂÖ¹¦ÄÜµÄ¸¨Öú·½·¨
-Private Sub TestWheelFunction()
-    On Error GoTo TestError
-    
-    Debug.Print "=== ¿ªÊ¼²âÊÔ¹öÂÖ¹¦ÄÜ ==="
-    
-    ' ²âÊÔListBox»ù±¾²Ù×÷
-    Debug.Print "ListBox1¿É¼ûĞÔ: " & ListBox1.Visible
-    Debug.Print "ListBox1ÆôÓÃ×´Ì¬: " & ListBox1.Enabled
-    Debug.Print "ListBox1ÏîÄ¿ÊıÁ¿: " & ListBox1.ListCount
-    
-    ' Ö´ĞĞÊÖ¶¯¹ö¶¯²âÊÔ
-    Debug.Print "Ö´ĞĞÊÖ¶¯¹ö¶¯²âÊÔ..."
-    
-    ' Èç¹ûListBox²»Îª¿Õ£¬½øĞĞÏòÉÏºÍÏòÏÂµÄ¹ö¶¯²âÊÔ
-    If ListBox1.ListCount > 0 Then
-        ' ±£´æµ±Ç°Ë÷Òı
-        Dim saveIndex As Long
-        saveIndex = ListBox1.ListIndex
-        If saveIndex = -1 Then saveIndex = 0
-        
-        Debug.Print "±£´æµÄË÷Òı: " & saveIndex
-        
-        ' ²âÊÔÏòÏÂ¹ö¶¯
-        Debug.Print "²âÊÔÏòÏÂ¹ö¶¯..."
-        Call ScrollListBox(3)
-        
-        ' ²âÊÔÏòÉÏ¹ö¶¯
-        Debug.Print "²âÊÔÏòÉÏ¹ö¶¯..."
-        Call ScrollListBox(-3)
-        
-        ' »Ö¸´Ô­À´µÄË÷Òı
-        If saveIndex >= 0 And saveIndex < ListBox1.ListCount Then
-            ListBox1.ListIndex = saveIndex
-            Call EnsureItemVisibleInForm(saveIndex)
-            Debug.Print "ÒÑ»Ö¸´µ½Ô­À´µÄË÷Òı"
-        End If
-    Else
-        Debug.Print "ListBoxÎª¿Õ£¬ÎŞ·¨½øĞĞ¹ö¶¯²âÊÔ"
-    End If
-    
-    ' ²âÊÔMouseWheelHandler¹¦ÄÜ
-    Debug.Print "²âÊÔMouseWheelHandler¹¦ÄÜ..."
-    On Error Resume Next
-    Dim isWheelCaptured As Boolean
-    isWheelCaptured = MouseWheelHandler.isWheelCaptured
-    Debug.Print "MouseWheelHandler²¶»ñ×´Ì¬: " & isWheelCaptured
-    
-    ' ´òÓ¡MouseWheelHandlerÄÚ²¿×´Ì¬
-    Debug.Print "MouseWheelHandlerÄÚ²¿×´Ì¬ĞÅÏ¢:"
-    MouseWheelHandler.PrintInternalState
-    On Error GoTo TestError
-    
-    Debug.Print "=== ¹öÂÖ¹¦ÄÜ²âÊÔÍê³É ==="
-    
-    Exit Sub
-    
-TestError:
-    Debug.Print "¹öÂÖ²âÊÔ´íÎó: " & Err.Description & " (´íÎóºÅ: " & Err.Number & ")"
-    On Error Resume Next
-End Sub
-
-' Ç¿ÖÆÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö
-Private Sub ForceReinitializeWheelSupport()
-    On Error GoTo ReinitError
-    
-    Debug.Print "=== ¿ªÊ¼Ç¿ÖÆÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö ==="
-    
-    ' 1. Ê×ÏÈÍêÈ«ÇåÀíÏÖÓĞµÄ¹öÂÖÖ§³Ö
-    Debug.Print "²½Öè1: ÇåÀíÏÖÓĞ¹öÂÖÖ§³Ö..."
-    Call DisableWheelSupport("ForceReinitializeWheelSupportÇåÀí½×¶Î")
-    
-    ' Ç¿ÖÆÔİÍ££¬È·±£ÇåÀíÍê³É
-    Debug.Print "µÈ´ıÇåÀíÍê³É..."
-    DoEvents
-    
-    ' 2. È·±£ListBox»ñµÃ½¹µã
-    Debug.Print "²½Öè2: ÉèÖÃListBox½¹µã..."
-    ListBox1.SetFocus
-    Debug.Print "ListBox½¹µãÉèÖÃ×´Ì¬: " & ListBox1.Enabled
-    
-    ' 3. ÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö
-    Debug.Print "²½Öè3: ÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³Ö..."
-    Call EnableWheelSupport
-    
-    ' 4. ÑéÖ¤ÖØĞÂ³õÊ¼»¯½á¹û
-    Debug.Print "²½Öè4: ÑéÖ¤ÖØĞÂ³õÊ¼»¯½á¹û..."
-    If m_WheelEnabled Then
-        Debug.Print "? ¹öÂÖÖ§³ÖÖØĞÂ³õÊ¼»¯³É¹¦!"
-        
-        ' ¶îÍâµÄ²âÊÔ
-        Call TestWheelFunction
-    Else
-        Debug.Print "? ¹öÂÖÖ§³ÖÖØĞÂ³õÊ¼»¯Ê§°Ü!"
-        
-        ' ³¢ÊÔÖ±½ÓÉèÖÃMouseHook
-        Debug.Print "³¢ÊÔÖ±½ÓÖØĞÂ×¢²áÊó±ê¹³×Ó..."
-        On Error Resume Next
-        MouseWheelHandler.ReinitializeMouseHook
-        Debug.Print "Êó±ê¹³×ÓÖØĞÂ×¢²á³¢ÊÔÍê³É"
-        On Error GoTo ReinitError
-    End If
-    
-    Debug.Print "=== Ç¿ÖÆÖØĞÂ³õÊ¼»¯¹öÂÖÖ§³ÖÍê³É ==="
-    
-    Exit Sub
-    
-ReinitError:
-    Debug.Print "¹öÂÖÖØĞÂ³õÊ¼»¯´íÎó: " & Err.Description & " (´íÎóºÅ: " & Err.Number & ")"
-    On Error Resume Next
-End Sub
-
-' ¼ì²é¹öÂÖÊÇ·ñÆôÓÃ£¨¹©µ÷ÊÔÄ£¿éÊ¹ÓÃ£©
-Public Function IsWheelEnabled() As Boolean
-    IsWheelEnabled = m_WheelEnabled
-End Function
-
-' === ĞÂÔö£º¼ÓÔØÊı¾İµÄÍ¨ÓÃ·½·¨ ===
 Private Sub LoadRateData()
     On Error Resume Next
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim dataRng As Range
-    
-    ' ==========================================================
-    ' >>> Êı¾İÒıÓÃÎ»ÖÃ - ÖØÒª£ºÓÃ»§ĞèÒª¸ù¾İÊµ¼ÊÇé¿öĞŞ¸Ä´Ë´¦ <<<
-    ' ==========================================================
-    ' 1. ¹¤×÷±íÃû³Æ - ĞŞ¸ÄÎªÊµ¼Ê´æ·Å¶¨¶îÊı¾İµÄ¹¤×÷±í
+
     Set ws = ThisWorkbook.Worksheets("RATE")
-    
     If ws Is Nothing Then Exit Sub
-    
-    ' 2. Êı¾İÆğÊ¼Î»ÖÃºÍ·¶Î§È·¶¨ - ĞŞ¸ÄÎªÊµ¼ÊÊı¾İËùÔÚÎ»ÖÃ
-    ' ¼ÙÉèÊı¾İ´ÓµÚ2ĞĞ¿ªÊ¼£¨µÚ1ĞĞÊÇ±êÌâ£©£¬AÁĞÊÇ×îºóÒ»ĞĞÒÀ¾İ
+
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
-    
     If lastRow < 2 Then
         ListBox1.Clear
         Exit Sub
     End If
-    
-    ' 3. Êı¾İÁĞ·¶Î§ - ĞŞ¸ÄÎªÁ½¸ö·¶Î§£ºA2:C(±àºÅ, Ãû³Æ, µ¥Î») ºÍ J2:J(µ¥¼Û)
+
     On Error GoTo ErrorHandler
-    
-    ' ÏÈ¶ÁÈ¡A2:C·¶Î§µÄÊı¾İ
-    Dim range1 As Range
-    Set range1 = ws.Range("A2:C" & lastRow)
-    
-    ' ÔÙ¶ÁÈ¡J2:J·¶Î§µÄÊı¾İ£¨µ¥¼ÛÁĞ£©
-    Dim range2 As Range
-    Set range2 = ws.Range("J2:J" & lastRow)
-    
-    ' »ñÈ¡Êı¾İ
-    Dim data1 As Variant
-    Dim data2 As Variant
-    data1 = range1.Value
-    data2 = range2.Value
-    
-    ' ÑéÖ¤Êı¾İĞĞÊıÊÇ·ñÆ¥Åä
-    Dim rows1 As Long
-    Dim rows2 As Long
-    
-    ' ´¦Àíµ¥ÁĞÊı¾İµÄÌØÊâÇé¿ö£¨Èç¹ûÖ»ÓĞÒ»ĞĞÊı¾İ£¬UBoundÎŞ·¨Õı³£¹¤×÷£©
+
+    Dim data1 As Variant, data2 As Variant
+    data1 = ws.Range("A2:C" & lastRow).Value
+    data2 = ws.Range("J2:J" & lastRow).Value
+
+    Dim rows1 As Long, rows2 As Long
     If TypeName(data1) = "Variant()" Then
         rows1 = UBound(data1, 1)
     Else
-        rows1 = 1 ' Ö»ÓĞÒ»ĞĞÊı¾İ
+        rows1 = 1
     End If
-    
     If TypeName(data2) = "Variant()" Then
         rows2 = UBound(data2, 1)
     Else
-        rows2 = 1 ' Ö»ÓĞÒ»ĞĞÊı¾İ
+        rows2 = 1
     End If
-    
-    ' È·±£Á½¸ö·¶Î§µÄÊı¾İĞĞÊıÏàÍ¬
+
     Dim actualRows As Long
     actualRows = WorksheetFunction.Min(rows1, rows2)
-    
-    ' ×¼±¸4ÁĞµÄÊı×é£¨ListBoxĞèÒª4ÁĞÊı¾İ£©
+
     Dim resultData() As Variant
     ReDim resultData(1 To actualRows, 1 To 4)
-    
-    ' ºÏ²¢Êı¾İ
+
     Dim i As Long
     For i = 1 To actualRows
-        ' °²È«µØ¸´ÖÆÊı¾İ£¬Ìí¼Ó´íÎó´¦Àí
         On Error Resume Next
-        ' ¸´ÖÆA-CÁĞÊı¾İµ½Ç°3ÁĞ
         If TypeName(data1) = "Variant()" Then
-            resultData(i, 1) = data1(i, 1) ' ±àºÅ
-            resultData(i, 2) = data1(i, 2) ' Ãû³Æ
-            resultData(i, 3) = data1(i, 3) ' µ¥Î»
+            resultData(i, 1) = data1(i, 1)
+            resultData(i, 2) = data1(i, 2)
+            resultData(i, 3) = data1(i, 3)
         Else
-            ' Ö»ÓĞÒ»ĞĞÊı¾İµÄÇé¿ö
             resultData(i, 1) = data1
             resultData(i, 2) = ws.Cells(2, 2).Value
             resultData(i, 3) = ws.Cells(2, 3).Value
         End If
-        
-        ' ¸´ÖÆJÁĞÊı¾İµ½µÚ4ÁĞ£¨µ¥¼Û£©
+
         If TypeName(data2) = "Variant()" Then
-            resultData(i, 4) = data2(i, 1) ' µ¥¼Û
+            resultData(i, 4) = data2(i, 1)
         Else
-            ' Ö»ÓĞÒ»ĞĞÊı¾İµÄÇé¿ö
             resultData(i, 4) = data2
         End If
         On Error GoTo ErrorHandler
     Next i
-    
-    ' ÉèÖÃListBoxÊı¾İ
-    ListBox1.Clear ' ÏÈÇå¿ÕListBox
-    ListBox1.List = resultData
-    
-    ' ÖØÖÃ´íÎó´¦Àí
-    On Error GoTo 0
-    Exit Sub
-    
-ErrorHandler:
-    ' ·¢Éú´íÎóÊ±µÄ´¦Àí
+
     ListBox1.Clear
-    If Err.Number <> 0 Then
-        Debug.Print "Êı¾İ¼ÓÔØ´íÎó: " & Err.Description
-        ' ¿ÉÒÔÑ¡ÔñÏÔÊ¾´íÎóÏûÏ¢»ò¼ÌĞøÖ´ĞĞ
-    End If
-    On Error GoTo 0
-    ' ==========================================================
-    ' >>> Êı¾İÒıÓÃÎ»ÖÃ½áÊø <<<
-    ' ==========================================================
-    
-    ' ¸üĞÂ Label2 ×´Ì¬
+    ListBox1.List = resultData
+
     Label2.Caption = "0/" & ListBox1.ListCount
-    
-    ' Èç¹ûÊ¹ÓÃÁË SearchManager£¬ĞèÒªÖØÖÃËÑË÷»º´æ
     SearchManager.InitializeSearchManager ListBox1, Label2
+    Exit Sub
+
+ErrorHandler:
+    ListBox1.Clear
+    Debug.Print "æ•°æ®åŠ è½½é”™è¯¯: " & Err.Description
+    On Error GoTo 0
 End Sub
 
-
 ' ====================================================================
-' ´°ÌåÎ»ÖÃ¹ÜÀí
+' çª—å£ä½ç½®ç®¡ç† (ä½¿ç”¨æ³¨å†Œè¡¨ï¼Œæ—  API è°ƒç”¨)
 ' ====================================================================
 
-' »Ö¸´´°ÌåÎ»ÖÃ (ÒÑĞŞ¸´¶¨Î» BUG)
 Private Sub RestoreFormPosition()
     On Error Resume Next
-    
-    Dim regKey As String
-    regKey = "Software\Excel\RateLibrary"
-    
-    ' ´Ó×¢²á±í¶ÁÈ¡ÉÏ´Î±£´æµÄÎ»ÖÃ
-    Dim savedLeft As Long, savedTop As Long, savedWidth As Long, savedHeight As Long
+
+    Dim savedLeft As Long, savedTop As Long
     savedLeft = GetSetting("RateLibrary", "Position", "Left", -1)
     savedTop = GetSetting("RateLibrary", "Position", "Top", -1)
-    
-    ' [ÒıÓÃÔ´: 38] ¶ÁÈ¡¿í¸ß
-    savedWidth = GetSetting("RateLibrary", "Position", "Width", Me.Width)
-    savedHeight = GetSetting("RateLibrary", "Position", "Height", Me.Height)
-    
-    ' »ñÈ¡µ±Ç°»î¶¯´°¿ÚµÄ¿ÉÊÓÇøÓòĞÅÏ¢£¨±È Application ¸ü×¼È·£©
-    Dim winLeft As Long, winTop As Long, winWidth As Long, winHeight As Long
-    winLeft = Application.ActiveWindow.Left
-    winTop = Application.ActiveWindow.Top
-    winWidth = Application.ActiveWindow.Width
-    winHeight = Application.ActiveWindow.Height
 
-    ' ÅĞ¶ÏÊÇ·ñĞèÒªÖØÖÃÎ»ÖÃ£º
-    ' 1. Ê×´ÎÔËĞĞ (savedLeft = -1)
-    ' 2. ÉÏ´Î±£´æµÄÎ»ÖÃÒÑ¾­ÅÜµ½ÁËµ±Ç°´°¿ÚµÄÍâÃæ (ÀıÈç´°¿Ú±äÕ­ÁË)
-    Dim needReset As Boolean
-    needReset = (savedLeft = -1) Or (savedTop = -1)
-    
-    ' Èç¹û±£´æµÄ×ó±ß¾à > µ±Ç°´°¿Ú¿í¶È£¬ËµÃ÷´°¿Ú±äĞ¡ÁË£¬ĞèÒªÀ­»ØÀ´
-    If savedLeft > (winWidth - 50) Then needReset = True
-    If savedTop > (winHeight - 50) Then needReset = True
-    
-    If needReset Then
-        ' ¶¨Î»µ½Excel´°¿ÚµÄ×ó²à£¬Áô³öÒ»µã±ß¾à
-        savedLeft = Application.Left + winLeft + 10 ' ×ó²à±ß¾à10ÏñËØ
-        savedTop = Application.Top + winTop + 50   ' ¶¥²¿ÉÔÎ¢¿¿ÏÂ£¬±Ü¿ª¹¦ÄÜÇø
-        
-        ' ¼òµ¥µÄ±ß½ç±£»¤£¬·ÀÖ¹¸ºÊı
-        If savedLeft < 0 Then savedLeft = 0
-        If savedTop < 0 Then savedTop = 0
-        
-        ' Ê¹ÓÃVBEÉè¼ÆÆ÷ÖĞÉèÖÃµÄÔ­Ê¼´°Ìå´óĞ¡£¬²»ÉèÖÃÄ¬ÈÏÖµ
+    If savedLeft = -1 Or savedTop = -1 Then
+        ' é¦–æ¬¡æ‰“å¼€ï¼Œå±…ä¸­äº Excel çª—å£
+        Me.StartUpPosition = 1
+    Else
+        Me.Left = savedLeft
+        Me.Top = savedTop
     End If
-    
-    ' ÉèÖÃ´°ÌåÎ»ÖÃºÍ´óĞ¡
-    Me.Width = savedWidth
-    Me.Height = savedHeight
-    
-    ' Ê¹ÓÃ API ÉèÖÃÎ»ÖÃ
-    SetWindowPos hWndForm, 0, savedLeft, savedTop, 0, 0, SWP_NOSIZE Or SWP_NOZORDER
 End Sub
 
-' ±£´æ´°ÌåÎ»ÖÃ
 Private Sub SaveFormPosition()
     On Error Resume Next
-    
-    ' »ñÈ¡µ±Ç°´°ÌåÎ»ÖÃºÍ´óĞ¡
     SaveSetting "RateLibrary", "Position", "Left", Me.Left
     SaveSetting "RateLibrary", "Position", "Top", Me.Top
-    SaveSetting "RateLibrary", "Position", "Width", Me.Width
-    SaveSetting "RateLibrary", "Position", "Height", Me.Height
 End Sub
-
-

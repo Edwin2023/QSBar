@@ -1,43 +1,43 @@
 Attribute VB_Name = "SearchManager"
-' ËÑË÷¹ÜÀíÄ£¿é - ´¦ÀíListBoxËÑË÷Ïà¹Ø¹¦ÄÜ
-' ½«ËÑË÷Âß¼­´Ó´°ÌåÖĞ·ÖÀë£¬Ìá¸ß´úÂë¿ÉÎ¬»¤ĞÔ
+' æœç´¢åŠŸèƒ½æ¨¡å— - ç®¡ç†ListBoxæœç´¢ç›¸å…³åŠŸèƒ½
+' å°†æœç´¢é€»è¾‘ä»çª—ä½“ä¸­åˆ†ç¦»ï¼Œæé«˜ä»£ç å¯ç»´æŠ¤æ€§
 
 Option Explicit
 
-' ËÑË÷½á¹û¹ÜÀí
-Private m_SearchResults() As Long     ' ´æ´¢Æ¥ÅäµÄË÷Òı
-Private m_CurrentSearchIndex As Long  ' µ±Ç°ËÑË÷½á¹ûÖĞµÄÎ»ÖÃ
-Private m_SearchResultCount As Long   ' ËÑË÷½á¹û×ÜÊı
-Private m_ActiveListBox As Object     ' µ±Ç°²Ù×÷µÄListBox
-Private m_StatusLabel As Object       ' ÏÔÊ¾ËÑË÷×´Ì¬µÄLabel
+' æœç´¢ç»“æœç›¸å…³
+Private m_SearchResults() As Long     ' å­˜å‚¨åŒ¹é…ç»“æœçš„è¡Œç´¢å¼•
+Private m_CurrentSearchIndex As Long  ' å½“å‰åœ¨æœç´¢ç»“æœä¸­çš„ä½ç½®
+Private m_SearchResultCount As Long   ' æœç´¢ç»“æœæ•°é‡
+Private m_ActiveListBox As Object     ' å½“å‰æ“ä½œçš„ListBox
+Private m_StatusLabel As Object       ' æ˜¾ç¤ºæœç´¢çŠ¶æ€çš„Label
 
 ' ====================================================================
-' ¹«¹²½Ó¿Ú·½·¨
+' å…¬å¼€æ¥å£æ–¹æ³•
 ' ====================================================================
 
-' ³õÊ¼»¯ËÑË÷¹ÜÀíÆ÷
+' åˆå§‹åŒ–æœç´¢ç®¡ç†å™¨
 Public Sub InitializeSearchManager(ByRef listBox As Object, ByRef statusLabel As Object)
     Set m_ActiveListBox = listBox
     Set m_StatusLabel = statusLabel
     Call ClearSearchResults
 End Sub
 
-' Ö´ĞĞĞÂËÑË÷£¨ÊÕ¼¯ËùÓĞÆ¥ÅäÏî£©
+' æ‰§è¡Œæ–°æœç´¢ï¼ˆæ”¶é›†æ‰€æœ‰åŒ¹é…é¡¹ï¼‰
 Public Function PerformNewSearch(ByVal searchText As String) As Long
     If Trim(searchText) = "" Then
-        PerformNewSearch = -1  ' ·µ»Ø-1±íÊ¾ËÑË÷ÎÄ±¾Îª¿Õ
+        PerformNewSearch = -1
         Exit Function
     End If
-    
+
     If m_ActiveListBox Is Nothing Then
-        PerformNewSearch = -2  ' ·µ»Ø-2±íÊ¾ListBoxÎ´ÉèÖÃ
+        PerformNewSearch = -2
         Exit Function
     End If
-    
+
     Dim upperSearchText As String
-    upperSearchText = UCase(Trim(searchText))  ' ×ªÎª´óĞ´½øĞĞ²»Çø·Ö´óĞ¡Ğ´ËÑË÷
-    
-    ' ³õÊ¼»¯ËÑË÷½á¹û - °²È«µÄÊı×é³õÊ¼»¯
+    upperSearchText = UCase(Trim(searchText))
+
+    ' åˆå§‹åŒ–ç»“æœæ•°ç»„
     If m_ActiveListBox.ListCount > 0 Then
         ReDim m_SearchResults(0 To m_ActiveListBox.ListCount - 1)
     Else
@@ -45,133 +45,76 @@ Public Function PerformNewSearch(ByVal searchText As String) As Long
     End If
     m_SearchResultCount = 0
     m_CurrentSearchIndex = 0
-    
+
     Dim i As Long
-    
-    ' ÔÚListBoxÖĞËÑË÷ËùÓĞÆ¥ÅäÏî
     For i = 0 To m_ActiveListBox.ListCount - 1
-        ' ÔÚ±àºÅ»òÃû³ÆÖĞËÑË÷
         If InStr(1, UCase(m_ActiveListBox.List(i, 0)), upperSearchText) > 0 Or _
            InStr(1, UCase(m_ActiveListBox.List(i, 1)), upperSearchText) > 0 Then
             m_SearchResults(m_SearchResultCount) = i
             m_SearchResultCount = m_SearchResultCount + 1
         End If
     Next i
-    
-    ' Èç¹ûÕÒµ½Æ¥ÅäÏî
+
     If m_SearchResultCount > 0 Then
-        ' ÖØĞÂµ÷ÕûÊı×é´óĞ¡
         ReDim Preserve m_SearchResults(0 To m_SearchResultCount - 1)
-        
-        ' ¶¨Î»µ½µÚÒ»¸öÆ¥ÅäÏî
         m_CurrentSearchIndex = 0
         Call GotoCurrentResult
-        
-        Debug.Print "ËÑË÷³É¹¦£ºÕÒµ½ " & m_SearchResultCount & " ¸öÆ¥ÅäÏî"
-        PerformNewSearch = m_SearchResultCount  ' ·µ»ØÕÒµ½µÄ½á¹ûÊıÁ¿
+        PerformNewSearch = m_SearchResultCount
     Else
-        ' Ã»ÓĞÕÒµ½Æ¥ÅäÏî
         Call ClearSearchResults
-        Debug.Print "ËÑË÷Ê§°Ü£ºÎ´ÕÒµ½Æ¥ÅäÏî"
-        PerformNewSearch = 0  ' ·µ»Ø0±íÊ¾Î´ÕÒµ½
+        PerformNewSearch = 0
     End If
 End Function
 
-' Ìø×ªµ½ÉÏÒ»ÌõËÑË÷½á¹û
+' è½¬åˆ°ä¸Šä¸€ä¸ªæœç´¢ç»“æœ
 Public Function GotoPreviousResult() As Boolean
     If m_SearchResultCount = 0 Then
         GotoPreviousResult = False
         Exit Function
     End If
-    
+
     If m_CurrentSearchIndex > 0 Then
         m_CurrentSearchIndex = m_CurrentSearchIndex - 1
     Else
-        ' Ñ­»·µ½×îºóÒ»Ìõ
         m_CurrentSearchIndex = m_SearchResultCount - 1
     End If
-    
+
     Call GotoCurrentResult
     GotoPreviousResult = True
 End Function
 
-' Ìø×ªµ½ÏÂÒ»ÌõËÑË÷½á¹û
+' è½¬åˆ°ä¸‹ä¸€ä¸ªæœç´¢ç»“æœ
 Public Function GotoNextResult() As Boolean
     If m_SearchResultCount = 0 Then
         GotoNextResult = False
         Exit Function
     End If
-    
+
     If m_CurrentSearchIndex < m_SearchResultCount - 1 Then
         m_CurrentSearchIndex = m_CurrentSearchIndex + 1
     Else
-        ' Ñ­»·µ½µÚÒ»Ìõ
         m_CurrentSearchIndex = 0
     End If
-    
+
     Call GotoCurrentResult
     GotoNextResult = True
 End Function
 
-' Çå³ıËÑË÷½á¹û
+' æ¸…é™¤æœç´¢ç»“æœ
 Public Sub ClearSearchResults()
     m_SearchResultCount = 0
     m_CurrentSearchIndex = 0
     If Not m_StatusLabel Is Nothing Then
         m_StatusLabel.Caption = "0/0"
     End If
-    Debug.Print "ËÑË÷½á¹ûÒÑÇå³ı"
 End Sub
 
-' »ñÈ¡ËÑË÷Í³¼ÆĞÅÏ¢
-Public Function GetSearchStatus() As String
-    If m_SearchResultCount > 0 Then
-        GetSearchStatus = (m_CurrentSearchIndex + 1) & "/" & m_SearchResultCount
-    Else
-        GetSearchStatus = "0/0"
-    End If
-End Function
-
-' »ñÈ¡µ±Ç°ËÑË÷½á¹ûÊıÁ¿
+' è·å–æœç´¢çŠ¶æ€
 Public Function GetSearchResultCount() As Long
     GetSearchResultCount = m_SearchResultCount
 End Function
 
-' »ñÈ¡µ±Ç°Ë÷Òı
-Public Function GetCurrentSearchIndex() As Long
-    GetCurrentSearchIndex = m_CurrentSearchIndex
-End Function
-
-' ====================================================================
-' Ë½ÓĞ¸¨Öú·½·¨
-' ====================================================================
-
-' Ìø×ªµ½µ±Ç°ËÑË÷½á¹û
-Private Sub GotoCurrentResult()
-    If m_SearchResultCount > 0 And m_CurrentSearchIndex >= 0 And m_CurrentSearchIndex < m_SearchResultCount Then
-        Dim targetIndex As Long
-        targetIndex = m_SearchResults(m_CurrentSearchIndex)
-        
-        ' ÉèÖÃListBoxÑ¡ÖĞÏî
-        m_ActiveListBox.ListIndex = targetIndex
-        
-        ' È·±£ÏîÄ¿¿É¼û£¨µ÷ÓÃ´°ÌåµÄ·½·¨£©
-        If TypeName(m_ActiveListBox.Parent) = "UserForm" Then
-            On Error Resume Next
-            m_ActiveListBox.Parent.EnsureItemVisibleInForm targetIndex
-            On Error GoTo 0
-        End If
-        
-        ' ¸üĞÂ×´Ì¬ÏÔÊ¾
-        If Not m_StatusLabel Is Nothing Then
-            m_StatusLabel.Caption = (m_CurrentSearchIndex + 1) & "/" & m_SearchResultCount
-        End If
-        
-        Debug.Print "Ìø×ªµ½ËÑË÷½á¹û " & (m_CurrentSearchIndex + 1) & "/" & m_SearchResultCount & " (ĞĞ" & (targetIndex + 1) & ")"
-    End If
-End Sub
-
-' ÇåÀí×ÊÔ´
+' æ¸…ç†èµ„æº
 Public Sub CleanupSearchManager()
     Set m_ActiveListBox = Nothing
     Set m_StatusLabel = Nothing
@@ -179,3 +122,57 @@ Public Sub CleanupSearchManager()
     m_CurrentSearchIndex = 0
 End Sub
 
+' ====================================================================
+' æ˜¾ç¤ºä»·æ ¼åº“çª—ä½“ï¼ˆè¢« RateDoubleClickHandler è°ƒç”¨ï¼‰
+' ====================================================================
+
+Public Sub ShowRateLibrary(ByVal sourceSheet As Object, ByVal TargetCell As Range, Optional ByVal initialValue As String = "")
+    On Error GoTo ErrorHandler
+
+    Dim uf As rateLibrary
+    Set uf = New rateLibrary
+
+    ' å¦‚æœæä¾›åˆå§‹å€¼ï¼ŒæŸ¥æ‰¾å¹¶å®šä½
+    If initialValue <> "" Then
+        Dim i As Long
+        For i = 0 To uf.ListBox1.ListCount - 1
+            If Trim(CStr(uf.ListBox1.List(i, 0))) = Trim(initialValue) Then
+                uf.ListBox1.ListIndex = i
+                uf.EnsureItemVisibleInForm i
+                Exit For
+            End If
+        Next i
+    End If
+
+    uf.Show vbModeless
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "æ˜¾ç¤ºä»·æ ¼åº“çª—ä½“æ—¶å‘ç”Ÿé”™è¯¯: " & Err.Description, vbCritical, "é”™è¯¯"
+End Sub
+
+' ====================================================================
+' ç§æœ‰è¾…åŠ©æ–¹æ³•
+' ====================================================================
+
+' è½¬åˆ°å½“å‰æœç´¢ç»“æœ
+Private Sub GotoCurrentResult()
+    If m_SearchResultCount > 0 And m_CurrentSearchIndex >= 0 And m_CurrentSearchIndex < m_SearchResultCount Then
+        Dim targetIndex As Long
+        targetIndex = m_SearchResults(m_CurrentSearchIndex)
+
+        m_ActiveListBox.ListIndex = targetIndex
+
+        ' ç¡®ä¿é¡¹ç›®å¯è§ï¼ˆè°ƒç”¨çª—ä½“çš„æ–¹æ³•ï¼‰
+        If TypeName(m_ActiveListBox.Parent) = "UserForm" Then
+            On Error Resume Next
+            m_ActiveListBox.Parent.EnsureItemVisibleInForm targetIndex
+            On Error GoTo 0
+        End If
+
+        ' æ›´æ–°çŠ¶æ€æ˜¾ç¤º
+        If Not m_StatusLabel Is Nothing Then
+            m_StatusLabel.Caption = (m_CurrentSearchIndex + 1) & "/" & m_SearchResultCount
+        End If
+    End If
+End Sub
