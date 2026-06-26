@@ -48,9 +48,9 @@ namespace QSBar
 
         {
 
-            this.Size = new Size(600, 750);
+            this.Size = new Size(780, 800);
 
-            this.Text = "Batch Process";
+            this.Text = WpsExcelAddIn.UseChineseRibbon ? "批量处理" : "Batch Process";
 
             this.StartPosition = FormStartPosition.CenterScreen;
 
@@ -62,9 +62,9 @@ namespace QSBar
 
             this.Font = new Font("Microsoft YaHei UI", 9F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(134)));
 
-            this.MinimumSize = new Size(600, 600);
+            this.MinimumSize = new Size(780, 600);
 
-            this.MaximumSize = new Size(600, 2000); // Lock width, allow height resizing
+            this.MaximumSize = new Size(780, 2000); // Lock width, allow height resizing
 
 
 
@@ -72,31 +72,45 @@ namespace QSBar
 
             int y = 20;
 
-            int labelWidth = 50;
+            int gap = 15;
 
-            int textBoxWidth = 100;
+            int labelWidth = 65;
 
             int rowHeight = 35;
+
+            // Three columns: Prefix (narrow) | Body (wide) | Suffix (narrow), evenly aligned to both edges
+
+            int usableWidth = this.ClientSize.Width - margin * 2;
+
+            int colNarrow = (usableWidth - gap * 2) * 32 / 100;  // ~32% each side
+
+            int colWide = usableWidth - gap * 2 - colNarrow * 2;  // ~36% center
+
+            int col1Start = margin;
+
+            int col2Start = margin + colNarrow + gap;
+
+            int col3Start = margin + colNarrow + gap + colWide + gap;
 
 
 
             // Row 1: Left, Center, Right
 
-            Label lblLeft = new Label { Text = "Prefix:", Location = new Point(margin, y + 5), Width = labelWidth, AutoSize = false };
+            Label lblLeft = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "前缀:" : "Prefix:", Location = new Point(col1Start, y + 5), Width = labelWidth, AutoSize = false };
 
-            txtLeft = new TextBox { Location = new Point(margin + labelWidth, y), Width = textBoxWidth };
+            txtLeft = new TextBox { Location = new Point(col1Start + labelWidth, y), Width = colNarrow - labelWidth };
 
-            
 
-            Label lblCenter = new Label { Text = "Body:", Location = new Point(margin + labelWidth + textBoxWidth + 20, y + 5), Width = labelWidth, AutoSize = false };
 
-            txtCenter = new TextBox { Location = new Point(margin + labelWidth * 2 + textBoxWidth + 20, y), Width = textBoxWidth };
+            Label lblCenter = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "主体:" : "Body:", Location = new Point(col2Start, y + 5), Width = labelWidth, AutoSize = false };
 
-            
+            txtCenter = new TextBox { Location = new Point(col2Start + labelWidth, y), Width = colWide - labelWidth };
 
-            Label lblRight = new Label { Text = "Suffix:", Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2, y + 5), Width = labelWidth, AutoSize = false };
 
-            txtRight = new TextBox { Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2 + labelWidth, y), Width = textBoxWidth };
+
+            Label lblRight = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "后缀:" : "Suffix:", Location = new Point(col3Start, y + 5), Width = labelWidth, AutoSize = false };
+
+            txtRight = new TextBox { Location = new Point(col3Start + labelWidth, y), Width = colNarrow - labelWidth };
 
 
 
@@ -120,29 +134,27 @@ namespace QSBar
 
             // GroupBox for Find/Replace
 
-            GroupBox grpReplace = new GroupBox { Text = "Find and Replace", Location = new Point(margin, y), Size = new Size(540, 120) };
+            GroupBox grpReplace = new GroupBox { Text = WpsExcelAddIn.UseChineseRibbon ? "查找和替换" : "Find and Replace", Location = new Point(margin, y), Size = new Size(740, 120) };
 
             
 
             int grpY = 25;
 
-            int findLabelWidth = 60;
+            int findLabelWidth = 85;
 
-            int findTextWidth = 170;
-
-            int gap = 20;
+            int findTextWidth = 255;
 
 
 
             // Row 2: Replace 1 inside GroupBox
 
-            Label lblFind1 = new Label { Text = "Find 1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblFind1 = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "查找1:" : "Find 1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtFind1 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
 
             
 
-            Label lblRep1 = new Label { Text = "Replace 1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblRep1 = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "替换1:" : "Replace 1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtRep1 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
 
@@ -164,13 +176,13 @@ namespace QSBar
 
             // Row 3: Replace 2 inside GroupBox
 
-            Label lblFind2 = new Label { Text = "Find 2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblFind2 = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "查找2:" : "Find 2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtFind2 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
 
 
 
-            Label lblRep2 = new Label { Text = "Replace 2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+            Label lblRep2 = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "替换2:" : "Replace 2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
 
             txtRep2 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
 
@@ -196,7 +208,7 @@ namespace QSBar
 
             // Row 4: Preview Label
 
-            Label lblPreview = new Label { Text = "Preview:", Location = new Point(margin, y), Width = 200 };
+            Label lblPreview = new Label { Text = WpsExcelAddIn.UseChineseRibbon ? "预览:" : "Preview:", Location = new Point(margin, y), Width = 200 };
 
             this.Controls.Add(lblPreview);
 
@@ -222,7 +234,7 @@ namespace QSBar
 
                 Location = new Point(margin, y),
 
-                Size = new Size(540, previewHeight),
+                Size = new Size(740, previewHeight),
 
                 Multiline = true,
 
@@ -256,7 +268,7 @@ namespace QSBar
 
             { 
 
-                Text = "OK", 
+                Text = WpsExcelAddIn.UseChineseRibbon ? "确定" : "OK", 
 
                 Location = new Point(btnX, btnY), 
 
@@ -278,7 +290,7 @@ namespace QSBar
 
             { 
 
-                Text = "Cancel", 
+                Text = WpsExcelAddIn.UseChineseRibbon ? "取消" : "Cancel", 
 
                 Location = new Point(btnX + btnWidth + btnGap, btnY), 
 
@@ -342,7 +354,7 @@ namespace QSBar
 
         {
 
-            txtCenter.Text = "<content>";
+            txtCenter.Text = WpsExcelAddIn.UseChineseRibbon ? "<内容>" : "<content>";
 
         }
 
@@ -358,11 +370,13 @@ namespace QSBar
 
             // Step 1: Center value logic
 
-            if (txtCenter.Text.Contains("<content>"))
+            string contentTag = WpsExcelAddIn.UseChineseRibbon ? "<内容>" : "<content>";
+
+            if (txtCenter.Text.Contains(contentTag))
 
             {
 
-                lastValue = txtCenter.Text.Replace("<content>", everyValue);
+                lastValue = txtCenter.Text.Replace(contentTag, everyValue);
 
             }
 
@@ -453,7 +467,7 @@ namespace QSBar
                     {
                         if (count >= maxPreview)
                         {
-                            sb.AppendLine("... only the first 50 items are shown");
+                            sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "... 仅显示前50项" : "... only the first 50 items are shown");
                             break;
                         }
 
@@ -483,14 +497,14 @@ namespace QSBar
                 }
                 catch
                 {
-                    sb.AppendLine("Unable to get visible cells from the selected range");
+                    sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "无法从选定范围获取可见单元格" : "Unable to get visible cells from the selected range");
                 }
 
                 txtPreview.Text = sb.ToString();
             }
             catch (Exception ex)
             {
-                txtPreview.Text = "Preview update failed: " + ex.Message;
+                txtPreview.Text = (WpsExcelAddIn.UseChineseRibbon ? "预览更新失败: " : "Preview update failed: ") + ex.Message;
             }
         }
 
@@ -552,12 +566,12 @@ namespace QSBar
 
                     if (errorAddresses.Count > 0)
                     {
-                        MessageBox.Show(BuildErrorMessage(errorAddresses), "Completed (Partial Errors)");
+                        MessageBox.Show(BuildErrorMessage(errorAddresses), WpsExcelAddIn.UseChineseRibbon ? "完成（部分错误）" : "Completed (Partial Errors)");
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("A fatal error occurred during processing: " + ex.Message);
+                    MessageBox.Show((WpsExcelAddIn.UseChineseRibbon ? "处理过程中发生致命错误: " : "A fatal error occurred during processing: ") + ex.Message);
                 }
                 finally
                 {
@@ -568,7 +582,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message);
+                MessageBox.Show((WpsExcelAddIn.UseChineseRibbon ? "错误: " : "Error: ") + ex.Message);
             }
         }
 
@@ -594,7 +608,7 @@ namespace QSBar
 
             var sb = new StringBuilder();
 
-            sb.AppendLine("The following cells failed while writing new content (invalid formulas or protected cells):");
+            sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "以下单元格写入新内容时失败（公式无效或单元格受保护）:" : "The following cells failed while writing new content (invalid formulas or protected cells):");
 
 
 
@@ -618,7 +632,7 @@ namespace QSBar
 
                 sb.AppendLine();
 
-                sb.Append(string.Format("... {0} more errors not listed", addresses.Count - max));
+                sb.Append(string.Format(WpsExcelAddIn.UseChineseRibbon ? "... 还有 {0} 个错误未列出" : "... {0} more errors not listed", addresses.Count - max));
 
             }
 

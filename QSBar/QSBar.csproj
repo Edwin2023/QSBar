@@ -218,6 +218,7 @@
     <Compile Include="KeyboardHook.cs" />
     <Compile Include="WpsExcelAddIn.cs" />
     <Compile Include="UpdateManager.cs" />
+    <Compile Include="AnalyticsHelper.cs" />
     <Compile Include="util.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

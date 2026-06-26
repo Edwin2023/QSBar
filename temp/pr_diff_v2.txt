@@ -1,0 +1,2178 @@
+diff --git a/Installinfo/QSBar_Installer.iss b/Installinfo/QSBar_Installer.iss
+index 7936307..2ca8f15 100644
+--- a/Installinfo/QSBar_Installer.iss
++++ b/Installinfo/QSBar_Installer.iss
+@@ -70,7 +70,6 @@ Source: "{#SourcePath}\QSBar.Core.dll"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\..\..\..\lib\Office.dll"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\..\..\..\lib\Microsoft.Office.Interop.Excel.dll"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\..\..\..\lib\Interop.AddInDesignerObjects.dll"; DestDir: "{app}"; Flags: ignoreversion
+-Source: "{#SourcePath}\QSBar.tlb"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\EPPlus.dll"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\EPPlus.Interfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
+ Source: "{#SourcePath}\EPPlus.System.Drawing.dll"; DestDir: "{app}"; Flags: ignoreversion
+@@ -128,7 +127,7 @@ Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flag
+ Filename: "{app}\Register.bat"; Parameters: "-Silent"; WorkingDir: "{app}"; Flags: runasoriginaluser waituntilterminated; StatusMsg: "Registering QSBar (User-Level)..."
+ 
+ ; 3. Auto-launch Excel after install (instead of showing notes)
+-Filename: "excel.exe"; Description: "Launch Excel now (立即启动 Excel)"; Flags: postinstall nowait shellexec skipifsilent
++Filename: "excel.exe"; Description: "Launch Excel now"; Flags: postinstall nowait shellexec skipifsilent
+ 
+ 
+ [UninstallRun]
+@@ -359,9 +358,9 @@ begin
+     
+     if (InstalledVer <> '') and (CompareVersion(InstalledVer, CurrentVer) > 0) then
+     begin
+-      V := MsgBox('检测到系统中已安装了更高版本的 QSBar (v' + InstalledVer + ')。' + #13#10 + 
+-             '您当前正在尝试安装较低的版本 (v' + CurrentVer + ')。' + #13#10#13#10 + 
+-             '继续安装将会覆盖高版本，是否确定继续？', mbConfirmation, MB_YESNO);
++      V := MsgBox('A newer version of QSBar is already installed (v' + InstalledVer + ').' + #13#10 + 
++             'You are trying to install an older version (v' + CurrentVer + ').' + #13#10#13#10 + 
++             'Continuing will replace the newer version. Do you want to continue?', mbConfirmation, MB_YESNO);
+       if V = IDNO then
+       begin
+         Result := False;
+diff --git a/Installinfo/UpdateNotes.html b/Installinfo/UpdateNotes.html
+index 21f7ded..4da6fc9 100644
+--- a/Installinfo/UpdateNotes.html
++++ b/Installinfo/UpdateNotes.html
+@@ -2,7 +2,7 @@
+ <html>
+ <head>
+     <meta charset="UTF-8">
+-    <title>QSBar 更新说明</title>
++    <title>QSBar Update Notes</title>
+     <style>
+         body { font-family: "Microsoft YaHei", sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+         .header { text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+@@ -17,17 +17,18 @@
+ <body>
+     <div class="header">
+         <img src="logo_horizontal.png" alt="QSBar Logo" class="logo">
+-        <h1 style="color: #2c3e50; border: none; padding: 0; margin-top: 10px;">插件更新说明</h1>
++        <h1 style="color: #2c3e50; border: none; padding: 0; margin-top: 10px;">Update Notes</h1>
+     </div>
+     
+-    <p>感谢您使用 QSBar！本次更新已成功安装。</p>
++    <p>Thank you for using QSBar. This update has been installed successfully.</p>
+     
+     <div class="feature-list">
+-        <p><span class="version">当前版本：<!-- VERSION_START -->1.0.1.13<!-- VERSION_END --></span></p>
+-        <h3>✨ 本次更新重点：</h3>
++        <p><span class="version">Current version: <!-- VERSION_START -->1.0.1.14<!-- VERSION_END --></span></p>
++        <h3>✨ Highlights:</h3>
+         <ul id="update-log">
+             <!-- LOG_START -->
+-            <li>统一分级样式配色与pk-boq合并报表技能一致：L1 #C6D9F1/L2 #EEF2FA/L3 #FBE5D6，字体#1A1A1A加粗</li>
++            <li>Added a bilingual Chinese/English Ribbon and a language switch button in the Help / Update group.</li>
++            <li>The selected language is saved for the current Windows user.</li>
+ 
+ 
+ 
+@@ -60,20 +61,20 @@ <h3>✨ 本次更新重点：</h3>
+         </ul>
+     </div>
+ 
+-    <h3>🖥️ 界面预览：</h3>
++    <h3>🖥️ Interface Preview:</h3>
+     
+     <div class="image-container">
+-        <p><strong>Excel 界面效果：</strong></p>
++        <p><strong>Excel preview:</strong></p>
+         <img src="Ribbon_EXCEL.bmp" alt="Excel Bar Preview">
+     </div>
+ 
+     <div class="image-container">
+-        <p><strong>WPS 界面效果：</strong></p>
++        <p><strong>WPS preview:</strong></p>
+         <img src="Ribbon_WPS.bmp" alt="WPS Bar Preview">
+     </div>
+ 
+     <div class="footer">
+-        如有任何问题，请访问项目主页：<a href="https://gitee.com/kevin137/qsbar-release" target="_blank">Gitee - QSBar</a>
++        Questions? Visit the project page: <a href="https://gitee.com/kevin137/qsbar-release" target="_blank">Gitee - QSBar</a>
+     </div>
+ </body>
+ </html>
+diff --git a/Installinfo/version.json b/Installinfo/version.json
+index 4a3dfa0..757dab1 100644
+--- a/Installinfo/version.json
++++ b/Installinfo/version.json
+@@ -1,5 +1,5 @@
+ ﻿{
+-    "version":  "1.0.1.13",
+-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.13.exe",
+-    "changeLog":  "统一分级样式配色与pk-boq合并报表技能一致：L1 #C6D9F1/L2 #EEF2FA/L3 #FBE5D6，字体#1A1A1A加粗"
+-}
+\ No newline at end of file
++    "version":  "1.0.1.14",
++    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.14.exe",
++    "changeLog":  "新增 QSBar Ribbon 中英双语界面与语言切换按钮，语言选择保存到当前 Windows 用户。"
++}
+diff --git a/QSBar.Setup/InstallForm.cs b/QSBar.Setup/InstallForm.cs
+index 57c8243..94913e3 100644
+--- a/QSBar.Setup/InstallForm.cs
++++ b/QSBar.Setup/InstallForm.cs
+@@ -20,7 +20,7 @@ public InstallForm(bool isUninstall)
+ 
+         private void InitializeComponent()
+         {
+-            this.Text = _isUninstall ? "QSBar 卸载程序" : "QSBar 安装程序";
++            this.Text = _isUninstall ? "QSBar Uninstaller" : "QSBar Installer";
+             this.Size = new Size(450, 200);
+             this.FormBorderStyle = FormBorderStyle.FixedDialog;
+             this.MaximizeBox = false;
+@@ -30,7 +30,7 @@ private void InitializeComponent()
+ 
+             _titleLabel = new Label
+             {
+-                Text = _isUninstall ? "正在卸载 QSBar..." : "正在安装 QSBar...",
++                Text = _isUninstall ? "Uninstalling QSBar..." : "Installing QSBar...",
+                 Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
+                 Location = new Point(20, 20),
+                 AutoSize = true
+@@ -38,7 +38,7 @@ private void InitializeComponent()
+ 
+             _statusLabel = new Label
+             {
+-                Text = "准备中...",
++                Text = "Preparing...",
+                 Font = new Font("Microsoft YaHei", 9),
+                 Location = new Point(20, 60),
+                 Size = new Size(400, 20)
+@@ -75,13 +75,13 @@ public async Task ExecuteAction(Func<Action<int, string>, Task> action)
+             try
+             {
+                 await action((progress, status) => UpdateProgress(progress, status));
+-                UpdateProgress(100, _isUninstall ? "卸载完成！" : "安装完成！");
++                UpdateProgress(100, _isUninstall ? "Uninstall complete." : "Install complete.");
+                 await Task.Delay(500);
+                 this.Close();
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show(string.Format("操作过程中出错: {0}", ex.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
++                MessageBox.Show(string.Format("The operation failed: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 this.Close();
+             }
+         }
+diff --git a/QSBar.Setup/Program.cs b/QSBar.Setup/Program.cs
+index f694e33..58ef7ae 100644
+--- a/QSBar.Setup/Program.cs
++++ b/QSBar.Setup/Program.cs
+@@ -28,18 +28,18 @@ static void Main(string[] args)
+             bool isUninstall = args.Contains("/u") || args.Contains("-u") || args.Contains("--uninstall");
+ 
+             InstallForm form = new InstallForm(isUninstall);
+-            
++
+             form.Shown += async (s, e) =>
+             {
+                 if (isUninstall)
+                 {
+                     await form.ExecuteAction(async (report) => await UninstallAsync(report));
+-                    MessageBox.Show("QSBar 插件已成功卸载！", "卸载完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
++                    MessageBox.Show("QSBar has been uninstalled.", "Uninstall Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                 }
+                 else
+                 {
+                     await form.ExecuteAction(async (report) => await InstallAsync(report));
+-                    MessageBox.Show("QSBar 插件已成功安装并注册！\n请重新启动 Excel 或 WPS。", "安装完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
++                    MessageBox.Show("QSBar has been installed and registered.\nPlease restart Excel or WPS.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                 }
+             };
+ 
+@@ -48,22 +48,18 @@ static void Main(string[] args)
+ 
+         static async Task InstallAsync(Action<int, string> report)
+         {
+-            // 1. 结束进程
+-            report(10, "正在关闭 Office 进程...");
++            report(10, "Closing Office processes...");
+             KillProcesses();
+ 
+-            // 2. 准备安装目录
+-            report(20, "正在准备安装目录...");
++            report(20, "Preparing installation folder...");
+             string installDir = GetInstallDir();
+             if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
+ 
+-            // 3. 复制文件
+-            report(30, "正在复制程序文件...");
++            report(30, "Copying program files...");
+             string sourceDir = AppDomain.CurrentDomain.BaseDirectory;
+             string dllSource = Path.Combine(sourceDir, "QSBar.dll");
+             if (!File.Exists(dllSource))
+             {
+-                // 尝试从项目源码结构中寻找 (适配 VS 调试环境)
+                 dllSource = Path.Combine(sourceDir, "..", "..", "..", "QSBar", "bin", "Debug", "QSBar.dll");
+                 if (!File.Exists(dllSource))
+                 {
+@@ -72,67 +68,57 @@ static async Task InstallAsync(Action<int, string> report)
+             }
+ 
+             if (!File.Exists(dllSource))
+-                throw new FileNotFoundException("找不到 QSBar.dll，请确保它位于安装程序目录或 payload 目录中。");
++                throw new FileNotFoundException("QSBar.dll was not found. Make sure it is located in the installer folder or the payload folder.");
+ 
+             string dllDest = Path.Combine(installDir, "QSBar.dll");
+             File.Copy(dllSource, dllDest, true);
+ 
+-            // 复制依赖项
+             foreach (string file in Directory.GetFiles(Path.GetDirectoryName(dllSource), "*.dll"))
+             {
+                 if (Path.GetFileName(file) == "QSBar.dll") continue;
+                 File.Copy(file, Path.Combine(installDir, Path.GetFileName(file)), true);
+             }
+ 
+-            // 4. COM 注册
+-            report(50, "正在进行 COM 注册 (可能需要几秒)...");
++            report(50, "Running COM registration (may take a few seconds)...");
+             await Task.Run(() => RegisterCom(dllDest));
+ 
+-            // 5. Office/WPS 加载项注册表设置
+-            report(70, "正在配置 Office 注册表...");
++            report(70, "Configuring Office registry entries...");
+             RegisterAddIn();
+ 
+-            // 6. WPS 白名单
+-            report(80, "正在配置 WPS 白名单...");
++            report(80, "Configuring WPS whitelist...");
+             RegisterWpsWhitelist();
+ 
+-            // 7. 设置环境变量
+-            report(85, "正在设置环境参数...");
++            report(85, "Setting environment variables...");
+             Environment.SetEnvironmentVariable("VSTO_LOGALERTS", "1", EnvironmentVariableTarget.User);
+ 
+-            // 8. 清理 Excel 禁用项
+-            report(90, "正在清理 Office 禁用项...");
++            report(90, "Cleaning Office disabled items...");
+             ClearResiliency();
+ 
+-            report(100, "安装完成！");
++            report(100, "Installation complete.");
+         }
+ 
+         static async Task UninstallAsync(Action<int, string> report)
+         {
+-            report(10, "正在关闭 Office 进程...");
++            report(10, "Closing Office processes...");
+             KillProcesses();
+ 
+-            // 1. 反注册 COM
+-            report(30, "正在反注册 COM 组件...");
++            report(30, "Unregistering COM components...");
+             await Task.Run(() => UnregisterCom());
+ 
+-            // 2. 清除加载项注册表
+-            report(50, "正在清除注册表设置...");
++            report(50, "Removing registry entries...");
+             UnregisterAddIn();
+ 
+-            // 3. 清除 WPS 白名单
+-            report(70, "正在清除 WPS 白名单...");
++            report(70, "Removing WPS whitelist entries...");
+             UnregisterWpsWhitelist();
+ 
+-            // 4. 删除安装目录
+-            report(90, "正在删除程序文件...");
++            report(90, "Deleting program files...");
+             string installDir = GetInstallDir();
+             if (Directory.Exists(installDir))
+             {
+                 try { Directory.Delete(installDir, true); } catch { }
+             }
+ 
+-            report(100, "卸载完成！");
++            report(100, "Uninstall complete.");
+         }
+ 
+         static void KillProcesses()
+@@ -154,19 +140,15 @@ static string GetInstallDir()
+ 
+         static void RegisterCom(string dllPath)
+         {
+-            // 使用 RegistrationServices 进行注册 (相当于 RegAsm /codebase)
+-            // 注意：这需要在管理员权限下运行
+             try
+             {
+                 Assembly asm = Assembly.LoadFrom(dllPath);
+                 RegistrationServices regSvc = new RegistrationServices();
+                 if (!regSvc.RegisterAssembly(asm, AssemblyRegistrationFlags.SetCodeBase))
+                 {
+-                    throw new Exception("COM 注册失败：程序集可能不包含可注册的类。");
++                    throw new Exception("COM registration failed: the assembly may not contain any registrable types.");
+                 }
+ 
+-                // 额外手动写入 HKCU 注册表，确保 Excel/WPS 可见 (用户级别)
+-                // 模拟 quick_setup.ps1 中的逻辑
+                 using (RegistryKey clsidKey = Registry.CurrentUser.CreateSubKey(string.Format(@"Software\Classes\CLSID\{0}", CLSID)))
+                 {
+                     clsidKey.SetValue("", ProgID);
+@@ -188,13 +170,12 @@ static void RegisterCom(string dllPath)
+             }
+             catch (Exception ex)
+             {
+-                throw new Exception(string.Format("COM 注册过程中出错: {0}", ex.Message), ex);
++                throw new Exception(string.Format("Error during COM registration: {0}", ex.Message), ex);
+             }
+         }
+ 
+         static void UnregisterCom()
+         {
+-            // 清理 HKCU 下的自定义 COM 注册
+             try
+             {
+                 Registry.CurrentUser.DeleteSubKeyTree(string.Format(@"Software\Classes\CLSID\{0}", CLSID), false);
+@@ -220,7 +201,7 @@ static void RegisterAddIn()
+                     key.SetValue("FriendlyName", FriendlyName);
+                     key.SetValue("LoadBehavior", 3, RegistryValueKind.DWord);
+                     key.SetValue("CommandLineSafe", 1, RegistryValueKind.DWord);
+-                    key.DeleteValue("Manifest", false); // 确保没有旧的 VSTO 残留
++                    key.DeleteValue("Manifest", false);
+                 }
+             }
+         }
+diff --git a/QSBar/BatchProcessForm.cs b/QSBar/BatchProcessForm.cs
+index c77c980..95d4e13 100644
+--- a/QSBar/BatchProcessForm.cs
++++ b/QSBar/BatchProcessForm.cs
+@@ -50,7 +50,7 @@ private void InitializeComponent()
+ 
+             this.Size = new Size(600, 750);
+ 
+-            this.Text = "批量处理";
++            this.Text = "Batch Process";
+ 
+             this.StartPosition = FormStartPosition.CenterScreen;
+ 
+@@ -82,19 +82,19 @@ private void InitializeComponent()
+ 
+             // Row 1: Left, Center, Right
+ 
+-            Label lblLeft = new Label { Text = "前缀:", Location = new Point(margin, y + 5), Width = labelWidth, AutoSize = false };
++            Label lblLeft = new Label { Text = "Prefix:", Location = new Point(margin, y + 5), Width = labelWidth, AutoSize = false };
+ 
+             txtLeft = new TextBox { Location = new Point(margin + labelWidth, y), Width = textBoxWidth };
+ 
+             
+ 
+-            Label lblCenter = new Label { Text = "主体:", Location = new Point(margin + labelWidth + textBoxWidth + 20, y + 5), Width = labelWidth, AutoSize = false };
++            Label lblCenter = new Label { Text = "Body:", Location = new Point(margin + labelWidth + textBoxWidth + 20, y + 5), Width = labelWidth, AutoSize = false };
+ 
+             txtCenter = new TextBox { Location = new Point(margin + labelWidth * 2 + textBoxWidth + 20, y), Width = textBoxWidth };
+ 
+             
+ 
+-            Label lblRight = new Label { Text = "后缀:", Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2, y + 5), Width = labelWidth, AutoSize = false };
++            Label lblRight = new Label { Text = "Suffix:", Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2, y + 5), Width = labelWidth, AutoSize = false };
+ 
+             txtRight = new TextBox { Location = new Point(margin + (labelWidth + textBoxWidth + 20) * 2 + labelWidth, y), Width = textBoxWidth };
+ 
+@@ -120,7 +120,7 @@ private void InitializeComponent()
+ 
+             // GroupBox for Find/Replace
+ 
+-            GroupBox grpReplace = new GroupBox { Text = "查找替换", Location = new Point(margin, y), Size = new Size(540, 120) };
++            GroupBox grpReplace = new GroupBox { Text = "Find and Replace", Location = new Point(margin, y), Size = new Size(540, 120) };
+ 
+             
+ 
+@@ -136,13 +136,13 @@ private void InitializeComponent()
+ 
+             // Row 2: Replace 1 inside GroupBox
+ 
+-            Label lblFind1 = new Label { Text = "查找1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
++            Label lblFind1 = new Label { Text = "Find 1:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+ 
+             txtFind1 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
+ 
+             
+ 
+-            Label lblRep1 = new Label { Text = "替换1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
++            Label lblRep1 = new Label { Text = "Replace 1:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+ 
+             txtRep1 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
+ 
+@@ -164,13 +164,13 @@ private void InitializeComponent()
+ 
+             // Row 3: Replace 2 inside GroupBox
+ 
+-            Label lblFind2 = new Label { Text = "查找2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
++            Label lblFind2 = new Label { Text = "Find 2:", Location = new Point(margin, grpY + 3), Width = findLabelWidth, AutoSize = false };
+ 
+             txtFind2 = new TextBox { Location = new Point(margin + findLabelWidth, grpY), Width = findTextWidth };
+ 
+ 
+ 
+-            Label lblRep2 = new Label { Text = "替换2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
++            Label lblRep2 = new Label { Text = "Replace 2:", Location = new Point(margin + findLabelWidth + findTextWidth + gap, grpY + 3), Width = findLabelWidth, AutoSize = false };
+ 
+             txtRep2 = new TextBox { Location = new Point(margin + findLabelWidth * 2 + findTextWidth + gap, grpY), Width = findTextWidth };
+ 
+@@ -196,7 +196,7 @@ private void InitializeComponent()
+ 
+             // Row 4: Preview Label
+ 
+-            Label lblPreview = new Label { Text = "预览结果:", Location = new Point(margin, y), Width = 200 };
++            Label lblPreview = new Label { Text = "Preview:", Location = new Point(margin, y), Width = 200 };
+ 
+             this.Controls.Add(lblPreview);
+ 
+@@ -256,7 +256,7 @@ private void InitializeComponent()
+ 
+             { 
+ 
+-                Text = "确定", 
++                Text = "OK", 
+ 
+                 Location = new Point(btnX, btnY), 
+ 
+@@ -278,7 +278,7 @@ private void InitializeComponent()
+ 
+             { 
+ 
+-                Text = "取消", 
++                Text = "Cancel", 
+ 
+                 Location = new Point(btnX + btnWidth + btnGap, btnY), 
+ 
+@@ -342,7 +342,7 @@ private void InitializeDefaults()
+ 
+         {
+ 
+-            txtCenter.Text = "<内容>";
++            txtCenter.Text = "<content>";
+ 
+         }
+ 
+@@ -358,11 +358,11 @@ private string SumUp(string everyValue, int item)
+ 
+             // Step 1: Center value logic
+ 
+-            if (txtCenter.Text.Contains("<内容>"))
++            if (txtCenter.Text.Contains("<content>"))
+ 
+             {
+ 
+-                lastValue = txtCenter.Text.Replace("<内容>", everyValue);
++                lastValue = txtCenter.Text.Replace("<content>", everyValue);
+ 
+             }
+ 
+@@ -453,7 +453,7 @@ private void UpdatePreview()
+                     {
+                         if (count >= maxPreview)
+                         {
+-                            sb.AppendLine("...仅显示前 50 项");
++                            sb.AppendLine("... only the first 50 items are shown");
+                             break;
+                         }
+ 
+@@ -483,14 +483,14 @@ private void UpdatePreview()
+                 }
+                 catch
+                 {
+-                    sb.AppendLine("无法获取选定区域的可见单元格");
++                    sb.AppendLine("Unable to get visible cells from the selected range");
+                 }
+ 
+                 txtPreview.Text = sb.ToString();
+             }
+             catch (Exception ex)
+             {
+-                txtPreview.Text = "预览更新失败: " + ex.Message;
++                txtPreview.Text = "Preview update failed: " + ex.Message;
+             }
+         }
+ 
+@@ -552,12 +552,12 @@ private void BtnOK_Click(object sender, EventArgs e)
+ 
+                     if (errorAddresses.Count > 0)
+                     {
+-                        MessageBox.Show(BuildErrorMessage(errorAddresses), "处理完成(部分错误)");
++                        MessageBox.Show(BuildErrorMessage(errorAddresses), "Completed (Partial Errors)");
+                     }
+                 }
+                 catch (Exception ex)
+                 {
+-                    MessageBox.Show("处理过程发生严重错误: " + ex.Message);
++                    MessageBox.Show("A fatal error occurred during processing: " + ex.Message);
+                 }
+                 finally
+                 {
+@@ -568,7 +568,7 @@ private void BtnOK_Click(object sender, EventArgs e)
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("错误: " + ex.Message);
++                MessageBox.Show("Error: " + ex.Message);
+             }
+         }
+ 
+@@ -581,7 +581,7 @@ private static string TryGetAddress(Excel.Range cell)
+         {
+             try { return (string)cell.Address[false, false]; } catch { }
+             try { return (string)cell.Address; } catch { }
+-            return "<未知>";
++            return "<unknown>";
+         }
+ 
+ 
+@@ -594,7 +594,7 @@ private static string BuildErrorMessage(List<string> addresses)
+ 
+             var sb = new StringBuilder();
+ 
+-            sb.AppendLine("以下单元格在写入新内容时发生错误（公式非法或单元格受保护）：");
++            sb.AppendLine("The following cells failed while writing new content (invalid formulas or protected cells):");
+ 
+ 
+ 
+@@ -618,7 +618,7 @@ private static string BuildErrorMessage(List<string> addresses)
+ 
+                 sb.AppendLine();
+ 
+-                sb.Append(string.Format("... 还有 {0} 个错误未列出", addresses.Count - max));
++                sb.Append(string.Format("... {0} more errors not listed", addresses.Count - max));
+ 
+             }
+ 
+diff --git a/QSBar/DataCommands.cs b/QSBar/DataCommands.cs
+index 7efd4f4..87ea4b7 100644
+--- a/QSBar/DataCommands.cs
++++ b/QSBar/DataCommands.cs
+@@ -323,7 +323,7 @@ public static void PasteExternalLinks()
+ 
+             if (activeSheet.ProtectContents)
+             {
+-                MessageBox.Show("工作表已保护,本程序拒绝执行！", "提示");
++                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
+                 return;
+             }
+ 
+@@ -356,7 +356,7 @@ public static void PasteExternalLinks()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("处理外部链接失败: " + ex.Message);
++                MessageBox.Show("Failed to process external links: " + ex.Message);
+             }
+             finally
+             {
+diff --git a/QSBar/ExportCommands.cs b/QSBar/ExportCommands.cs
+index f1552a5..38af7df 100644
+--- a/QSBar/ExportCommands.cs
++++ b/QSBar/ExportCommands.cs
+@@ -85,7 +85,7 @@ public static void ExportCurrentSheet()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("导出失败: " + ex.Message);
++                MessageBox.Show("Export failed: " + ex.Message);
+             }
+             finally
+             {
+@@ -128,7 +128,7 @@ public static void ConvertAllToValues()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("转换失败: " + ex.Message);
++                MessageBox.Show("Conversion failed: " + ex.Message);
+             }
+             finally
+             {
+@@ -202,7 +202,7 @@ private static void PerformExport(bool isInternal)
+ 
+                 string dateStr = DateTime.Now.ToString("yyyy-MM-dd"); // Replaced / with -
+ 
+-                string prefix = isInternal ? string.Format("(OUT内部全数据{0})", dateStr) : string.Format("(OUT{0})", dateStr);
++                string prefix = isInternal ? string.Format("(OUT-Internal-{0})", dateStr) : string.Format("(OUT{0})", dateStr);
+ 
+                 string sourcePath = sourceWb.Path;
+ 
+@@ -288,7 +288,7 @@ private static void PerformExport(bool isInternal)
+ 
+             {
+ 
+-                MessageBox.Show("导出失败: " + ex.Message);
++                MessageBox.Show("Export failed: " + ex.Message);
+ 
+             }
+ 
+diff --git a/QSBar/FormatCommands.cs b/QSBar/FormatCommands.cs
+index 5b515e9..086197e 100644
+--- a/QSBar/FormatCommands.cs
++++ b/QSBar/FormatCommands.cs
+@@ -272,8 +272,8 @@ public static void SetGrading()
+                         object val = dataValues[i, c];
+                         string v = val == null ? "" : val.ToString();
+                         
+-                        if (Like(v, "*【*")) { level = 1; break; }
+-                        else if (Like(v, "*《*")) { level = 2; break; }
++                        if (Like(v, "*【*") || Like(v, "*[[*")) { level = 1; break; }
++                        else if (Like(v, "*《*") || Like(v, "*<<*")) { level = 2; break; }
+                         else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
+                     }
+                     
+@@ -461,11 +461,11 @@ public static void BreakExternalLinks()
+                     }
+                 }
+ 
+-                MessageBox.Show("外部链接已全部断开为数值，且已清理异常的定义名称。", "处理完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
++                MessageBox.Show("All external links have been broken into values, and invalid defined names have been cleaned up.", "Completed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("删除外部链接时出错: " + ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
++                MessageBox.Show("Error while removing external links: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+             }
+             finally
+             {
+diff --git a/QSBar/HelpForm.cs b/QSBar/HelpForm.cs
+index 48d7171..436a4f5 100644
+--- a/QSBar/HelpForm.cs
++++ b/QSBar/HelpForm.cs
+@@ -12,7 +12,7 @@ public partial class HelpForm : Form
+         private Label lblTitle;
+         private Label lblVersion;
+         private Label lblUpdateDate;
+-        private TextBox txtContent; // 使用 TextBox 替代 Label 以支持滚动条
++        private TextBox txtContent;
+         private LinkLabel lnkDownload;
+         private Button btnClose;
+ 
+@@ -31,76 +31,68 @@ private void InitializeComponent()
+             this.lnkDownload = new LinkLabel();
+             this.btnClose = new Button();
+ 
+-            // Form
+-            this.Text = "关于 QS 工具箱";
+-            this.Size = new Size(550, 650); // 进一步扩大窗口
++            this.Text = "About QS Toolbox";
++            this.Size = new Size(550, 650);
+             this.FormBorderStyle = FormBorderStyle.FixedDialog;
+             this.MaximizeBox = false;
+             this.MinimizeBox = false;
+             this.StartPosition = FormStartPosition.CenterScreen;
+             this.BackColor = Color.White;
+-            this.Font = new Font("微软雅黑", 10);
+-            this.KeyPreview = true; // 允许窗体接收键盘事件
++            this.Font = new Font("Microsoft YaHei", 10);
++            this.KeyPreview = true;
+ 
+-            // ESC 键关闭
+             this.KeyDown += (s, e) => {
+                 if (e.KeyCode == Keys.Escape) this.Close();
+             };
+ 
+-            // Title
+-            lblTitle.Text = "QS 工具箱 (QSBar)";
+-            lblTitle.Font = new Font("微软雅黑", 18, FontStyle.Bold);
++            lblTitle.Text = "QS Toolbox (QSBar)";
++            lblTitle.Font = new Font("Microsoft YaHei", 18, FontStyle.Bold);
+             lblTitle.Location = new Point(20, 20);
+             lblTitle.Size = new Size(500, 45);
+             lblTitle.ForeColor = Color.FromArgb(0, 120, 215);
+ 
+-            // Version
+             lblVersion.Location = new Point(25, 75);
+             lblVersion.Size = new Size(500, 30);
+ 
+-            // Update Date
+             lblUpdateDate.Location = new Point(25, 105);
+             lblUpdateDate.Size = new Size(500, 30);
+ 
+-            // Content TextBox (Shortcuts & Features)
+             txtContent.Multiline = true;
+             txtContent.ReadOnly = true;
+             txtContent.ScrollBars = ScrollBars.Vertical;
+             txtContent.BorderStyle = BorderStyle.None;
+             txtContent.BackColor = Color.White;
+             txtContent.Location = new Point(25, 145);
+-            txtContent.Size = new Size(485, 380); // 较大的显示区域
+-            txtContent.Text = "常用快捷键:\r\n" +
+-                               "--------------------------------------------------\r\n" +
+-                               "Ctrl + 3:  批量处理\r\n" +
+-                               "Ctrl + 4:  选中非空单元格\r\n" +
+-                               "Ctrl + 5:  选中可见单元格\r\n" +
+-                               "Ctrl + 6:  会计格式 (0位小数)\r\n" +
+-                               "Ctrl + 7:  会计格式 (2位小数)\r\n" +
+-                               "Ctrl + 8:  会计格式 (3位小数)\r\n" +
+-                               "Ctrl + 9:  亿/万位格式切换\r\n" +
+-                               "Ctrl + 0:  手动/自动计算切换\r\n\r\n" +
+-                               "功能说明:\r\n" +
+-                               "--------------------------------------------------\r\n" +
+-                               "【批量处理】支持大数据量的快速计算与转换。\r\n" +
+-                               "【导出报表】支持标准、内部等多种报表导出格式。\r\n" +
+-                               "【格式规范】一键数值化、公式锁定、换行处理。\r\n" +
+-                               "【分级筛选】自动设置分级显示，美化分级样式。\r\n" +
+-                               "【图片工具】批量调整图片大小，全选当前页图片。\r\n" +
+-                               "【表/文件管理】合并工作表、生成目录、文件管理。\r\n" +
+-                               "【计算模式】快速切换自动/手动计算模式。";
++            txtContent.Size = new Size(485, 380);
++            txtContent.Text = "Shortcuts:\r\n" +
++                              "--------------------------------------------------\r\n" +
++                              "Ctrl + 3:  Batch process\r\n" +
++                              "Ctrl + 4:  Select non-empty cells\r\n" +
++                              "Ctrl + 5:  Select visible cells\r\n" +
++                              "Ctrl + 6:  Accounting format (0 decimals)\r\n" +
++                              "Ctrl + 7:  Accounting format (2 decimals)\r\n" +
++                              "Ctrl + 8:  Accounting format (3 decimals)\r\n" +
++                              "Ctrl + 9:  Switch between billion / ten-thousand format\r\n" +
++                              "Ctrl + 0:  Toggle manual / automatic calculation\r\n\r\n" +
++                              "Features:\r\n" +
++                              "--------------------------------------------------\r\n" +
++                              "[Batch Process] Fast calculation and conversion for large data sets.\r\n" +
++                              "[Export Reports] Export standard, internal, and other report formats.\r\n" +
++                              "[Format Tools] One-click values, formula lock, and line wrapping.\r\n" +
++                              "[Outline Tools] Automatic outline display and styling.\r\n" +
++                              "[Picture Tools] Resize pictures in bulk and select all pictures.\r\n" +
++                              "[Sheet / File Tools] Merge worksheets and generate indexes.\r\n" +
++                              "[Calculation Mode] Switch between automatic and manual calculation.";
+ 
+-            // Download Link
+-            lnkDownload.Text = "下载地址: https://gitee.com/kevin137/qsbar-release";
++            lnkDownload.Text = "Download: https://gitee.com/kevin137/qsbar-release";
+             lnkDownload.Location = new Point(25, 540);
+             lnkDownload.Size = new Size(500, 30);
+             lnkDownload.LinkClicked += (s, e) => {
+                 try { Process.Start("https://gitee.com/kevin137/qsbar-release"); }
+-                catch { MessageBox.Show("无法打开链接。"); }
++                catch { MessageBox.Show("Unable to open the link."); }
+             };
+ 
+-            // Buttons
+-            btnClose.Text = "关闭";
++            btnClose.Text = "Close";
+             btnClose.Location = new Point(410, 565);
+             btnClose.Size = new Size(100, 35);
+             btnClose.Click += (s, e) => this.Close();
+@@ -112,15 +104,15 @@ private void LoadInfo()
+         {
+             var assembly = Assembly.GetExecutingAssembly();
+             var version = assembly.GetName().Version;
+-            
+-            lblVersion.Text = string.Format("版本号: v{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
+-            
++
++            lblVersion.Text = string.Format("Version: v{0}.{1}.{2}.{3}", version.Major, version.Minor, version.Build, version.Revision);
++
+             try {
+                 var lastWriteTime = File.GetLastWriteTime(assembly.Location);
+-                lblUpdateDate.Text = string.Format("最后编译日期: {0:yyyy-MM-dd HH:mm:ss}", lastWriteTime);
++                lblUpdateDate.Text = string.Format("Last build time: {0:yyyy-MM-dd HH:mm:ss}", lastWriteTime);
+             }
+             catch {
+-                lblUpdateDate.Text = "更新日期: 无法获取";
++                lblUpdateDate.Text = "Build time: unavailable";
+             }
+         }
+     }
+diff --git a/QSBar/LegacyAppCommands.cs b/QSBar/LegacyAppCommands.cs
+index cac3f60..8d5b4c6 100644
+--- a/QSBar/LegacyAppCommands.cs
++++ b/QSBar/LegacyAppCommands.cs
+@@ -6,7 +6,6 @@ namespace QSBar
+ {
+     public static class LegacyAppCommands
+     {
+-        
+         public static void LockFormula()
+         {
+             Excel.Application app = WpsExcelAddIn.App;
+@@ -17,15 +16,13 @@ public static void LockFormula()
+             app.ScreenUpdating = false;
+             try
+             {
+-                // Find all cells with formulas in the selection
+                 Excel.Range formulas = null;
+                 try
+                 {
+                     formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
+                 }
+-                catch 
++                catch
+                 {
+-                    // No formulas found
+                     return;
+                 }
+ 
+@@ -33,7 +30,6 @@ public static void LockFormula()
+                 {
+                     foreach (Excel.Range area in formulas.Areas)
+                     {
+-                        // Convert formulas to absolute references
+                         foreach (Excel.Range cell in area)
+                         {
+                             try
+@@ -41,28 +37,27 @@ public static void LockFormula()
+                                 string f = (string)cell.Formula;
+                                 if (!string.IsNullOrEmpty(f))
+                                 {
+-                                    // Convert A1 style references to absolute A1 style references
+                                     object newFormula = app.ConvertFormula(
+                                         f,
+                                         Excel.XlReferenceStyle.xlA1,
+                                         Excel.XlReferenceStyle.xlA1,
+                                         Excel.XlReferenceType.xlAbsolute
+                                     );
+-                                    
+-                                    if (newFormula is string s && !string.IsNullOrEmpty(s))
++
++                                    string s = newFormula as string;
++                                    if (!string.IsNullOrEmpty(s))
+                                     {
+                                         cell.Formula = s;
+                                     }
+                                 }
+                             }
+-                            catch { /* Ignore individual conversion errors */ }
++                            catch { }
+                         }
+                     }
+                 }
+             }
+             catch
+             {
+-                // Ignore general errors
+             }
+             finally
+             {
+@@ -70,7 +65,6 @@ public static void LockFormula()
+             }
+         }
+ 
+-        
+         public static void OpenFileDirectory()
+         {
+             Excel.Application app = WpsExcelAddIn.App;
+@@ -84,12 +78,12 @@ public static void OpenFileDirectory()
+                 }
+                 else
+                 {
+-                    MessageBox.Show("当前工作簿尚未保存！");
++                    MessageBox.Show("The current workbook has not been saved yet.");
+                 }
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("打开目录失败: " + ex.Message);
++                MessageBox.Show("Failed to open folder: " + ex.Message);
+             }
+         }
+ 
+@@ -110,20 +104,18 @@ public static void ToggleCalculation()
+                 if (app.Calculation == Excel.XlCalculation.xlCalculationAutomatic)
+                 {
+                     app.Calculation = Excel.XlCalculation.xlCalculationManual;
+-                    ToastForm.ShowToast("✅ 已切换为: 手动计算");
++                    ToastForm.ShowToast("Calculation mode switched to: Manual");
+                 }
+                 else
+                 {
+                     app.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
+-                    ToastForm.ShowToast("✅ 已切换为: 自动计算");
++                    ToastForm.ShowToast("Calculation mode switched to: Automatic");
+                 }
+-                // Update ribbon buttons state
+                 WpsExcelAddIn.InvalidateCalcButtons();
+             }
+             catch { }
+         }
+ 
+-        
+         public static void LockValidationCells()
+         {
+             Excel.Application app = WpsExcelAddIn.App;
+@@ -137,7 +129,7 @@ public static void LockValidationCells()
+                 {
+                     try
+                     {
+-                        if (cell.Validation.Type != (int)Excel.XlDVType.xlValidateInputOnly) // xlValidateInputOnly = 0
++                        if (cell.Validation.Type != (int)Excel.XlDVType.xlValidateInputOnly)
+                         {
+                             cell.Locked = true;
+                         }
+@@ -149,4 +141,3 @@ public static void LockValidationCells()
+         }
+     }
+ }
+-
+diff --git a/QSBar/PhotoCommands.cs b/QSBar/PhotoCommands.cs
+index 10077bd..d7861f9 100644
+--- a/QSBar/PhotoCommands.cs
++++ b/QSBar/PhotoCommands.cs
+@@ -73,7 +73,7 @@ public static void SelectAllPictures()
+ 
+             if (activeSheet.ProtectContents)
+             {
+-                MessageBox.Show("工作表已保护,本程序拒绝执行！", "提示");
++                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
+                 return;
+             }
+ 
+diff --git a/QSBar/Properties/AssemblyInfo.cs b/QSBar/Properties/AssemblyInfo.cs
+index 2e0e010..711f06d 100644
+--- a/QSBar/Properties/AssemblyInfo.cs
++++ b/QSBar/Properties/AssemblyInfo.cs
+@@ -7,7 +7,7 @@
+ // set of attributes. Change these attribute values to modify the information
+ // associated with an assembly.
+ [assembly: AssemblyTitle("QSBar")]
+-[assembly: AssemblyDescription("QS工具箱 - 兼容 Excel 和 WPS 的高效办公插件")]
++[assembly: AssemblyDescription("QS Toolbox - a productivity add-in for Excel and WPS")]
+ [assembly: AssemblyConfiguration("")]
+ [assembly: AssemblyCompany("QS Studio")]
+ [assembly: AssemblyProduct("QSBar Professional")]
+@@ -32,6 +32,6 @@
+ //
+ // You can specify all the values or you can default the Build and Revision Numbers 
+ // by using the '*' as shown below:
+-// [assembly: AssemblyVersion("1.0.1.13")]
+-[assembly: AssemblyVersion("1.0.1.13")]
+-[assembly: AssemblyFileVersion("1.0.1.13")]
++// [assembly: AssemblyVersion("1.0.1.14")]
++[assembly: AssemblyVersion("1.0.1.14")]
++[assembly: AssemblyFileVersion("1.0.1.14")]
+diff --git a/QSBar/QSBar.csproj b/QSBar/QSBar.csproj
+index 5dfa4d3..0133b22 100644
+--- a/QSBar/QSBar.csproj
++++ b/QSBar/QSBar.csproj
+@@ -34,7 +34,7 @@
+     <PublishUrl>publish\</PublishUrl>
+     <InstallUrl />
+     <TargetCulture>en</TargetCulture>
+-    <ApplicationVersion>1.0.1.13</ApplicationVersion>
++    <ApplicationVersion>1.0.1.14</ApplicationVersion>
+     <AutoIncrementApplicationRevision>true</AutoIncrementApplicationRevision>
+     <UpdateEnabled>true</UpdateEnabled>
+     <UpdateInterval>7</UpdateInterval>
+diff --git a/QSBar/Ribbon.xml b/QSBar/Ribbon.xml
+index 05f5ddf..a90d5cf 100644
+--- a/QSBar/Ribbon.xml
++++ b/QSBar/Ribbon.xml
+@@ -1,92 +1,89 @@
+-﻿<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' onLoad='OnLoad'>
++<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' onLoad='OnLoad'>
+   <ribbon>
+     <tabs>
+-      <tab id='tabQSBar' label='QS工具箱'>
+-        <group id='groupFormat' label='格式/排版'>
+-          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines'
+-            size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
+-          <button id='btnNormalize' label='数值化' onAction='OnNormalizeNumbers'
+-            imageMso='NumberFormat' size='normal' screentip='数据规范化' supertip='对选中区域的数据进行规范化处理' />
+-          <button id='btnTextify' label='文本化' onAction='OnTextify' imageMso='TextBoxInsert'
+-            size='normal' screentip='数据文本化' supertip='将选中区域的数据强制转换为文本格式' />
+-          <button id='btnLock' label='锁定公式' onAction='OnLockFormula' imageMso='Lock' size='normal'
+-            screentip='锁定/解锁公式' supertip='锁定或解锁选中区域的单元格公式' />
++      <tab id='tabQSBar' getLabel='GetRibbonLabel'>
++        <group id='groupFormat' getLabel='GetRibbonLabel'>
++          <button id='btnBatch' getLabel='GetRibbonLabel' onAction='OnBatchProcess' imageMso='ViewSheetGridlines'
++            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnNormalize' getLabel='GetRibbonLabel' onAction='OnNormalizeNumbers'
++            imageMso='NumberFormat' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnTextify' getLabel='GetRibbonLabel' onAction='OnTextify' imageMso='TextBoxInsert'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnLock' getLabel='GetRibbonLabel' onAction='OnLockFormula' imageMso='Lock' size='normal'
++            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+ 
+-        <group id='groupBQ' label='批量处理'>
+-          <button id='btnSetGrading' label='设置分级' onAction='OnSetGrading' imageMso='ObjectsGroup'
+-            size='large' screentip='设置分级显示' supertip='根据内容自动设置工作表的分级显示' />
+-          <button id='btnSetGradingStyle' label='分级样式' onAction='OnSetGradingStyle'
+-            imageMso='FormatPainter' size='large' screentip='设置分级样式' supertip='为分级显示设置不同的单元格样式' />
+-          <button id='btnOutSheet' label='导出当前表' onAction='OnExportCurrentSheet'
+-            imageMso='WindowNew' size='normal' screentip='导出当前表' supertip='以数值形式导出当前工作表' />
+-          <button id='btnOutStd' label='导出标准报表' onAction='OnExportStandardReport'
+-            imageMso='FileSaveAs' size='normal' screentip='导出标准报表' supertip='删除隐藏的行和列，以数值形式导出全部工作表' />
+-          <button id='btnOutInt' label='导出内部报表' onAction='OnExportInternalReport'
+-            imageMso='FileSaveAs' size='normal' screentip='导出内部报表' supertip='以数值形式导出全部工作表' />
+-
++        <group id='groupBQ' getLabel='GetRibbonLabel'>
++          <button id='btnSetGrading' getLabel='GetRibbonLabel' onAction='OnSetGrading' imageMso='ObjectsGroup'
++            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnSetGradingStyle' getLabel='GetRibbonLabel' onAction='OnSetGradingStyle'
++            imageMso='FormatPainter' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnOutSheet' getLabel='GetRibbonLabel' onAction='OnExportCurrentSheet'
++            imageMso='WindowNew' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnOutStd' getLabel='GetRibbonLabel' onAction='OnExportStandardReport'
++            imageMso='FileSaveAs' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnOutInt' getLabel='GetRibbonLabel' onAction='OnExportInternalReport'
++            imageMso='FileSaveAs' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+ 
+-        <group id='groupGrading' label='分级/筛选'>
+-          <button id='btnMergeSheets' label='合并工作表' onAction='OnMergeSheets' imageMso='Consolidate'
+-            size='large' screentip='合并工作表' supertip='将多个工作表合并为一个工作表' />
+-          <button id='btnSheetIndex' label='生成表目录' onAction='OnCreateSheetIndex'
+-            imageMso='Numbering' size='large' screentip='生成表目录' supertip='在当前工作簿中生成所有工作表的目录' />
+-          <button id='btnFileDir' label='生成文件目录' onAction='OnCreateFileIndex' imageMso='FileOpen'
+-            size='large' screentip='生成文件目录' supertip='选择文件并在当前工作簿中生成这些文件的目录' />
+-
++        <group id='groupGrading' getLabel='GetRibbonLabel'>
++          <button id='btnMergeSheets' getLabel='GetRibbonLabel' onAction='OnMergeSheets' imageMso='Consolidate'
++            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnSheetIndex' getLabel='GetRibbonLabel' onAction='OnCreateSheetIndex'
++            imageMso='Numbering' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnFileDir' getLabel='GetRibbonLabel' onAction='OnCreateFileIndex' imageMso='FileOpen'
++            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+ 
+-        <group id='groupPhotoTools' label='对象选择'>
+-          <button id='btnSelVisible' label='选中可见单元格' onAction='OnSelectVisibleCells'
+-            imageMso='SelectAll' size='large' screentip='选中可见单元格 (Ctrl+5)' supertip='选中当前工作表中可见的单元格' />
+-          <button id='btnSelectAllPictures' label='全选图片' onAction='OnSelectAllPictures'
+-            imageMso='SelectAll' size='large' screentip='选中全图' supertip='选中当前工作表中的所有图片' />
+-          <button id='btnResize1' label='1倍大小' onAction='OnResizePictures' tag='1'
++        <group id='groupPhotoTools' getLabel='GetRibbonLabel'>
++          <button id='btnSelVisible' getLabel='GetRibbonLabel' onAction='OnSelectVisibleCells'
++            imageMso='SelectAll' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnSelectAllPictures' getLabel='GetRibbonLabel' onAction='OnSelectAllPictures'
++            imageMso='SelectAll' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnResize1' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='1'
+             imageMso='PictureInsertFromFile' size='normal' />
+-          <button id='btnResize2' label='2倍大小' onAction='OnResizePictures' tag='2'
++          <button id='btnResize2' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='2'
+             imageMso='PictureInsertFromFile' size='normal' />
+-          <button id='btnResize4' label='4倍大小' onAction='OnResizePictures' tag='4'
++          <button id='btnResize4' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='4'
+             imageMso='PictureInsertFromFile' size='normal' />
+-
+         </group>
+ 
+-        <group id='groupSheets' label='工作表'>
+-
+-          <button id='btnForceRefresh' label='强制刷新' onAction='OnForceRefresh' imageMso='Refresh'
+-            size='normal' screentip='强制刷新' supertip='强制刷新选中区域的所有公式' />
+-          <button id='btnValOnly' label='全表数值化' onAction='OnConvertAllToValues'
+-            imageMso='PasteValues' size='normal' screentip='全表粘死' supertip='将当前工作表的所有公式转换为数值' />
+-          <button id='btnUnhideSheets' label='显示隐藏表' onAction='OnUnhideAllSheets'
+-            imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
+-          <button id='btnBreakLinks' label='删除外链接' onAction='OnBreakLinks' imageMso='EditLinks'
+-            size='normal' screentip='删除外部链接' supertip='断开所有外部工作簿引用并清理异常名称' />
+-          <button id='btnDeleteLinks' label='删除超链接' onAction='OnDeleteHyperlinks' imageMso='Delete'
+-            size='normal' screentip='删除超链接' supertip='删除选中区域的所有超链接' />
+-          <button id='btnDeleteEmptyRows' label='删除表空行' onAction='OnDeleteEmptyRows'
+-            imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
+-
++        <group id='groupSheets' getLabel='GetRibbonLabel'>
++          <button id='btnForceRefresh' getLabel='GetRibbonLabel' onAction='OnForceRefresh' imageMso='Refresh'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnValOnly' getLabel='GetRibbonLabel' onAction='OnConvertAllToValues'
++            imageMso='PasteValues' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnUnhideSheets' getLabel='GetRibbonLabel' onAction='OnUnhideAllSheets'
++            imageMso='FillRight' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnBreakLinks' getLabel='GetRibbonLabel' onAction='OnBreakLinks' imageMso='EditLinks'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnDeleteLinks' getLabel='GetRibbonLabel' onAction='OnDeleteHyperlinks' imageMso='Delete'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnDeleteEmptyRows' getLabel='GetRibbonLabel' onAction='OnDeleteEmptyRows'
++            imageMso='TableRowsDelete' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+ 
+-        <group id='groupCalc' label='计算模式'>
+-          <button id='btnCalcAuto' label='切到手动计算' keytip='F10' getVisible='GetCalcAutoVisible'
+-            onAction='OnToggleCalculation' imageMso='CalculateNow' size='large' screentip='当前:自动计算'
+-            supertip='将计算模式切换为手动' />
+-          <button id='btnCalcManual' label='切到自动计算' keytip='F10' getVisible='GetCalcManualVisible'
++        <group id='groupCalc' getLabel='GetRibbonLabel'>
++          <button id='btnCalcAuto' getLabel='GetRibbonLabel' keytip='F10' getVisible='GetCalcAutoVisible'
++            onAction='OnToggleCalculation' imageMso='CalculateNow' size='large'
++            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnCalcManual' getLabel='GetRibbonLabel' keytip='F10' getVisible='GetCalcManualVisible'
+             onAction='OnToggleCalculation' imageMso='CalculateFull' size='large'
+-            screentip='当前:手动计算' supertip='将计算模式切换为自动' />
++            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+ 
+-        <group id='groupHelpUpdate' label='帮助更新'>
+-          <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large'
+-            screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
+-          <button id='btnCheckUpdate' label='检查更新' onAction='OnCheckUpdate' imageMso='Refresh'
+-            size='normal' screentip='检查更新' supertip='手动检查是否有新版本可用' />
+-          <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible'
+-            onAction='OnRestartUpdate' imageMso='Refresh' size='normal' screentip='重启更新'
+-            supertip='检测到新版本，请点击并确认重启以完成更新' />
++        <group id='groupHelpUpdate' getLabel='GetRibbonLabel'>
++          <button id='btnHelp' getLabel='GetRibbonLabel' onAction='OnShowHelp' imageMso='Help' size='large'
++            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnCheckUpdate' getLabel='GetRibbonLabel' onAction='OnCheckUpdate' imageMso='Refresh'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnToggleLanguage' getLabel='GetRibbonLabel' onAction='OnToggleLanguage' imageMso='ReviewTranslate'
++            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
++          <button id='btnUpdate' getLabel='GetRibbonLabel' getVisible='GetHelpUpdateVisible'
++            onAction='OnRestartUpdate' imageMso='Refresh' size='normal'
++            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+         </group>
+       </tab>
+     </tabs>
+   </ribbon>
+-</customUI>
+\ No newline at end of file
++</customUI>
+diff --git a/QSBar/SheetCommands.cs b/QSBar/SheetCommands.cs
+index 5632a6e..33a5045 100644
+--- a/QSBar/SheetCommands.cs
++++ b/QSBar/SheetCommands.cs
+@@ -85,12 +85,12 @@ public static void CreateSheetIndex()
+ 
+                 Excel.Worksheet indexSheet = workbook.Worksheets.Add(Before: workbook.Worksheets[1]) as Excel.Worksheet;
+                 if (indexSheet == null) return;
+-                indexSheet.Name = "目录_" + DateTime.Now.ToString("HHmmss");
++                indexSheet.Name = "Index_" + DateTime.Now.ToString("HHmmss");
+ 
+                 // 准备数据
+                 int rowNum = 1;
+-                indexSheet.Cells[rowNum, 1].Value = "序号";
+-                indexSheet.Cells[rowNum, 2].Value = "工作表名称";
++                indexSheet.Cells[rowNum, 1].Value = "No.";
++                indexSheet.Cells[rowNum, 2].Value = "Worksheet Name";
+                 rowNum++;
+ 
+                 foreach (Excel.Worksheet sheet in workbook.Worksheets)
+@@ -112,7 +112,7 @@ public static void CreateSheetIndex()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("生成表目录失败: " + ex.Message);
++                MessageBox.Show("Failed to generate the sheet index: " + ex.Message);
+             }
+             finally
+             {
+@@ -138,8 +138,8 @@ public static void CreateFileIndex()
+             catch { }
+ 
+             OpenFileDialog openFileDialog = new OpenFileDialog();
+-            openFileDialog.Title = "选择要生成目录的文件";
+-            openFileDialog.Filter = "所有文件|*.*";
++            openFileDialog.Title = "Select files to index";
++            openFileDialog.Filter = "All Files|*.*";
+             openFileDialog.Multiselect = true;
+             if (!string.IsNullOrEmpty(initialDir))
+             {
+@@ -152,7 +152,7 @@ public static void CreateFileIndex()
+             {
+                 app.ScreenUpdating = false;
+ 
+-                string sheetName = "文件目录";
++                string sheetName = "File Index";
+                 Excel.Worksheet indexSheet = null;
+                 foreach (Excel.Worksheet ws in workbook.Worksheets)
+                 {
+@@ -172,9 +172,9 @@ public static void CreateFileIndex()
+ 
+                 // 准备数据
+                 int rowNum = 1;
+-                indexSheet.Cells[rowNum, 1].Value = "序号";
+-                indexSheet.Cells[rowNum, 2].Value = "文件名";
+-                indexSheet.Cells[rowNum, 3].Value = "完整路径";
++                indexSheet.Cells[rowNum, 1].Value = "No.";
++                indexSheet.Cells[rowNum, 2].Value = "File Name";
++                indexSheet.Cells[rowNum, 3].Value = "Full Path";
+                 rowNum++;
+ 
+                 foreach (string filePath in openFileDialog.FileNames)
+@@ -192,11 +192,11 @@ public static void CreateFileIndex()
+                 ApplyModernStyle(indexSheet, rowNum - 1, 3);
+                 indexSheet.Activate();
+                 
+-                MessageBox.Show(string.Format("文件目录生成完成！共计 {0} 个文件。", openFileDialog.FileNames.Length));
++                MessageBox.Show(string.Format("File index created successfully. Total files: {0}", openFileDialog.FileNames.Length));
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("生成文件目录失败: " + ex.Message);
++                MessageBox.Show("Failed to generate the file index: " + ex.Message);
+             }
+             finally
+             {
+@@ -240,8 +240,8 @@ public static void MergeWorkbooks()
+             if (targetWb == null) return;
+ 
+             OpenFileDialog openFileDialog = new OpenFileDialog();
+-            openFileDialog.Title = "选择要合并的 Excel 文件";
+-            openFileDialog.Filter = "Excel 文件|*.xls;*.xlsx;*.xlsm;*.xlsb|所有文件|*.*";
++            openFileDialog.Title = "Select Excel files to merge";
++            openFileDialog.Filter = "Excel Files|*.xls;*.xlsx;*.xlsm;*.xlsb|All Files|*.*";
+             openFileDialog.Multiselect = true;
+ 
+             if (openFileDialog.ShowDialog() != DialogResult.OK) return;
+@@ -295,7 +295,7 @@ public static void MergeWorkbooks()
+                     }
+                     catch (Exception ex)
+                     {
+-                        MessageBox.Show(string.Format("打开或处理文件 {0} 时出错: {1}", System.IO.Path.GetFileName(filePath), ex.Message));
++                        MessageBox.Show(string.Format("Error opening or processing file {0}: {1}", System.IO.Path.GetFileName(filePath), ex.Message));
+                     }
+                     finally
+                     {
+@@ -308,11 +308,11 @@ public static void MergeWorkbooks()
+                 }
+ 
+                 targetSheet.Columns.AutoFit();
+-                MessageBox.Show(string.Format("全表合并完成！已创建工作表: {0}", targetSheetName));
++                MessageBox.Show(string.Format("Workbook merge completed. Created sheet: {0}", targetSheetName));
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("合并失败: " + ex.Message);
++                MessageBox.Show("Merge failed: " + ex.Message);
+             }
+             finally
+             {
+@@ -404,11 +404,11 @@ public static void MergeSheets()
+ 
+                 targetSheet.Columns.AutoFit();
+                 targetSheet.Activate();
+-                MessageBox.Show(string.Format("合并工作表完成！已创建/替换工作表: {0}", targetName));
++                MessageBox.Show(string.Format("Worksheet merge completed. Created/replaced sheet: {0}", targetName));
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("合并工作表失败: " + ex.Message);
++                MessageBox.Show("Worksheet merge failed: " + ex.Message);
+             }
+             finally
+             {
+@@ -454,7 +454,7 @@ public static void DeleteEmptyRows()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("删除空行失败: " + ex.Message);
++                MessageBox.Show("Failed to delete empty rows: " + ex.Message);
+             }
+             finally
+             {
+@@ -480,7 +480,7 @@ public static void UnhideAllSheets()
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("取消隐藏失败: " + ex.Message);
++                MessageBox.Show("Failed to unhide sheets: " + ex.Message);
+             }
+             finally
+             {
+@@ -504,12 +504,12 @@ public static void FileDirectory()
+                 }
+                 else
+                 {
+-                    MessageBox.Show("文件尚未保存，无法打开目录。");
++                    MessageBox.Show("The file has not been saved yet, so the folder cannot be opened.");
+                 }
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("打开目录失败: " + ex.Message);
++                MessageBox.Show("Failed to open folder: " + ex.Message);
+             }
+         }
+     }
+diff --git a/QSBar/UpdateManager.cs b/QSBar/UpdateManager.cs
+index 05e4012..7f0d73b 100644
+--- a/QSBar/UpdateManager.cs
++++ b/QSBar/UpdateManager.cs
+@@ -57,7 +57,7 @@ public static async Task CheckForUpdateAsync(bool silent = false, bool promptOnN
+             {
+                 WriteTrace(string.Format("CheckForUpdateAsync start silent={0}", silent));
+ 
+-                // 整个网络操作跑在后台线程，绝不碰 UI 线程
++                // Keep all network work on a background thread; do not touch the UI thread.
+                 UpdateInfo info = await Task.Run(() => GetLatestVersionInfo()).ConfigureAwait(false);
+ 
+                 LatestUpdateInfo = info;
+@@ -67,7 +67,7 @@ public static async Task CheckForUpdateAsync(bool silent = false, bool promptOnN
+                 {
+                     LatestUpdateInfo = null;
+                     HasNewVersion = false;
+-                    if (!silent) MessageBox.Show("服务器返回的版本信息格式不正确。", "更新错误");
++                    if (!silent) MessageBox.Show("The server returned an invalid version payload.", "Update Error");
+                     return;
+                 }
+ 
+@@ -85,7 +85,7 @@ public static async Task CheckForUpdateAsync(bool silent = false, bool promptOnN
+                 }
+                 else
+                 {
+-                    if (!silent) MessageBox.Show(string.Format("当前已是最新版本 (v{0})。", currentVersion), "更新检测");
++                    if (!silent) MessageBox.Show(string.Format("You are already on the latest version (v{0}).", currentVersion), "Update Check");
+                 }
+             }
+             catch (Exception ex)
+@@ -93,7 +93,7 @@ public static async Task CheckForUpdateAsync(bool silent = false, bool promptOnN
+                 LatestUpdateInfo = null;
+                 HasNewVersion = false;
+                 WriteTrace("CheckForUpdateAsync exception: " + ex);
+-                if (!silent) MessageBox.Show(string.Format("检查更新时出错: {0}", ex.Message), "更新错误");
++                if (!silent) MessageBox.Show(string.Format("Error while checking for updates: {0}", ex.Message), "Update Error");
+             }
+         }
+ 
+@@ -121,7 +121,7 @@ private static UpdateInfo GetLatestVersionInfo()
+                         if (!downloadTask.Wait(VERSION_REQUEST_TIMEOUT_MS))
+                         {
+                             try { client.CancelAsync(); } catch { }
+-                            throw new TimeoutException(string.Format("访问更新服务器超时（>{0}ms）。", VERSION_REQUEST_TIMEOUT_MS));
++                            throw new TimeoutException(string.Format("Timed out while contacting the update server (>{0}ms).", VERSION_REQUEST_TIMEOUT_MS));
+                         }
+ 
+                         json = downloadTask.Result;
+@@ -136,7 +136,7 @@ private static UpdateInfo GetLatestVersionInfo()
+ 
+                     if (string.IsNullOrWhiteSpace(json))
+                     {
+-                        throw new Exception("服务器返回了空内容。");
++                        throw new Exception("The server returned an empty response.");
+                     }
+ 
+                     return ParseUpdateInfo(json);
+@@ -145,17 +145,18 @@ private static UpdateInfo GetLatestVersionInfo()
+                 {
+                     WriteTrace(string.Format("GetLatestVersionInfo failed for {0}: {1}", baseUrl, ex.Message));
+                     lastException = ex;
+-                    // 立即尝试下一个 URL
++                    // Try the next URL immediately.
+                 }
+             }
+ 
+-            throw new Exception(string.Format("所有更新源均无法访问。最后错误: {0}", lastException?.Message ?? "未知错误"));
++            string lastMessage = lastException == null ? "Unknown error" : lastException.Message;
++            throw new Exception(string.Format("None of the update sources could be reached. Last error: {0}", lastMessage));
+         }
+ 
+         private static UpdateInfo ParseUpdateInfo(string json)
+         {
+             var info = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateInfo>(json);
+-            if (info == null) throw new Exception("JSON 反序列化结果为空。");
++            if (info == null) throw new Exception("JSON deserialization returned null.");
+             WriteTrace(string.Format("ParseUpdateInfo ok version={0}", info.Version));
+             return info;
+         }
+@@ -170,8 +171,8 @@ public static async Task StartUpdateFlow()
+ 
+             WriteTrace(string.Format("StartUpdateFlow prompt version={0}", LatestUpdateInfo.Version));
+ 
+-            var result = MessageBox.Show(string.Format("将更新到 v{0}。\n\n请确认已保存好当前文件，是否现在关闭 Excel 并执行更新？", LatestUpdateInfo.Version),
+-                "QS工具箱", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
++            var result = MessageBox.Show(string.Format("This will update to v{0}.\n\nPlease make sure the current file is saved. Close Excel now and run the update?", LatestUpdateInfo.Version),
++                "QS Toolbox", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+ 
+             WriteTrace("StartUpdateFlow dialog result=" + result);
+ 
+@@ -188,7 +189,7 @@ private static async Task PerformUpdate(UpdateInfo info)
+             {
+                 WriteTrace("PerformUpdate begin downloadUrl=" + info.DownloadUrl);
+ 
+-                // 下载也包在 Task.Run 中
++                // Put the download work inside Task.Run as well.
+                 await Task.Run(() =>
+                 {
+                     using (WebClient client = new WebClient())
+@@ -196,7 +197,7 @@ await Task.Run(() =>
+                         client.Proxy = null;
+                         client.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+ 
+-                        using (ProgressDialog progress = new ProgressDialog("正在下载更新..."))
++                        using (ProgressDialog progress = new ProgressDialog("Downloading update..."))
+                         {
+                             progress.Show();
+                             WriteTrace("PerformUpdate progress dialog shown");
+@@ -216,7 +217,7 @@ await Task.Run(() =>
+                 if (!File.Exists(tempFile) || new FileInfo(tempFile).Length == 0)
+                 {
+                     WriteTrace("PerformUpdate downloaded file missing or empty");
+-                    MessageBox.Show("下载文件失败或文件为空，请重试。", "更新错误");
++                    MessageBox.Show("The downloaded file is missing or empty. Please try again.", "Update Error");
+                     return;
+                 }
+                 WriteTrace("PerformUpdate downloaded file size=" + new FileInfo(tempFile).Length);
+@@ -230,7 +231,7 @@ await Task.Run(() =>
+                     if (vDownloaded < vLatest)
+                     {
+                         WriteTrace(string.Format("PerformUpdate version check failed downloaded={0} latest={1}", downloadedVersion, info.Version));
+-                        MessageBox.Show(string.Format("警告：下载的文件版本 ({0}) 低于目标版本 ({1})。\n更新已取消。", downloadedVersion, info.Version), "更新校验失败");
++                        MessageBox.Show(string.Format("Warning: the downloaded file version ({0}) is lower than the target version ({1}).\nThe update has been canceled.", downloadedVersion, info.Version), "Update Validation Failed");
+                         return;
+                     }
+                     WriteTrace(string.Format("PerformUpdate version check ok downloaded={0} latest={1}", downloadedVersion, info.Version));
+@@ -251,17 +252,17 @@ await Task.Run(() =>
+ 
+                 int hostProcessId = Process.GetCurrentProcess().Id;
+                 string tracePath = GetTracePath().Replace("\"", "\"\"");
+-                string batchContent = $@"@echo off
+-set ""TRACE_LOG={tracePath}""
+->> ""%TRACE_LOG%"" echo [%date% %time%] batch start host_pid={hostProcessId}
++                string batchContent = string.Format(@"@echo off
++set ""TRACE_LOG={0}""
++>> ""%TRACE_LOG%"" echo [%date% %time%] batch start host_pid={1}
+ timeout /t 1 /nobreak > nul
+ 
+ set RETRIES=0
+ :KILL_LOOP
+-taskkill /f /pid {hostProcessId} > nul 2>&1
++taskkill /f /pid {1} > nul 2>&1
+ >> ""%TRACE_LOG%"" echo [%date% %time%] taskkill attempt retries=%RETRIES%
+ 
+-tasklist /fi ""pid eq {hostProcessId}"" | find ""{hostProcessId}"" > nul
++tasklist /fi ""pid eq {1}"" | find ""{1}"" > nul
+ if %errorlevel% equ 0 (
+     set /a RETRIES+=1
+     >> ""%TRACE_LOG%"" echo [%date% %time%] host still alive retries=%RETRIES%
+@@ -274,7 +275,7 @@ goto KILL_LOOP
+ >> ""%TRACE_LOG%"" echo [%date% %time%] enter install phase
+ timeout /t 1 /nobreak > nul
+ 
+-start /wait """" ""{tempFile}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
++start /wait """" ""{2}"" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+ >> ""%TRACE_LOG%"" echo [%date% %time%] installer exitcode=%errorlevel%
+ 
+ if %errorlevel% equ 0 (
+@@ -282,9 +283,9 @@ goto KILL_LOOP
+     start """" excel.exe
+ )
+ 
+-del ""{tempFile}""
++del ""{2}""
+ >> ""%TRACE_LOG%"" echo [%date% %time%] cleanup done
+-del ""%~f0""";
++del ""%~f0""", tracePath, hostProcessId, tempFile);
+                 File.WriteAllText(batchFile, batchContent, System.Text.Encoding.Default);
+                 WriteTrace("PerformUpdate batch written path=" + batchFile);
+ 
+@@ -301,7 +302,7 @@ goto KILL_LOOP
+             catch (Exception ex)
+             {
+                 WriteTrace("PerformUpdate exception: " + ex);
+-                MessageBox.Show(string.Format("更新失败: {0}", ex.Message), "更新错误");
++                MessageBox.Show(string.Format("Update failed: {0}", ex.Message), "Update Error");
+             }
+         }
+ 
+@@ -336,7 +337,7 @@ public ProgressDialog(string title)
+             this.MinimizeBox = false;
+             this.TopMost = true;
+ 
+-            lbl = new Label() { Text = "正在准备下载...", Left = 20, Top = 25, Width = 350, Font = new System.Drawing.Font("微软雅黑", 10) };
++            lbl = new Label() { Text = "Preparing download...", Left = 20, Top = 25, Width = 350, Font = new System.Drawing.Font("Microsoft YaHei", 10) };
+             pb = new ProgressBar() { Left = 20, Top = 65, Width = 340, Height = 25, Maximum = 100 };
+ 
+             this.Controls.Add(lbl);
+@@ -352,7 +353,7 @@ public void UpdateProgress(int percentage)
+                 return;
+             }
+             pb.Value = Math.Min(100, Math.Max(0, percentage));
+-            lbl.Text = string.Format("已下载: {0}%", percentage);
++            lbl.Text = string.Format("Downloaded: {0}%", percentage);
+         }
+     }
+ }
+diff --git a/QSBar/WpsExcelAddIn.cs b/QSBar/WpsExcelAddIn.cs
+index 7584d27..1847ae6 100644
+--- a/QSBar/WpsExcelAddIn.cs
++++ b/QSBar/WpsExcelAddIn.cs
+@@ -1,9 +1,12 @@
+ using System;
++using System.Collections.Generic;
++using System.Globalization;
+ using System.Runtime.InteropServices;
+ using System.Windows.Forms;
+ using System.Threading.Tasks;
+ using System.Reflection;
+ using System.IO;
++using Microsoft.Win32;
+ using Excel = Microsoft.Office.Interop.Excel;
+ using Office = Microsoft.Office.Core;
+ using AddInDesignerObjects;
+@@ -24,12 +27,160 @@ public class WpsExcelAddIn : IDTExtensibility2, Office.IRibbonExtensibility
+         private static Timer _calcTimer;
+         private static Control _uiInvoker;
+         private static KeyboardHook _keyboardHook;
++        private const string LanguageRegistryPath = @"Software\QSBar";
++        private const string LanguageRegistryName = "RibbonLanguage";
++        private static bool _useChineseRibbon = LoadRibbonLanguage();
++
++        private static readonly Dictionary<string, string[]> RibbonLabels = new Dictionary<string, string[]>
++        {
++            { "tabQSBar", new string[] { "QS工具箱", "QS Toolbox" } },
++            { "groupFormat", new string[] { "格式/排版", "Format / Layout" } },
++            { "groupBQ", new string[] { "批量处理", "Batch Tools" } },
++            { "groupGrading", new string[] { "分级/筛选", "Outline / Index" } },
++            { "groupPhotoTools", new string[] { "对象选择", "Selection" } },
++            { "groupSheets", new string[] { "工作表", "Worksheet" } },
++            { "groupCalc", new string[] { "计算模式", "Calculation" } },
++            { "groupHelpUpdate", new string[] { "帮助更新", "Help / Update" } },
++            { "btnBatch", new string[] { "批量处理", "Batch Process" } },
++            { "btnNormalize", new string[] { "数值化", "Normalize" } },
++            { "btnTextify", new string[] { "文本化", "Textify" } },
++            { "btnLock", new string[] { "锁定公式", "Lock Formulas" } },
++            { "btnSetGrading", new string[] { "设置分级", "Set Outline" } },
++            { "btnSetGradingStyle", new string[] { "分级样式", "Outline Style" } },
++            { "btnOutSheet", new string[] { "导出当前表", "Export Sheet" } },
++            { "btnOutStd", new string[] { "导出标准报表", "Export Standard" } },
++            { "btnOutInt", new string[] { "导出内部报表", "Export Internal" } },
++            { "btnMergeSheets", new string[] { "合并工作表", "Merge Sheets" } },
++            { "btnSheetIndex", new string[] { "生成表目录", "Sheet Index" } },
++            { "btnFileDir", new string[] { "生成文件目录", "File Index" } },
++            { "btnSelVisible", new string[] { "选中可见单元格", "Visible Cells" } },
++            { "btnSelectAllPictures", new string[] { "全选图片", "Select Pictures" } },
++            { "btnResize1", new string[] { "1倍大小", "1x" } },
++            { "btnResize2", new string[] { "2倍大小", "2x" } },
++            { "btnResize4", new string[] { "4倍大小", "4x" } },
++            { "btnForceRefresh", new string[] { "强制刷新", "Force Refresh" } },
++            { "btnValOnly", new string[] { "全表数值化", "Values Only" } },
++            { "btnUnhideSheets", new string[] { "显示隐藏表", "Unhide Sheets" } },
++            { "btnBreakLinks", new string[] { "删除外链接", "Break Links" } },
++            { "btnDeleteLinks", new string[] { "删除超链接", "Delete Hyperlinks" } },
++            { "btnDeleteEmptyRows", new string[] { "删除表空行", "Delete Empty Rows" } },
++            { "btnCalcAuto", new string[] { "切到手动计算", "Switch to Manual" } },
++            { "btnCalcManual", new string[] { "切到自动计算", "Switch to Automatic" } },
++            { "btnHelp", new string[] { "使用帮助", "Help" } },
++            { "btnCheckUpdate", new string[] { "检查更新", "Check Updates" } },
++            { "btnUpdate", new string[] { "重启更新", "Restart Update" } }
++        };
++
++        private static readonly Dictionary<string, string[]> RibbonScreentips = new Dictionary<string, string[]>
++        {
++            { "btnBatch", new string[] { "批量处理 / 公式计算", "Batch process / formula calculation" } },
++            { "btnNormalize", new string[] { "规范数值", "Normalize data" } },
++            { "btnTextify", new string[] { "转换为文本", "Convert to text" } },
++            { "btnLock", new string[] { "锁定 / 解锁公式", "Lock / unlock formulas" } },
++            { "btnSetGrading", new string[] { "设置大纲级别", "Set outline levels" } },
++            { "btnSetGradingStyle", new string[] { "设置分级样式", "Set outline styles" } },
++            { "btnOutSheet", new string[] { "导出当前工作表", "Export current sheet" } },
++            { "btnOutStd", new string[] { "导出标准报表", "Export standard report" } },
++            { "btnOutInt", new string[] { "导出内部报表", "Export internal report" } },
++            { "btnMergeSheets", new string[] { "合并工作表", "Merge worksheets" } },
++            { "btnSheetIndex", new string[] { "生成工作表目录", "Create sheet index" } },
++            { "btnFileDir", new string[] { "生成文件目录", "Create file index" } },
++            { "btnSelVisible", new string[] { "选中可见单元格 (Ctrl+5)", "Select visible cells (Ctrl+5)" } },
++            { "btnSelectAllPictures", new string[] { "选择全部图片", "Select all pictures" } },
++            { "btnForceRefresh", new string[] { "强制刷新", "Force refresh" } },
++            { "btnValOnly", new string[] { "整表转换为数值", "Convert entire sheet to values" } },
++            { "btnUnhideSheets", new string[] { "显示全部隐藏工作表", "Unhide all sheets" } },
++            { "btnBreakLinks", new string[] { "断开外部链接", "Break external links" } },
++            { "btnDeleteLinks", new string[] { "删除超链接", "Delete hyperlinks" } },
++            { "btnDeleteEmptyRows", new string[] { "删除空行", "Delete empty rows" } },
++            { "btnCalcAuto", new string[] { "当前：自动计算", "Current: Automatic" } },
++            { "btnCalcManual", new string[] { "当前：手动计算", "Current: Manual" } },
++            { "btnHelp", new string[] { "帮助", "Help" } },
++            { "btnCheckUpdate", new string[] { "检查更新", "Check updates" } },
++            { "btnUpdate", new string[] { "重启更新", "Restart update" } }
++        };
++
++        private static readonly Dictionary<string, string[]> RibbonSupertips = new Dictionary<string, string[]>
++        {
++            { "btnBatch", new string[] { "批量处理或公式计算，通常用于大数据量表格。", "Batch processing or formula calculation, usually for large data sets." } },
++            { "btnNormalize", new string[] { "规范化选中区域中的数据。", "Normalize the data in the selected range." } },
++            { "btnTextify", new string[] { "强制把选中单元格转换为文本格式。", "Force the selected cells to text format." } },
++            { "btnLock", new string[] { "锁定或解锁选中区域中的公式。", "Lock or unlock formulas in the selected range." } },
++            { "btnSetGrading", new string[] { "根据内容自动设置大纲级别；支持 【 / [[、《 / <<、{。", "Automatically set outline levels based on content; supports 【 / [[, 《 / <<, and {." } },
++            { "btnSetGradingStyle", new string[] { "按大纲级别应用不同单元格样式。", "Apply different cell styles for outline levels." } },
++            { "btnOutSheet", new string[] { "把当前工作表导出为数值。", "Export the current worksheet as values." } },
++            { "btnOutStd", new string[] { "删除隐藏行列，然后把所有工作表导出为数值。", "Remove hidden rows and columns, then export all sheets as values." } },
++            { "btnOutInt", new string[] { "把所有工作表导出为数值。", "Export all sheets as values." } },
++            { "btnMergeSheets", new string[] { "把多个工作表合并到一个工作表。", "Merge multiple worksheets into one worksheet." } },
++            { "btnSheetIndex", new string[] { "为当前工作簿生成所有工作表目录。", "Generate an index of all worksheets in the current workbook." } },
++            { "btnFileDir", new string[] { "选择文件，并在当前工作簿中生成目录。", "Select files and generate an index for them in the current workbook." } },
++            { "btnSelVisible", new string[] { "选择当前工作表中的可见单元格。", "Select the visible cells in the current worksheet." } },
++            { "btnSelectAllPictures", new string[] { "选择当前工作表中的全部图片。", "Select all pictures in the current worksheet." } },
++            { "btnForceRefresh", new string[] { "强制刷新选中区域中的全部公式。", "Force refresh all formulas in the selected range." } },
++            { "btnValOnly", new string[] { "把当前工作表中的全部公式转换为数值。", "Convert all formulas in the current worksheet to values." } },
++            { "btnUnhideSheets", new string[] { "显示当前工作簿中的全部隐藏工作表。", "Unhide all worksheets in the current workbook." } },
++            { "btnBreakLinks", new string[] { "断开全部外部工作簿引用，并清理异常名称。", "Break all external workbook references and clean invalid names." } },
++            { "btnDeleteLinks", new string[] { "删除选中区域中的全部超链接。", "Delete all hyperlinks in the selected range." } },
++            { "btnDeleteEmptyRows", new string[] { "删除选中区域中的全部空行。", "Delete all empty rows in the selected range." } },
++            { "btnCalcAuto", new string[] { "把计算模式切换为手动。", "Switch calculation mode to manual." } },
++            { "btnCalcManual", new string[] { "把计算模式切换为自动。", "Switch calculation mode to automatic." } },
++            { "btnHelp", new string[] { "查看 QS 工具箱版本、快捷键和更新检查。", "View QS Toolbox version info, shortcuts, and update checks." } },
++            { "btnCheckUpdate", new string[] { "手动检查是否有新版本。", "Manually check whether a new version is available." } },
++            { "btnUpdate", new string[] { "已有新版本；点击确认重启并完成更新。", "A new version is available; click to confirm restart and finish updating." } }
++        };
+ 
+         public static void RefreshRibbon()
+         {
+             if (_ribbon != null) _ribbon.Invalidate();
+         }
+ 
++        private static bool LoadRibbonLanguage()
++        {
++            try
++            {
++                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(LanguageRegistryPath))
++                {
++                    object value = key == null ? null : key.GetValue(LanguageRegistryName);
++                    string language = value == null ? null : value.ToString();
++                    if (string.Equals(language, "zh-CN", StringComparison.OrdinalIgnoreCase)) return true;
++                    if (string.Equals(language, "en-US", StringComparison.OrdinalIgnoreCase)) return false;
++                }
++            }
++            catch { }
++
++            try
++            {
++                return CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("zh", StringComparison.OrdinalIgnoreCase);
++            }
++            catch
++            {
++                return false;
++            }
++        }
++
++        private static void SaveRibbonLanguage()
++        {
++            try
++            {
++                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(LanguageRegistryPath))
++                {
++                    if (key != null) key.SetValue(LanguageRegistryName, _useChineseRibbon ? "zh-CN" : "en-US");
++                }
++            }
++            catch { }
++        }
++
++        private static string GetLocalizedText(Dictionary<string, string[]> source, string controlId)
++        {
++            if (string.IsNullOrEmpty(controlId)) return string.Empty;
++            string[] values;
++            if (source != null && source.TryGetValue(controlId, out values) && values != null && values.Length >= 2)
++            {
++                return _useChineseRibbon ? values[0] : values[1];
++            }
++            return string.Empty;
++        }
++
+         public void OnConnection(object Application, ext_ConnectMode ConnectMode, object AddInInst, ref Array custom)
+         {
+             try
+@@ -42,7 +193,7 @@ public void OnConnection(object Application, ext_ConnectMode ConnectMode, object
+                 StartCalcTimer();
+                 RegisterShortcuts();
+ 
+-                // 启动时执行一次静默更新检查，完全脱离 UI 线程
++                // Run one silent update check at startup, fully off the UI thread.
+                 var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, false));
+             }
+             catch (Exception ex)
+@@ -192,6 +343,47 @@ private static string GetResourceText(string resourceName)
+ 
+         #region Ribbon Callbacks
+ 
++        public string GetRibbonLabel(Office.IRibbonControl control)
++        {
++            if (control != null && string.Equals(control.Id, "btnToggleLanguage", StringComparison.OrdinalIgnoreCase))
++            {
++                return _useChineseRibbon ? "English" : "中文";
++            }
++
++            string label = GetLocalizedText(RibbonLabels, control == null ? null : control.Id);
++            return string.IsNullOrEmpty(label) && control != null ? control.Id : label;
++        }
++
++        public string GetRibbonScreentip(Office.IRibbonControl control)
++        {
++            if (control != null && string.Equals(control.Id, "btnToggleLanguage", StringComparison.OrdinalIgnoreCase))
++            {
++                return _useChineseRibbon ? "切换到英文界面" : "Switch to Chinese UI";
++            }
++
++            string screentip = GetLocalizedText(RibbonScreentips, control == null ? null : control.Id);
++            if (!string.IsNullOrEmpty(screentip)) return screentip;
++            return GetRibbonLabel(control);
++        }
++
++        public string GetRibbonSupertip(Office.IRibbonControl control)
++        {
++            if (control != null && string.Equals(control.Id, "btnToggleLanguage", StringComparison.OrdinalIgnoreCase))
++            {
++                return _useChineseRibbon ? "将 QS 工具箱 Ribbon 切换为英文。此选择会保存到当前 Windows 用户。" : "Switch the QS Toolbox ribbon to Chinese. This preference is saved for the current Windows user.";
++            }
++
++            string supertip = GetLocalizedText(RibbonSupertips, control == null ? null : control.Id);
++            return string.IsNullOrEmpty(supertip) ? GetRibbonScreentip(control) : supertip;
++        }
++
++        public void OnToggleLanguage(Office.IRibbonControl control)
++        {
++            _useChineseRibbon = !_useChineseRibbon;
++            SaveRibbonLanguage();
++            RefreshRibbon();
++        }
++
+         public bool GetHelpNormalVisible(Office.IRibbonControl control)
+         {
+             return !UpdateManager.HasNewVersion;
+@@ -215,7 +407,7 @@ public async void OnCheckUpdate(Office.IRibbonControl control)
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("检查更新时出错: " + ex.Message, "更新错误");
++                MessageBox.Show("Error while checking for updates: " + ex.Message, "Update Error");
+             }
+         }
+ 
+@@ -227,7 +419,7 @@ public async void OnRestartUpdate(Office.IRibbonControl control)
+             }
+             catch (Exception ex)
+             {
+-                MessageBox.Show("启动更新时出错: " + ex.Message, "更新错误");
++                MessageBox.Show("Error while starting the update: " + ex.Message, "Update Error");
+             }
+         }
+ 
+diff --git a/QSBar/frmSelectSheets.Designer.cs b/QSBar/frmSelectSheets.Designer.cs
+index a9e9cb0..1e95117 100644
+--- a/QSBar/frmSelectSheets.Designer.cs
++++ b/QSBar/frmSelectSheets.Designer.cs
+@@ -2,15 +2,8 @@ namespace QSBar
+ {
+     partial class frmSelectSheets
+     {
+-        /// <summary>
+-        /// Required designer variable.
+-        /// </summary>
+         private System.ComponentModel.IContainer components = null;
+ 
+-        /// <summary>
+-        /// Clean up any resources being used.
+-        /// </summary>
+-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+         protected override void Dispose(bool disposing)
+         {
+             if (disposing && (components != null))
+@@ -22,10 +15,6 @@ protected override void Dispose(bool disposing)
+ 
+         #region Windows Form Designer generated code
+ 
+-        /// <summary>
+-        /// Required method for Designer support - do not modify
+-        /// the contents of this method with the code editor.
+-        /// </summary>
+         private void InitializeComponent()
+         {
+             this.chkListSheets = new System.Windows.Forms.CheckedListBox();
+@@ -51,7 +40,7 @@ private void InitializeComponent()
+             this.btnOK.Name = "btnOK";
+             this.btnOK.Size = new System.Drawing.Size(75, 23);
+             this.btnOK.TabIndex = 1;
+-            this.btnOK.Text = "确定";
++            this.btnOK.Text = "OK";
+             this.btnOK.UseVisualStyleBackColor = true;
+             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+             // 
+@@ -62,7 +51,7 @@ private void InitializeComponent()
+             this.btnCancel.Name = "btnCancel";
+             this.btnCancel.Size = new System.Drawing.Size(75, 23);
+             this.btnCancel.TabIndex = 2;
+-            this.btnCancel.Text = "取消";
++            this.btnCancel.Text = "Cancel";
+             this.btnCancel.UseVisualStyleBackColor = true;
+             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+             // 
+@@ -72,7 +61,7 @@ private void InitializeComponent()
+             this.btnSelectAll.Name = "btnSelectAll";
+             this.btnSelectAll.Size = new System.Drawing.Size(75, 23);
+             this.btnSelectAll.TabIndex = 3;
+-            this.btnSelectAll.Text = "全选";
++            this.btnSelectAll.Text = "Select All";
+             this.btnSelectAll.UseVisualStyleBackColor = true;
+             this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
+             // 
+@@ -82,7 +71,7 @@ private void InitializeComponent()
+             this.btnSelectNone.Name = "btnSelectNone";
+             this.btnSelectNone.Size = new System.Drawing.Size(75, 23);
+             this.btnSelectNone.TabIndex = 4;
+-            this.btnSelectNone.Text = "全不选";
++            this.btnSelectNone.Text = "Select None";
+             this.btnSelectNone.UseVisualStyleBackColor = true;
+             this.btnSelectNone.Click += new System.EventHandler(this.btnSelectNone_Click);
+             // 
+@@ -91,9 +80,9 @@ private void InitializeComponent()
+             this.label1.AutoSize = true;
+             this.label1.Location = new System.Drawing.Point(12, 13);
+             this.label1.Name = "label1";
+-            this.label1.Size = new System.Drawing.Size(113, 12);
++            this.label1.Size = new System.Drawing.Size(149, 12);
+             this.label1.TabIndex = 5;
+-            this.label1.Text = "请选择要合并的表：";
++            this.label1.Text = "Select worksheets to merge:";
+             // 
+             // frmSelectSheets
+             // 
+@@ -113,10 +102,9 @@ private void InitializeComponent()
+             this.MinimizeBox = false;
+             this.Name = "frmSelectSheets";
+             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+-            this.Text = "选择工作表";
++            this.Text = "Select Worksheets";
+             this.ResumeLayout(false);
+             this.PerformLayout();
+-
+         }
+ 
+         #endregion
+diff --git a/QSBar/frmSelectSheets.cs b/QSBar/frmSelectSheets.cs
+index 8f631cf..51e4024 100644
+--- a/QSBar/frmSelectSheets.cs
++++ b/QSBar/frmSelectSheets.cs
+@@ -22,9 +22,8 @@ private void LoadSheets(Excel.Workbook workbook)
+             foreach (Excel.Worksheet sheet in workbook.Worksheets)
+             {
+                 string sheetName = sheet.Name;
+-                
+-                // 过滤掉 MergeSheet
+-                if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) || 
++
++                if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) ||
+                     sheetName.StartsWith("MergeSheet(", StringComparison.OrdinalIgnoreCase))
+                 {
+                     continue;
+@@ -33,10 +32,10 @@ private void LoadSheets(Excel.Workbook workbook)
+                 string displayName = sheetName;
+                 if (sheet.Visible != Excel.XlSheetVisibility.xlSheetVisible)
+                 {
+-                    displayName += "（隐藏）";
++                    displayName += " (Hidden)";
+                 }
+-                
+-                chkListSheets.Items.Add(displayName, true); // 默认全选
++
++                chkListSheets.Items.Add(displayName, true);
+             }
+         }
+ 
+@@ -47,16 +46,16 @@ private void btnOK_Click(object sender, EventArgs e)
+             {
+                 string displayName = item.ToString();
+                 string actualName = displayName;
+-                if (displayName.EndsWith("（隐藏）"))
++                if (displayName.EndsWith(" (Hidden)"))
+                 {
+-                    actualName = displayName.Substring(0, displayName.Length - 4);
++                    actualName = displayName.Substring(0, displayName.Length - 9);
+                 }
+                 SelectedSheetNames.Add(actualName);
+             }
+ 
+             if (SelectedSheetNames.Count == 0)
+             {
+-                MessageBox.Show("请至少选择一个工作表。");
++                MessageBox.Show("Please select at least one worksheet.");
+                 return;
+             }
+ 
+diff --git a/QSBar/otherFileForm.Designer.cs b/QSBar/otherFileForm.Designer.cs
+index 0c65f89..472dbb4 100644
+--- a/QSBar/otherFileForm.Designer.cs
++++ b/QSBar/otherFileForm.Designer.cs
+@@ -52,7 +52,7 @@ private void InitializeComponent()
+             this.selectFile.Name = "selectFile";
+             this.selectFile.Size = new System.Drawing.Size(102, 34);
+             this.selectFile.TabIndex = 0;
+-            this.selectFile.Text = "Select File";
++            this.selectFile.Text = "Add Files";
+             this.selectFile.UseVisualStyleBackColor = false;
+             this.selectFile.Click += new System.EventHandler(this.selectFile_Click);
+             // 
+@@ -65,7 +65,7 @@ private void InitializeComponent()
+             this.deleteSelected.Name = "deleteSelected";
+             this.deleteSelected.Size = new System.Drawing.Size(137, 34);
+             this.deleteSelected.TabIndex = 1;
+-            this.deleteSelected.Text = "Delete Selected";
++            this.deleteSelected.Text = "Remove Selected";
+             this.deleteSelected.UseVisualStyleBackColor = false;
+             this.deleteSelected.Click += new System.EventHandler(this.deleteSelected_Click);
+             // 
+@@ -78,7 +78,7 @@ private void InitializeComponent()
+             this.clearList.Name = "clearList";
+             this.clearList.Size = new System.Drawing.Size(113, 34);
+             this.clearList.TabIndex = 2;
+-            this.clearList.Text = "Clear List";
++            this.clearList.Text = "Clear All";
+             this.clearList.UseVisualStyleBackColor = false;
+             this.clearList.Click += new System.EventHandler(this.clearList_Click);
+             // 
+@@ -100,15 +100,15 @@ private void InitializeComponent()
+             this.label2.Name = "label2";
+             this.label2.Size = new System.Drawing.Size(60, 20);
+             this.label2.TabIndex = 4;
+-            this.label2.Text = "Control";
++            this.label2.Text = "Match Type";
+             // 
+             // control
+             // 
+             this.control.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+             this.control.FormattingEnabled = true;
+             this.control.Items.AddRange(new object[] {
+-            "Equal",
+-            "Contain"});
++            "Exact",
++            "Contains"});
+             this.control.Location = new System.Drawing.Point(12, 261);
+             this.control.Name = "control";
+             this.control.Size = new System.Drawing.Size(147, 26);
+@@ -129,7 +129,7 @@ private void InitializeComponent()
+             this.label1.Name = "label1";
+             this.label1.Size = new System.Drawing.Size(160, 20);
+             this.label1.TabIndex = 7;
+-            this.label1.Text = "Sheet Name To Copy";
++            this.label1.Text = "Source Sheet Name";
+             this.label1.UseWaitCursor = true;
+             // 
+             // customKeys
+@@ -149,7 +149,7 @@ private void InitializeComponent()
+             this.isCustomKey.Name = "isCustomKey";
+             this.isCustomKey.Size = new System.Drawing.Size(133, 24);
+             this.isCustomKey.TabIndex = 9;
+-            this.isCustomKey.Text = "Customize Key";
++            this.isCustomKey.Text = "Use Custom Keys";
+             this.isCustomKey.UseVisualStyleBackColor = true;
+             this.isCustomKey.CheckedChanged += new System.EventHandler(this.isCustomKey_CheckedChanged);
+             // 
+@@ -163,7 +163,7 @@ private void InitializeComponent()
+             this.summaryBtn.Name = "summaryBtn";
+             this.summaryBtn.Size = new System.Drawing.Size(91, 34);
+             this.summaryBtn.TabIndex = 10;
+-            this.summaryBtn.Text = "Summary";
++            this.summaryBtn.Text = "Generate";
+             this.summaryBtn.UseVisualStyleBackColor = false;
+             this.summaryBtn.Click += new System.EventHandler(this.summaryBtn_Click);
+             // 
+@@ -175,7 +175,7 @@ private void InitializeComponent()
+             this.label3.Name = "label3";
+             this.label3.Size = new System.Drawing.Size(131, 20);
+             this.label3.TabIndex = 12;
+-            this.label3.Text = "Add Sheet Name";
++            this.label3.Text = "Output Sheet Name";
+             this.label3.UseWaitCursor = true;
+             // 
+             // sheetName
+@@ -227,4 +227,4 @@ private void InitializeComponent()
+         private System.Windows.Forms.Label label3;
+         private System.Windows.Forms.TextBox sheetName;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/QSBar/sameFileForm.Designer.cs b/QSBar/sameFileForm.Designer.cs
+index cc584a8..5ef210e 100644
+--- a/QSBar/sameFileForm.Designer.cs
++++ b/QSBar/sameFileForm.Designer.cs
+@@ -48,7 +48,7 @@ private void InitializeComponent()
+             this.label2.Name = "label2";
+             this.label2.Size = new System.Drawing.Size(60, 20);
+             this.label2.TabIndex = 0;
+-            this.label2.Text = "Control";
++            this.label2.Text = "Match Type";
+             // 
+             // copySheetName
+             // 
+@@ -66,7 +66,7 @@ private void InitializeComponent()
+             this.label3.Name = "label3";
+             this.label3.Size = new System.Drawing.Size(160, 20);
+             this.label3.TabIndex = 3;
+-            this.label3.Text = "Sheet Name To Copy";
++            this.label3.Text = "Source Sheet Name";
+             // 
+             // summaryBtn
+             // 
+@@ -78,7 +78,7 @@ private void InitializeComponent()
+             this.summaryBtn.Name = "summaryBtn";
+             this.summaryBtn.Size = new System.Drawing.Size(91, 26);
+             this.summaryBtn.TabIndex = 4;
+-            this.summaryBtn.Text = "Summary";
++            this.summaryBtn.Text = "Generate";
+             this.summaryBtn.UseVisualStyleBackColor = false;
+             this.summaryBtn.Click += new System.EventHandler(this.summaryBtn_Click);
+             // 
+@@ -90,7 +90,7 @@ private void InitializeComponent()
+             this.control.ReadOnly = true;
+             this.control.Size = new System.Drawing.Size(150, 26);
+             this.control.TabIndex = 5;
+-            this.control.Text = "Contain";
++            this.control.Text = "Contains";
+             // 
+             // isCustomKey
+             // 
+@@ -99,7 +99,7 @@ private void InitializeComponent()
+             this.isCustomKey.Name = "isCustomKey";
+             this.isCustomKey.Size = new System.Drawing.Size(133, 24);
+             this.isCustomKey.TabIndex = 6;
+-            this.isCustomKey.Text = "Customize Key";
++            this.isCustomKey.Text = "Use Custom Keys";
+             this.isCustomKey.UseVisualStyleBackColor = true;
+             this.isCustomKey.CheckedChanged += new System.EventHandler(this.isCustomKey_CheckedChanged);
+             // 
+@@ -111,7 +111,7 @@ private void InitializeComponent()
+             this.label4.Name = "label4";
+             this.label4.Size = new System.Drawing.Size(145, 20);
+             this.label4.TabIndex = 8;
+-            this.label4.Text = "Set custom to copy";
++            this.label4.Text = "Custom Keys";
+             // 
+             // customKeys
+             // 
+@@ -131,7 +131,7 @@ private void InitializeComponent()
+             this.label5.Name = "label5";
+             this.label5.Size = new System.Drawing.Size(131, 20);
+             this.label5.TabIndex = 11;
+-            this.label5.Text = "Add Sheet Name";
++            this.label5.Text = "Output Sheet Name";
+             // 
+             // sheetName
+             // 
+@@ -161,7 +161,7 @@ private void InitializeComponent()
+             this.Name = "sameFileForm";
+             this.ShowIcon = false;
+             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+-            this.Text = "Select Sheet";
++            this.Text = "Select Worksheet";
+             this.ResumeLayout(false);
+             this.PerformLayout();
+ 
+@@ -180,4 +180,4 @@ private void InitializeComponent()
+         private System.Windows.Forms.Label label5;
+         private System.Windows.Forms.TextBox sheetName;
+     }
+-}
+\ No newline at end of file
++}
+diff --git a/Release/Installinfo/UpdateNotes.html b/Release/Installinfo/UpdateNotes.html
+index 80631e5..4da6fc9 100644
+--- a/Release/Installinfo/UpdateNotes.html
++++ b/Release/Installinfo/UpdateNotes.html
+@@ -2,7 +2,7 @@
+ <html>
+ <head>
+     <meta charset="UTF-8">
+-    <title>QSBar 更新说明</title>
++    <title>QSBar Update Notes</title>
+     <style>
+         body { font-family: "Microsoft YaHei", sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+         .header { text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+@@ -17,17 +17,18 @@
+ <body>
+     <div class="header">
+         <img src="logo_horizontal.png" alt="QSBar Logo" class="logo">
+-        <h1 style="color: #2c3e50; border: none; padding: 0; margin-top: 10px;">插件更新说明</h1>
++        <h1 style="color: #2c3e50; border: none; padding: 0; margin-top: 10px;">Update Notes</h1>
+     </div>
+     
+-    <p>感谢您使用 QSBar！本次更新已成功安装。</p>
++    <p>Thank you for using QSBar. This update has been installed successfully.</p>
+     
+     <div class="feature-list">
+-        <p><span class="version">当前版本：<!-- VERSION_START -->1.0.1.12<!-- VERSION_END --></span></p>
+-        <h3>✨ 本次更新重点：</h3>
++        <p><span class="version">Current version: <!-- VERSION_START -->1.0.1.14<!-- VERSION_END --></span></p>
++        <h3>✨ Highlights:</h3>
+         <ul id="update-log">
+             <!-- LOG_START -->
+-            <li>清理 Release 仓库：不再推送编译产生的 QSBar.dll 文件，仅保留用户需要的安装包、ZIP 及其配套说明文件。</li>
++            <li>Added a bilingual Chinese/English Ribbon and a language switch button in the Help / Update group.</li>
++            <li>The selected language is saved for the current Windows user.</li>
+ 
+ 
+ 
+@@ -60,20 +61,20 @@ <h3>✨ 本次更新重点：</h3>
+         </ul>
+     </div>
+ 
+-    <h3>🖥️ 界面预览：</h3>
++    <h3>🖥️ Interface Preview:</h3>
+     
+     <div class="image-container">
+-        <p><strong>Excel 界面效果：</strong></p>
++        <p><strong>Excel preview:</strong></p>
+         <img src="Ribbon_EXCEL.bmp" alt="Excel Bar Preview">
+     </div>
+ 
+     <div class="image-container">
+-        <p><strong>WPS 界面效果：</strong></p>
++        <p><strong>WPS preview:</strong></p>
+         <img src="Ribbon_WPS.bmp" alt="WPS Bar Preview">
+     </div>
+ 
+     <div class="footer">
+-        如有任何问题，请访问项目主页：<a href="https://gitee.com/kevin137/qsbar-release" target="_blank">Gitee - QSBar</a>
++        Questions? Visit the project page: <a href="https://gitee.com/kevin137/qsbar-release" target="_blank">Gitee - QSBar</a>
+     </div>
+ </body>
+ </html>
+diff --git a/Release/Installinfo/version.json b/Release/Installinfo/version.json
+index e6b8502..757dab1 100644
+--- a/Release/Installinfo/version.json
++++ b/Release/Installinfo/version.json
+@@ -1,5 +1,5 @@
+ ﻿{
+-    "version":  "1.0.1.12",
+-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.12.exe",
+-    "changeLog":  "清理 Release 仓库：不再推送编译产生的 QSBar.dll 文件，仅保留用户需要的安装包、ZIP 及其配套说明文件。"
+-}
+\ No newline at end of file
++    "version":  "1.0.1.14",
++    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.14.exe",
++    "changeLog":  "新增 QSBar Ribbon 中英双语界面与语言切换按钮，语言选择保存到当前 Windows 用户。"
++}
+diff --git a/Release/QSBar.dll b/Release/QSBar.dll
+index b6b36e8..c3034db 100644
+Binary files a/Release/QSBar.dll and b/Release/QSBar.dll differ
+diff --git a/Release/QSBar_Setup_v1.0.1.10.exe b/Release/QSBar_Setup_v1.0.1.10.exe
+deleted file mode 100644
+index 1a81a11..0000000
+Binary files a/Release/QSBar_Setup_v1.0.1.10.exe and /dev/null differ
+diff --git a/Release/QSBar_Setup_v1.0.1.12.zip b/Release/QSBar_Setup_v1.0.1.12.zip
+deleted file mode 100644
+index 88d5a5b..0000000
+Binary files a/Release/QSBar_Setup_v1.0.1.12.zip and /dev/null differ
+diff --git a/Release/QSBar_Setup_v1.0.1.13.exe b/Release/QSBar_Setup_v1.0.1.13.exe
+deleted file mode 100644
+index 716f298..0000000
+Binary files a/Release/QSBar_Setup_v1.0.1.13.exe and /dev/null differ
+diff --git a/Release/QSBar_Setup_v1.0.1.14.exe b/Release/QSBar_Setup_v1.0.1.14.exe
+new file mode 100644
+index 0000000..f48ff2c
+Binary files /dev/null and b/Release/QSBar_Setup_v1.0.1.14.exe differ
+diff --git a/Release/QSBar_Setup_v1.0.1.14.zip b/Release/QSBar_Setup_v1.0.1.14.zip
+new file mode 100644
+index 0000000..9c2be35
+Binary files /dev/null and b/Release/QSBar_Setup_v1.0.1.14.zip differ
+diff --git a/Release/version.json b/Release/version.json
+index e6b8502..757dab1 100644
+--- a/Release/version.json
++++ b/Release/version.json
+@@ -1,5 +1,5 @@
+ ﻿{
+-    "version":  "1.0.1.12",
+-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.12.exe",
+-    "changeLog":  "清理 Release 仓库：不再推送编译产生的 QSBar.dll 文件，仅保留用户需要的安装包、ZIP 及其配套说明文件。"
+-}
+\ No newline at end of file
++    "version":  "1.0.1.14",
++    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.14.exe",
++    "changeLog":  "新增 QSBar Ribbon 中英双语界面与语言切换按钮，语言选择保存到当前 Windows 用户。"
++}
+diff --git a/Release/QSBar_Setup_v1.0.1.11.exe "b/Release/\346\227\247\344\270\255\346\226\207\347\211\210/QSBar_Setup_v1.0.1.11.exe"
+similarity index 100%
+rename from Release/QSBar_Setup_v1.0.1.11.exe
+rename to "Release/\346\227\247\344\270\255\346\226\207\347\211\210/QSBar_Setup_v1.0.1.11.exe"
+diff --git a/Release/QSBar_Setup_v1.0.1.12.exe "b/Release/\346\227\247\344\270\255\346\226\207\347\211\210/QSBar_Setup_v1.0.1.12.exe"
+similarity index 100%
+rename from Release/QSBar_Setup_v1.0.1.12.exe
+rename to "Release/\346\227\247\344\270\255\346\226\207\347\211\210/QSBar_Setup_v1.0.1.12.exe"
+diff --git a/version.json b/version.json
+index 4a3dfa0..757dab1 100644
+--- a/version.json
++++ b/version.json
+@@ -1,5 +1,5 @@
+ ﻿{
+-    "version":  "1.0.1.13",
+-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.13.exe",
+-    "changeLog":  "统一分级样式配色与pk-boq合并报表技能一致：L1 #C6D9F1/L2 #EEF2FA/L3 #FBE5D6，字体#1A1A1A加粗"
+-}
+\ No newline at end of file
++    "version":  "1.0.1.14",
++    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.14.exe",
++    "changeLog":  "新增 QSBar Ribbon 中英双语界面与语言切换按钮，语言选择保存到当前 Windows 用户。"
++}

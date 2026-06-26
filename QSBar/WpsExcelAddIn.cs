@@ -30,6 +30,7 @@ namespace QSBar
         private const string LanguageRegistryPath = @"Software\QSBar";
         private const string LanguageRegistryName = "RibbonLanguage";
         private static bool _useChineseRibbon = LoadRibbonLanguage();
+        internal static bool UseChineseRibbon => _useChineseRibbon;
 
         private static readonly Dictionary<string, string[]> RibbonLabels = new Dictionary<string, string[]>
         {
@@ -73,7 +74,7 @@ namespace QSBar
 
         private static readonly Dictionary<string, string[]> RibbonScreentips = new Dictionary<string, string[]>
         {
-            { "btnBatch", new string[] { "批量处理 / 公式计算", "Batch process / formula calculation" } },
+            { "btnBatch", new string[] { "批量处理 / 公式计算 (Ctrl+3)", "Batch process / formula calculation (Ctrl+3)" } },
             { "btnNormalize", new string[] { "规范数值", "Normalize data" } },
             { "btnTextify", new string[] { "转换为文本", "Convert to text" } },
             { "btnLock", new string[] { "锁定 / 解锁公式", "Lock / unlock formulas" } },
@@ -93,8 +94,8 @@ namespace QSBar
             { "btnBreakLinks", new string[] { "断开外部链接", "Break external links" } },
             { "btnDeleteLinks", new string[] { "删除超链接", "Delete hyperlinks" } },
             { "btnDeleteEmptyRows", new string[] { "删除空行", "Delete empty rows" } },
-            { "btnCalcAuto", new string[] { "当前：自动计算", "Current: Automatic" } },
-            { "btnCalcManual", new string[] { "当前：手动计算", "Current: Manual" } },
+            { "btnCalcAuto", new string[] { "当前：自动计算 (Ctrl+0 / F10)", "Current: Automatic (Ctrl+0 / F10)" } },
+            { "btnCalcManual", new string[] { "当前：手动计算 (Ctrl+0 / F10)", "Current: Manual (Ctrl+0 / F10)" } },
             { "btnHelp", new string[] { "帮助", "Help" } },
             { "btnCheckUpdate", new string[] { "检查更新", "Check updates" } },
             { "btnUpdate", new string[] { "重启更新", "Restart update" } }
@@ -102,7 +103,7 @@ namespace QSBar
 
         private static readonly Dictionary<string, string[]> RibbonSupertips = new Dictionary<string, string[]>
         {
-            { "btnBatch", new string[] { "批量处理或公式计算，通常用于大数据量表格。", "Batch processing or formula calculation, usually for large data sets." } },
+            { "btnBatch", new string[] { "批量处理或公式计算，通常用于大数据量表格。快捷键 Ctrl+3。", "Batch processing or formula calculation, usually for large data sets. Shortcut: Ctrl+3." } },
             { "btnNormalize", new string[] { "规范化选中区域中的数据。", "Normalize the data in the selected range." } },
             { "btnTextify", new string[] { "强制把选中单元格转换为文本格式。", "Force the selected cells to text format." } },
             { "btnLock", new string[] { "锁定或解锁选中区域中的公式。", "Lock or unlock formulas in the selected range." } },
@@ -122,8 +123,8 @@ namespace QSBar
             { "btnBreakLinks", new string[] { "断开全部外部工作簿引用，并清理异常名称。", "Break all external workbook references and clean invalid names." } },
             { "btnDeleteLinks", new string[] { "删除选中区域中的全部超链接。", "Delete all hyperlinks in the selected range." } },
             { "btnDeleteEmptyRows", new string[] { "删除选中区域中的全部空行。", "Delete all empty rows in the selected range." } },
-            { "btnCalcAuto", new string[] { "把计算模式切换为手动。", "Switch calculation mode to manual." } },
-            { "btnCalcManual", new string[] { "把计算模式切换为自动。", "Switch calculation mode to automatic." } },
+            { "btnCalcAuto", new string[] { "把计算模式切换为手动。快捷键 Ctrl+0 / F10。", "Switch calculation mode to manual. Shortcut: Ctrl+0 / F10." } },
+            { "btnCalcManual", new string[] { "把计算模式切换为自动。快捷键 Ctrl+0 / F10。", "Switch calculation mode to automatic. Shortcut: Ctrl+0 / F10." } },
             { "btnHelp", new string[] { "查看 QS 工具箱版本、快捷键和更新检查。", "View QS Toolbox version info, shortcuts, and update checks." } },
             { "btnCheckUpdate", new string[] { "手动检查是否有新版本。", "Manually check whether a new version is available." } },
             { "btnUpdate", new string[] { "已有新版本；点击确认重启并完成更新。", "A new version is available; click to confirm restart and finish updating." } }
@@ -195,6 +196,7 @@ namespace QSBar
 
                 // Run one silent update check at startup, fully off the UI thread.
                 var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, false));
+                var __ = Task.Run(() => AnalyticsHelper.Ping());
             }
             catch (Exception ex)
             {
