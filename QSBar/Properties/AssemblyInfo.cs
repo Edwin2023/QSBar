@@ -7,7 +7,7 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("QSBar")]
-[assembly: AssemblyDescription("QS工具箱 - 兼容 Excel 和 WPS 的高效办公插件")]
+[assembly: AssemblyDescription("QS Toolbox - a productivity add-in for Excel and WPS")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("QS Studio")]
 [assembly: AssemblyProduct("QSBar Professional")]
@@ -32,6 +32,6 @@ using System.Security;
 //
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
-// [assembly: AssemblyVersion("1.0.1.13")]
-[assembly: AssemblyVersion("1.0.1.13")]
-[assembly: AssemblyFileVersion("1.0.1.13")]
+// [assembly: AssemblyVersion("1.0.1.14")]
+[assembly: AssemblyVersion("1.0.1.14")]
+[assembly: AssemblyFileVersion("1.0.1.14")]

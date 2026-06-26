@@ -28,18 +28,18 @@ namespace QSBar.Setup
             bool isUninstall = args.Contains("/u") || args.Contains("-u") || args.Contains("--uninstall");
 
             InstallForm form = new InstallForm(isUninstall);
-            
+
             form.Shown += async (s, e) =>
             {
                 if (isUninstall)
                 {
                     await form.ExecuteAction(async (report) => await UninstallAsync(report));
-                    MessageBox.Show("QSBar 插件已成功卸载！", "卸载完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("QSBar has been uninstalled.", "Uninstall Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     await form.ExecuteAction(async (report) => await InstallAsync(report));
-                    MessageBox.Show("QSBar 插件已成功安装并注册！\n请重新启动 Excel 或 WPS。", "安装完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("QSBar has been installed and registered.\nPlease restart Excel or WPS.", "Install Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             };
 
@@ -48,22 +48,18 @@ namespace QSBar.Setup
 
         static async Task InstallAsync(Action<int, string> report)
         {
-            // 1. 结束进程
-            report(10, "正在关闭 Office 进程...");
+            report(10, "Closing Office processes...");
             KillProcesses();
 
-            // 2. 准备安装目录
-            report(20, "正在准备安装目录...");
+            report(20, "Preparing installation folder...");
             string installDir = GetInstallDir();
             if (!Directory.Exists(installDir)) Directory.CreateDirectory(installDir);
 
-            // 3. 复制文件
-            report(30, "正在复制程序文件...");
+            report(30, "Copying program files...");
             string sourceDir = AppDomain.CurrentDomain.BaseDirectory;
             string dllSource = Path.Combine(sourceDir, "QSBar.dll");
             if (!File.Exists(dllSource))
             {
-                // 尝试从项目源码结构中寻找 (适配 VS 调试环境)
                 dllSource = Path.Combine(sourceDir, "..", "..", "..", "QSBar", "bin", "Debug", "QSBar.dll");
                 if (!File.Exists(dllSource))
                 {
@@ -72,67 +68,57 @@ namespace QSBar.Setup
             }
 
             if (!File.Exists(dllSource))
-                throw new FileNotFoundException("找不到 QSBar.dll，请确保它位于安装程序目录或 payload 目录中。");
+                throw new FileNotFoundException("QSBar.dll was not found. Make sure it is located in the installer folder or the payload folder.");
 
             string dllDest = Path.Combine(installDir, "QSBar.dll");
             File.Copy(dllSource, dllDest, true);
 
-            // 复制依赖项
             foreach (string file in Directory.GetFiles(Path.GetDirectoryName(dllSource), "*.dll"))
             {
                 if (Path.GetFileName(file) == "QSBar.dll") continue;
                 File.Copy(file, Path.Combine(installDir, Path.GetFileName(file)), true);
             }
 
-            // 4. COM 注册
-            report(50, "正在进行 COM 注册 (可能需要几秒)...");
+            report(50, "Running COM registration (may take a few seconds)...");
             await Task.Run(() => RegisterCom(dllDest));
 
-            // 5. Office/WPS 加载项注册表设置
-            report(70, "正在配置 Office 注册表...");
+            report(70, "Configuring Office registry entries...");
             RegisterAddIn();
 
-            // 6. WPS 白名单
-            report(80, "正在配置 WPS 白名单...");
+            report(80, "Configuring WPS whitelist...");
             RegisterWpsWhitelist();
 
-            // 7. 设置环境变量
-            report(85, "正在设置环境参数...");
+            report(85, "Setting environment variables...");
             Environment.SetEnvironmentVariable("VSTO_LOGALERTS", "1", EnvironmentVariableTarget.User);
 
-            // 8. 清理 Excel 禁用项
-            report(90, "正在清理 Office 禁用项...");
+            report(90, "Cleaning Office disabled items...");
             ClearResiliency();
 
-            report(100, "安装完成！");
+            report(100, "Installation complete.");
         }
 
         static async Task UninstallAsync(Action<int, string> report)
         {
-            report(10, "正在关闭 Office 进程...");
+            report(10, "Closing Office processes...");
             KillProcesses();
 
-            // 1. 反注册 COM
-            report(30, "正在反注册 COM 组件...");
+            report(30, "Unregistering COM components...");
             await Task.Run(() => UnregisterCom());
 
-            // 2. 清除加载项注册表
-            report(50, "正在清除注册表设置...");
+            report(50, "Removing registry entries...");
             UnregisterAddIn();
 
-            // 3. 清除 WPS 白名单
-            report(70, "正在清除 WPS 白名单...");
+            report(70, "Removing WPS whitelist entries...");
             UnregisterWpsWhitelist();
 
-            // 4. 删除安装目录
-            report(90, "正在删除程序文件...");
+            report(90, "Deleting program files...");
             string installDir = GetInstallDir();
             if (Directory.Exists(installDir))
             {
                 try { Directory.Delete(installDir, true); } catch { }
             }
 
-            report(100, "卸载完成！");
+            report(100, "Uninstall complete.");
         }
 
         static void KillProcesses()
@@ -154,19 +140,15 @@ namespace QSBar.Setup
 
         static void RegisterCom(string dllPath)
         {
-            // 使用 RegistrationServices 进行注册 (相当于 RegAsm /codebase)
-            // 注意：这需要在管理员权限下运行
             try
             {
                 Assembly asm = Assembly.LoadFrom(dllPath);
                 RegistrationServices regSvc = new RegistrationServices();
                 if (!regSvc.RegisterAssembly(asm, AssemblyRegistrationFlags.SetCodeBase))
                 {
-                    throw new Exception("COM 注册失败：程序集可能不包含可注册的类。");
+                    throw new Exception("COM registration failed: the assembly may not contain any registrable types.");
                 }
 
-                // 额外手动写入 HKCU 注册表，确保 Excel/WPS 可见 (用户级别)
-                // 模拟 quick_setup.ps1 中的逻辑
                 using (RegistryKey clsidKey = Registry.CurrentUser.CreateSubKey(string.Format(@"Software\Classes\CLSID\{0}", CLSID)))
                 {
                     clsidKey.SetValue("", ProgID);
@@ -188,13 +170,12 @@ namespace QSBar.Setup
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("COM 注册过程中出错: {0}", ex.Message), ex);
+                throw new Exception(string.Format("Error during COM registration: {0}", ex.Message), ex);
             }
         }
 
         static void UnregisterCom()
         {
-            // 清理 HKCU 下的自定义 COM 注册
             try
             {
                 Registry.CurrentUser.DeleteSubKeyTree(string.Format(@"Software\Classes\CLSID\{0}", CLSID), false);
@@ -220,7 +201,7 @@ namespace QSBar.Setup
                     key.SetValue("FriendlyName", FriendlyName);
                     key.SetValue("LoadBehavior", 3, RegistryValueKind.DWord);
                     key.SetValue("CommandLineSafe", 1, RegistryValueKind.DWord);
-                    key.DeleteValue("Manifest", false); // 确保没有旧的 VSTO 残留
+                    key.DeleteValue("Manifest", false);
                 }
             }
         }

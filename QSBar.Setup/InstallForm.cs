@@ -20,7 +20,7 @@ namespace QSBar.Setup
 
         private void InitializeComponent()
         {
-            this.Text = _isUninstall ? "QSBar 卸载程序" : "QSBar 安装程序";
+            this.Text = _isUninstall ? "QSBar Uninstaller" : "QSBar Installer";
             this.Size = new Size(450, 200);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -30,7 +30,7 @@ namespace QSBar.Setup
 
             _titleLabel = new Label
             {
-                Text = _isUninstall ? "正在卸载 QSBar..." : "正在安装 QSBar...",
+                Text = _isUninstall ? "Uninstalling QSBar..." : "Installing QSBar...",
                 Font = new Font("Microsoft YaHei", 12, FontStyle.Bold),
                 Location = new Point(20, 20),
                 AutoSize = true
@@ -38,7 +38,7 @@ namespace QSBar.Setup
 
             _statusLabel = new Label
             {
-                Text = "准备中...",
+                Text = "Preparing...",
                 Font = new Font("Microsoft YaHei", 9),
                 Location = new Point(20, 60),
                 Size = new Size(400, 20)
@@ -75,13 +75,13 @@ namespace QSBar.Setup
             try
             {
                 await action((progress, status) => UpdateProgress(progress, status));
-                UpdateProgress(100, _isUninstall ? "卸载完成！" : "安装完成！");
+                UpdateProgress(100, _isUninstall ? "Uninstall complete." : "Install complete.");
                 await Task.Delay(500);
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(string.Format("操作过程中出错: {0}", ex.Message), "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(string.Format("The operation failed: {0}", ex.Message), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 this.Close();
             }
         }

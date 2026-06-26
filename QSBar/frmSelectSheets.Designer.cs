@@ -2,15 +2,8 @@ namespace QSBar
 {
     partial class frmSelectSheets
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -22,10 +15,6 @@ namespace QSBar
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             this.chkListSheets = new System.Windows.Forms.CheckedListBox();
@@ -51,7 +40,7 @@ namespace QSBar
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 1;
-            this.btnOK.Text = "确定";
+            this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
@@ -62,7 +51,7 @@ namespace QSBar
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 2;
-            this.btnCancel.Text = "取消";
+            this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
@@ -72,7 +61,7 @@ namespace QSBar
             this.btnSelectAll.Name = "btnSelectAll";
             this.btnSelectAll.Size = new System.Drawing.Size(75, 23);
             this.btnSelectAll.TabIndex = 3;
-            this.btnSelectAll.Text = "全选";
+            this.btnSelectAll.Text = "Select All";
             this.btnSelectAll.UseVisualStyleBackColor = true;
             this.btnSelectAll.Click += new System.EventHandler(this.btnSelectAll_Click);
             // 
@@ -82,7 +71,7 @@ namespace QSBar
             this.btnSelectNone.Name = "btnSelectNone";
             this.btnSelectNone.Size = new System.Drawing.Size(75, 23);
             this.btnSelectNone.TabIndex = 4;
-            this.btnSelectNone.Text = "全不选";
+            this.btnSelectNone.Text = "Select None";
             this.btnSelectNone.UseVisualStyleBackColor = true;
             this.btnSelectNone.Click += new System.EventHandler(this.btnSelectNone_Click);
             // 
@@ -91,9 +80,9 @@ namespace QSBar
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 13);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(113, 12);
+            this.label1.Size = new System.Drawing.Size(149, 12);
             this.label1.TabIndex = 5;
-            this.label1.Text = "请选择要合并的表：";
+            this.label1.Text = "Select worksheets to merge:";
             // 
             // frmSelectSheets
             // 
@@ -113,10 +102,9 @@ namespace QSBar
             this.MinimizeBox = false;
             this.Name = "frmSelectSheets";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "选择工作表";
+            this.Text = "Select Worksheets";
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

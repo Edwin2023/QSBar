@@ -272,8 +272,8 @@ namespace QSBar
                         object val = dataValues[i, c];
                         string v = val == null ? "" : val.ToString();
                         
-                        if (Like(v, "*【*")) { level = 1; break; }
-                        else if (Like(v, "*《*")) { level = 2; break; }
+                        if (Like(v, "*【*") || Like(v, "*[[*")) { level = 1; break; }
+                        else if (Like(v, "*《*") || Like(v, "*<<*")) { level = 2; break; }
                         else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
                     }
                     
@@ -461,11 +461,11 @@ namespace QSBar
                     }
                 }
 
-                MessageBox.Show("外部链接已全部断开为数值，且已清理异常的定义名称。", "处理完成", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("All external links have been broken into values, and invalid defined names have been cleaned up.", "Completed", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("删除外部链接时出错: " + ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error while removing external links: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {

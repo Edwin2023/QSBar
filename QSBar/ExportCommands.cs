@@ -85,7 +85,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("导出失败: " + ex.Message);
+                MessageBox.Show("Export failed: " + ex.Message);
             }
             finally
             {
@@ -128,7 +128,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("转换失败: " + ex.Message);
+                MessageBox.Show("Conversion failed: " + ex.Message);
             }
             finally
             {
@@ -202,7 +202,7 @@ namespace QSBar
 
                 string dateStr = DateTime.Now.ToString("yyyy-MM-dd"); // Replaced / with -
 
-                string prefix = isInternal ? string.Format("(OUT内部全数据{0})", dateStr) : string.Format("(OUT{0})", dateStr);
+                string prefix = isInternal ? string.Format("(OUT-Internal-{0})", dateStr) : string.Format("(OUT{0})", dateStr);
 
                 string sourcePath = sourceWb.Path;
 
@@ -288,7 +288,7 @@ namespace QSBar
 
             {
 
-                MessageBox.Show("导出失败: " + ex.Message);
+                MessageBox.Show("Export failed: " + ex.Message);
 
             }
 

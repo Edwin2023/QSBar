@@ -1,90 +1,87 @@
-﻿<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' onLoad='OnLoad'>
+<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui' onLoad='OnLoad'>
   <ribbon>
     <tabs>
-      <tab id='tabQSBar' label='QS工具箱'>
-        <group id='groupFormat' label='格式/排版'>
-          <button id='btnBatch' label='批量处理' onAction='OnBatchProcess' imageMso='ViewSheetGridlines'
-            size='large' screentip='批量处理/公式计算' supertip='批量处理或公式计算，通常用于大数据量处理' />
-          <button id='btnNormalize' label='数值化' onAction='OnNormalizeNumbers'
-            imageMso='NumberFormat' size='normal' screentip='数据规范化' supertip='对选中区域的数据进行规范化处理' />
-          <button id='btnTextify' label='文本化' onAction='OnTextify' imageMso='TextBoxInsert'
-            size='normal' screentip='数据文本化' supertip='将选中区域的数据强制转换为文本格式' />
-          <button id='btnLock' label='锁定公式' onAction='OnLockFormula' imageMso='Lock' size='normal'
-            screentip='锁定/解锁公式' supertip='锁定或解锁选中区域的单元格公式' />
+      <tab id='tabQSBar' getLabel='GetRibbonLabel'>
+        <group id='groupFormat' getLabel='GetRibbonLabel'>
+          <button id='btnBatch' getLabel='GetRibbonLabel' onAction='OnBatchProcess' imageMso='ViewSheetGridlines'
+            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnNormalize' getLabel='GetRibbonLabel' onAction='OnNormalizeNumbers'
+            imageMso='NumberFormat' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnTextify' getLabel='GetRibbonLabel' onAction='OnTextify' imageMso='TextBoxInsert'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnLock' getLabel='GetRibbonLabel' onAction='OnLockFormula' imageMso='Lock' size='normal'
+            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
 
-        <group id='groupBQ' label='批量处理'>
-          <button id='btnSetGrading' label='设置分级' onAction='OnSetGrading' imageMso='ObjectsGroup'
-            size='large' screentip='设置分级显示' supertip='根据内容自动设置工作表的分级显示' />
-          <button id='btnSetGradingStyle' label='分级样式' onAction='OnSetGradingStyle'
-            imageMso='FormatPainter' size='large' screentip='设置分级样式' supertip='为分级显示设置不同的单元格样式' />
-          <button id='btnOutSheet' label='导出当前表' onAction='OnExportCurrentSheet'
-            imageMso='WindowNew' size='normal' screentip='导出当前表' supertip='以数值形式导出当前工作表' />
-          <button id='btnOutStd' label='导出标准报表' onAction='OnExportStandardReport'
-            imageMso='FileSaveAs' size='normal' screentip='导出标准报表' supertip='删除隐藏的行和列，以数值形式导出全部工作表' />
-          <button id='btnOutInt' label='导出内部报表' onAction='OnExportInternalReport'
-            imageMso='FileSaveAs' size='normal' screentip='导出内部报表' supertip='以数值形式导出全部工作表' />
-
+        <group id='groupBQ' getLabel='GetRibbonLabel'>
+          <button id='btnSetGrading' getLabel='GetRibbonLabel' onAction='OnSetGrading' imageMso='ObjectsGroup'
+            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnSetGradingStyle' getLabel='GetRibbonLabel' onAction='OnSetGradingStyle'
+            imageMso='FormatPainter' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnOutSheet' getLabel='GetRibbonLabel' onAction='OnExportCurrentSheet'
+            imageMso='WindowNew' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnOutStd' getLabel='GetRibbonLabel' onAction='OnExportStandardReport'
+            imageMso='FileSaveAs' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnOutInt' getLabel='GetRibbonLabel' onAction='OnExportInternalReport'
+            imageMso='FileSaveAs' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
 
-        <group id='groupGrading' label='分级/筛选'>
-          <button id='btnMergeSheets' label='合并工作表' onAction='OnMergeSheets' imageMso='Consolidate'
-            size='large' screentip='合并工作表' supertip='将多个工作表合并为一个工作表' />
-          <button id='btnSheetIndex' label='生成表目录' onAction='OnCreateSheetIndex'
-            imageMso='Numbering' size='large' screentip='生成表目录' supertip='在当前工作簿中生成所有工作表的目录' />
-          <button id='btnFileDir' label='生成文件目录' onAction='OnCreateFileIndex' imageMso='FileOpen'
-            size='large' screentip='生成文件目录' supertip='选择文件并在当前工作簿中生成这些文件的目录' />
-
+        <group id='groupGrading' getLabel='GetRibbonLabel'>
+          <button id='btnMergeSheets' getLabel='GetRibbonLabel' onAction='OnMergeSheets' imageMso='Consolidate'
+            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnSheetIndex' getLabel='GetRibbonLabel' onAction='OnCreateSheetIndex'
+            imageMso='Numbering' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnFileDir' getLabel='GetRibbonLabel' onAction='OnCreateFileIndex' imageMso='FileOpen'
+            size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
 
-        <group id='groupPhotoTools' label='对象选择'>
-          <button id='btnSelVisible' label='选中可见单元格' onAction='OnSelectVisibleCells'
-            imageMso='SelectAll' size='large' screentip='选中可见单元格 (Ctrl+5)' supertip='选中当前工作表中可见的单元格' />
-          <button id='btnSelectAllPictures' label='全选图片' onAction='OnSelectAllPictures'
-            imageMso='SelectAll' size='large' screentip='选中全图' supertip='选中当前工作表中的所有图片' />
-          <button id='btnResize1' label='1倍大小' onAction='OnResizePictures' tag='1'
+        <group id='groupPhotoTools' getLabel='GetRibbonLabel'>
+          <button id='btnSelVisible' getLabel='GetRibbonLabel' onAction='OnSelectVisibleCells'
+            imageMso='SelectAll' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnSelectAllPictures' getLabel='GetRibbonLabel' onAction='OnSelectAllPictures'
+            imageMso='SelectAll' size='large' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnResize1' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='1'
             imageMso='PictureInsertFromFile' size='normal' />
-          <button id='btnResize2' label='2倍大小' onAction='OnResizePictures' tag='2'
+          <button id='btnResize2' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='2'
             imageMso='PictureInsertFromFile' size='normal' />
-          <button id='btnResize4' label='4倍大小' onAction='OnResizePictures' tag='4'
+          <button id='btnResize4' getLabel='GetRibbonLabel' onAction='OnResizePictures' tag='4'
             imageMso='PictureInsertFromFile' size='normal' />
-
         </group>
 
-        <group id='groupSheets' label='工作表'>
-
-          <button id='btnForceRefresh' label='强制刷新' onAction='OnForceRefresh' imageMso='Refresh'
-            size='normal' screentip='强制刷新' supertip='强制刷新选中区域的所有公式' />
-          <button id='btnValOnly' label='全表数值化' onAction='OnConvertAllToValues'
-            imageMso='PasteValues' size='normal' screentip='全表粘死' supertip='将当前工作表的所有公式转换为数值' />
-          <button id='btnUnhideSheets' label='显示隐藏表' onAction='OnUnhideAllSheets'
-            imageMso='FillRight' size='normal' screentip='取消隐藏所有表' supertip='取消隐藏当前工作簿中的所有工作表' />
-          <button id='btnBreakLinks' label='删除外链接' onAction='OnBreakLinks' imageMso='EditLinks'
-            size='normal' screentip='删除外部链接' supertip='断开所有外部工作簿引用并清理异常名称' />
-          <button id='btnDeleteLinks' label='删除超链接' onAction='OnDeleteHyperlinks' imageMso='Delete'
-            size='normal' screentip='删除超链接' supertip='删除选中区域的所有超链接' />
-          <button id='btnDeleteEmptyRows' label='删除表空行' onAction='OnDeleteEmptyRows'
-            imageMso='TableRowsDelete' size='normal' screentip='删除空行' supertip='删除选中区域内的所有空行' />
-
+        <group id='groupSheets' getLabel='GetRibbonLabel'>
+          <button id='btnForceRefresh' getLabel='GetRibbonLabel' onAction='OnForceRefresh' imageMso='Refresh'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnValOnly' getLabel='GetRibbonLabel' onAction='OnConvertAllToValues'
+            imageMso='PasteValues' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnUnhideSheets' getLabel='GetRibbonLabel' onAction='OnUnhideAllSheets'
+            imageMso='FillRight' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnBreakLinks' getLabel='GetRibbonLabel' onAction='OnBreakLinks' imageMso='EditLinks'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnDeleteLinks' getLabel='GetRibbonLabel' onAction='OnDeleteHyperlinks' imageMso='Delete'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnDeleteEmptyRows' getLabel='GetRibbonLabel' onAction='OnDeleteEmptyRows'
+            imageMso='TableRowsDelete' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
 
-        <group id='groupCalc' label='计算模式'>
-          <button id='btnCalcAuto' label='切到手动计算' keytip='F10' getVisible='GetCalcAutoVisible'
-            onAction='OnToggleCalculation' imageMso='CalculateNow' size='large' screentip='当前:自动计算'
-            supertip='将计算模式切换为手动' />
-          <button id='btnCalcManual' label='切到自动计算' keytip='F10' getVisible='GetCalcManualVisible'
+        <group id='groupCalc' getLabel='GetRibbonLabel'>
+          <button id='btnCalcAuto' getLabel='GetRibbonLabel' keytip='F10' getVisible='GetCalcAutoVisible'
+            onAction='OnToggleCalculation' imageMso='CalculateNow' size='large'
+            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnCalcManual' getLabel='GetRibbonLabel' keytip='F10' getVisible='GetCalcManualVisible'
             onAction='OnToggleCalculation' imageMso='CalculateFull' size='large'
-            screentip='当前:手动计算' supertip='将计算模式切换为自动' />
+            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
 
-        <group id='groupHelpUpdate' label='帮助更新'>
-          <button id='btnHelp' label='使用帮助' onAction='OnShowHelp' imageMso='Help' size='large'
-            screentip='使用帮助' supertip='查看 QS 工具箱的版本信息、快捷键及检查更新' />
-          <button id='btnCheckUpdate' label='检查更新' onAction='OnCheckUpdate' imageMso='Refresh'
-            size='normal' screentip='检查更新' supertip='手动检查是否有新版本可用' />
-          <button id='btnUpdate' label='重启更新' getVisible='GetHelpUpdateVisible'
-            onAction='OnRestartUpdate' imageMso='Refresh' size='normal' screentip='重启更新'
-            supertip='检测到新版本，请点击并确认重启以完成更新' />
+        <group id='groupHelpUpdate' getLabel='GetRibbonLabel'>
+          <button id='btnHelp' getLabel='GetRibbonLabel' onAction='OnShowHelp' imageMso='Help' size='large'
+            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnCheckUpdate' getLabel='GetRibbonLabel' onAction='OnCheckUpdate' imageMso='Refresh'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnToggleLanguage' getLabel='GetRibbonLabel' onAction='OnToggleLanguage' imageMso='ReviewTranslate'
+            size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
+          <button id='btnUpdate' getLabel='GetRibbonLabel' getVisible='GetHelpUpdateVisible'
+            onAction='OnRestartUpdate' imageMso='Refresh' size='normal'
+            getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
         </group>
       </tab>
     </tabs>

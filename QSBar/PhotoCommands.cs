@@ -73,7 +73,7 @@ namespace QSBar
 
             if (activeSheet.ProtectContents)
             {
-                MessageBox.Show("工作表已保护,本程序拒绝执行！", "提示");
+                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
                 return;
             }
 

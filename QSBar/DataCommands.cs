@@ -323,7 +323,7 @@ namespace QSBar
 
             if (activeSheet.ProtectContents)
             {
-                MessageBox.Show("工作表已保护,本程序拒绝执行！", "提示");
+                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
                 return;
             }
 
@@ -356,7 +356,7 @@ namespace QSBar
             }
             catch (Exception ex)
             {
-                MessageBox.Show("处理外部链接失败: " + ex.Message);
+                MessageBox.Show("Failed to process external links: " + ex.Message);
             }
             finally
             {

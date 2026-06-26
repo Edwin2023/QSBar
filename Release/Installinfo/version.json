@@ -1,5 +1,5 @@
 ﻿{
-    "version":  "1.0.1.12",
-    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.12.exe",
-    "changeLog":  "清理 Release 仓库：不再推送编译产生的 QSBar.dll 文件，仅保留用户需要的安装包、ZIP 及其配套说明文件。"
+    "version":  "1.0.1.14",
+    "downloadUrl":  "https://gitee.com/kevin137/qsbar-release/raw/master/QSBar_Setup_v1.0.1.14.exe",
+    "changeLog":  "新增 QSBar Ribbon 中英双语界面与语言切换按钮，语言选择保存到当前 Windows 用户。"
 }
