@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -309,12 +311,126 @@ namespace QSBar
 
             Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
             if (rng == null) return;
-            
-            ClearStyleInternal(rng);
-            RowStyleInternal(rng);
+
+            SmartClearAndRestyle(app, rng);
         }
 
-        
+        private struct ManualCellFormat
+        {
+            public int Col;
+            public int InteriorColor;
+            public int Pattern;
+            public int FontColor;
+            public bool FontBold;
+            public double FontSize;
+            public string FontName;
+        }
+
+        private static void SmartClearAndRestyle(Excel.Application app, Excel.Range rng)
+        {
+            if (rng == null) return;
+
+            bool originalUpdating = app.ScreenUpdating;
+            Excel.XlCalculation originalCalc = app.Calculation;
+            bool originalEvents = app.EnableEvents;
+
+            int colorL1Bg = ColorTranslator.ToOle(Color.FromArgb(51, 63, 79));
+            int colorL2Bg = ColorTranslator.ToOle(Color.FromArgb(217, 225, 242));
+            int colorL3Bg = ColorTranslator.ToOle(Color.FromArgb(251, 229, 214));
+            int colorL1Font = ColorTranslator.ToOle(Color.FromArgb(255, 255, 255));
+            int colorL23Font = ColorTranslator.ToOle(Color.FromArgb(26, 26, 26));
+
+            try
+            {
+                app.ScreenUpdating = false;
+                app.Calculation = Excel.XlCalculation.xlCalculationManual;
+                app.EnableEvents = false;
+
+                foreach (Excel.Range area in rng.Areas)
+                {
+                    int rowCount = area.Rows.Count;
+                    if (rowCount <= 0) continue;
+
+                    for (int i = 1; i <= rowCount; i++)
+                    {
+                        Excel.Range row = null;
+                        try
+                        {
+                            row = (Excel.Range)area.Rows[i];
+                            int level = (int)row.OutlineLevel;
+                            if (level < 1 || level > 3) continue;
+
+                            int gradingBg = level == 1 ? colorL1Bg : (level == 2 ? colorL2Bg : colorL3Bg);
+                            int gradingFont = level == 1 ? colorL1Font : colorL23Font;
+
+                            var manualCells = new List<ManualCellFormat>();
+                            int colCount = row.Columns.Count;
+
+                            for (int c = 1; c <= colCount; c++)
+                            {
+                                try
+                                {
+                                    Excel.Range cell = (Excel.Range)row.Cells[1, c];
+                                    int cellBg = (int)cell.Interior.Color;
+                                    int cellPattern = (int)cell.Interior.Pattern;
+
+                                    if (cellPattern == (int)Excel.XlPattern.xlPatternSolid &&
+                                        cellBg == gradingBg &&
+                                        (int)cell.Font.Color == gradingFont &&
+                                        (bool)cell.Font.Bold)
+                                        continue;
+                                    if (cellPattern == (int)Excel.XlPattern.xlPatternNone)
+                                        continue;
+
+                                    manualCells.Add(new ManualCellFormat
+                                    {
+                                        Col = c,
+                                        InteriorColor = cellBg,
+                                        Pattern = cellPattern,
+                                        FontColor = (int)cell.Font.Color,
+                                        FontBold = (bool)cell.Font.Bold,
+                                        FontSize = (double)cell.Font.Size,
+                                        FontName = cell.Font.Name as string
+                                    });
+                                }
+                                catch { }
+                            }
+
+                            ClearStyleInternal(row);
+                            ApplyStyleToRow(row, level);
+
+                            foreach (var mc in manualCells)
+                            {
+                                try
+                                {
+                                    Excel.Range cell = (Excel.Range)row.Cells[1, mc.Col];
+                                    cell.Interior.Pattern = (Excel.XlPattern)mc.Pattern;
+                                    cell.Interior.Color = mc.InteriorColor;
+                                    cell.Font.Color = mc.FontColor;
+                                    cell.Font.Bold = mc.FontBold;
+                                    cell.Font.Size = mc.FontSize;
+                                    cell.Font.Name = mc.FontName;
+                                }
+                                catch { }
+                            }
+                        }
+                        catch { }
+                        finally
+                        {
+                            if (row != null) Marshal.ReleaseComObject(row);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                app.ScreenUpdating = originalUpdating;
+                app.Calculation = originalCalc;
+                app.EnableEvents = originalEvents;
+            }
+        }
+
+
         public static void MultiAreaGroup()
         {
             Excel.Application app = WpsExcelAddIn.App;

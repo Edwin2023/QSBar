@@ -25,7 +25,6 @@ namespace QSBar
         private static Office.IRibbonUI _ribbon;
         private static int _lastCalcMode = -1;
         private static Timer _calcTimer;
-        private static Control _uiInvoker;
         private static KeyboardHook _keyboardHook;
         private const string LanguageRegistryPath = @"Software\QSBar";
         private const string LanguageRegistryName = "RibbonLanguage";
@@ -191,10 +190,9 @@ namespace QSBar
 
                 OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 
-                // StartCalcTimer();  // 临时禁用：排查 Ribbon 黑条问题
+                // StartCalcTimer();  // 临时禁用：排查插件被禁用问题
                 RegisterShortcuts();
 
-                // Run one silent update check at startup, fully off the UI thread.
                 var _ = Task.Run(() => UpdateManager.CheckForUpdateAsync(true, false));
                 var __ = Task.Run(() => AnalyticsHelper.Ping());
             }
@@ -217,7 +215,6 @@ namespace QSBar
             {
                 _keyboardHook = new KeyboardHook();
 
-                // Ctrl + Key
                 AddShortcuts(true, false, Keys.D3, Keys.NumPad3, () => DataCommands.BatchProcess());
                 AddShortcuts(true, false, Keys.D4, Keys.NumPad4, () => FormatCommands.SelectNonEmptyCells());
                 AddShortcuts(true, false, Keys.D5, Keys.NumPad5, () => FormatCommands.SelectVisibleCells());
@@ -227,7 +224,6 @@ namespace QSBar
                 AddShortcuts(true, false, Keys.D9, Keys.NumPad9, () => FormatCommands.YiWanFormat());
                 AddShortcuts(true, false, Keys.D0, Keys.NumPad0, () => LegacyAppCommands.ToggleCalculation());
 
-                // Ctrl + Alt + Key
                 AddShortcuts(true, true, Keys.D1, Keys.NumPad1, () => DataCommands.ExpandPivotTable());
                 AddShortcuts(true, true, Keys.D2, Keys.NumPad2, () => DataCommands.CollapsePivotTable());
             }
@@ -285,32 +281,41 @@ namespace QSBar
 
         public void OnDisconnection(ext_DisconnectMode RemoveMode, ref Array custom)
         {
-            UnregisterShortcuts();
-            StopCalcTimer();
-            if (_uiInvoker != null)
-            {
-                try { _uiInvoker.Dispose(); } catch { }
-                _uiInvoker = null;
-            }
-            _application = null;
-            App = null;
+            Cleanup();
         }
 
         public void OnAddInsUpdate(ref Array custom) { }
         public void OnStartupComplete(ref Array custom) { }
-        public void OnBeginShutdown(ref Array custom) { }
+
+        public void OnBeginShutdown(ref Array custom)
+        {
+            Cleanup();
+        }
+
+        private void Cleanup()
+        {
+            UnregisterShortcuts();
+            StopCalcTimer();
+
+            if (_ribbon != null)
+            {
+                Marshal.ReleaseComObject(_ribbon);
+                _ribbon = null;
+            }
+
+            if (_application != null)
+            {
+                Marshal.ReleaseComObject(_application);
+                _application = null;
+                App = null;
+            }
+        }
 
         public void OnLoad(Office.IRibbonUI ribbon)
         {
             try
             {
                 _ribbon = ribbon;
-                if (_uiInvoker == null || _uiInvoker.IsDisposed)
-                {
-                    _uiInvoker = new Control();
-                    var _ = _uiInvoker.Handle;
-                }
-                RegisterShortcuts();
             }
             catch (Exception ex)
             {
@@ -320,7 +325,10 @@ namespace QSBar
 
         public string GetCustomUI(string RibbonID)
         {
-            return GetResourceText("QSBar.Ribbon.xml");
+            string xml = GetResourceText("QSBar.Ribbon.xml");
+            return string.IsNullOrEmpty(xml)
+                ? "<customUI xmlns='http://schemas.microsoft.com/office/2009/07/customui'></customUI>"
+                : xml;
         }
 
         private static string GetResourceText(string resourceName)
@@ -468,14 +476,12 @@ namespace QSBar
 
         public bool GetCalcAutoVisible(Office.IRibbonControl control)
         {
-            try { return App != null && App.Calculation == Excel.XlCalculation.xlCalculationAutomatic; }
-            catch { return true; }
+            return _lastCalcMode == (int)Excel.XlCalculation.xlCalculationAutomatic || _lastCalcMode < 0;
         }
 
         public bool GetCalcManualVisible(Office.IRibbonControl control)
         {
-            try { return App != null && App.Calculation != Excel.XlCalculation.xlCalculationAutomatic; }
-            catch { return false; }
+            return _lastCalcMode >= 0 && _lastCalcMode != (int)Excel.XlCalculation.xlCalculationAutomatic;
         }
 
         public void OnToggleCalculation(Office.IRibbonControl control)
@@ -485,6 +491,13 @@ namespace QSBar
 
         public static void InvalidateCalcButtons()
         {
+            try
+            {
+                if (App != null)
+                    _lastCalcMode = (int)App.Calculation;
+            }
+            catch { }
+
             if (_ribbon != null)
             {
                 try

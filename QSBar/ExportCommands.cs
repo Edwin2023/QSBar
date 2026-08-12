@@ -62,10 +62,22 @@ namespace QSBar
                 }
                 string fullPath = Path.Combine(savePath, fileName);
 
+                // Cancel auto-filter on source before copy to avoid filter interference
+                if (activeSheet.AutoFilterMode)
+                {
+                    activeSheet.AutoFilterMode = false;
+                }
+
                 // Copy Sheet (creates new workbook)
                 activeSheet.Copy();
                 Excel.Workbook newWb = app.ActiveWorkbook;
                 Excel.Worksheet targetSheet = newWb.Sheets[1] as Excel.Worksheet;
+
+                // Cancel auto-filter on target (defensive, in case copy preserved filter state)
+                if (targetSheet.AutoFilterMode)
+                {
+                    targetSheet.AutoFilterMode = false;
+                }
 
                 // Paste Values & Formats
                 Excel.Range usedRange = targetSheet.UsedRange;
@@ -114,6 +126,12 @@ namespace QSBar
                 app.ScreenUpdating = false;
                 foreach (Excel.Worksheet ws in wb.Worksheets)
                 {
+                    // Cancel auto-filter before copy to ensure all rows are included
+                    if (ws.AutoFilterMode)
+                    {
+                        try { ws.AutoFilterMode = false; } catch { }
+                    }
+
                     Excel.Range usedRange = ws.UsedRange;
                     if (usedRange != null)
                     {
@@ -170,9 +188,29 @@ namespace QSBar
 
             dynamic app = WpsExcelAddIn.App;
 
+            if (app == null)
+
+            {
+
+                MessageBox.Show("QSBar add-in is not loaded. Please restart Excel and ensure the add-in is enabled.", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                return;
+
+            }
+
             dynamic sourceWb = app.ActiveWorkbook;
 
-            
+            if (sourceWb == null)
+
+            {
+
+                MessageBox.Show("No workbook is open.", "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                return;
+
+            }
+
+
 
             XlCalculation originalCalc = (XlCalculation)app.Calculation;
 
@@ -236,17 +274,15 @@ namespace QSBar
 
                 // Process New Workbook
 
+                app.StatusBar = "导出报表: 展开所有行...";
+
                 ExpandAllRows(newWb);
 
+
+
+                app.StatusBar = "导出报表: 取消筛选...";
+
                 CancelAutoFilters(newWb);
-
-                ClearErrorNames(newWb);
-
-                
-
-                // Convert to values
-
-                ConvertAllToValuesInternal(newWb);
 
 
 
@@ -254,21 +290,61 @@ namespace QSBar
 
                 {
 
-                    // Additional steps for Standard Report
+                    // Standard Report: selective conversion — only convert formulas
+
+                    // referencing hidden columns or problematic defined names
+
+                    app.StatusBar = "导出报表: 识别非一级列...";
 
                     HideNonLevel1Columns(newWb);
+
+
+
+                    ConvertReferencesToHiddenColsAndNames(app, newWb);
+
+
+
+                    app.StatusBar = "导出报表: 清理错误名称...";
+
+                    ClearErrorNames(newWb);
+
+
+
+                    app.StatusBar = "导出报表: 删除隐藏列...";
 
                     DeleteHiddenColumns(newWb);
 
                 }
 
+                else
 
+                {
+
+                    // Internal Report: full paste-as-values
+
+                    app.StatusBar = "导出报表: 清理错误名称...";
+
+                    ClearErrorNames(newWb);
+
+
+
+                    app.StatusBar = "导出报表: 全量数值化...";
+
+                    ConvertAllToValuesInternal(newWb);
+
+                }
+
+
+
+                app.StatusBar = "导出报表: 清理打印区域外内容...";
 
                 CleanOutsidePrintArea(newWb);
 
 
 
                 // Save
+
+                app.StatusBar = "导出报表: 保存文件...";
 
                 if (File.Exists(fullPath))
 
@@ -282,11 +358,15 @@ namespace QSBar
 
                 newWb.SaveAs(fullPath, 51); // xlOpenXMLWorkbook
 
+                app.StatusBar = "导出报表: 完成";
+
             }
 
             catch (Exception ex)
 
             {
+
+                app.StatusBar = false;
 
                 MessageBox.Show("Export failed: " + ex.Message);
 
@@ -294,6 +374,8 @@ namespace QSBar
 
             finally
             {
+                app.StatusBar = false;
+
                 try { app.CutCopyMode = false; } catch { }
                 try { Clipboard.Clear(); } catch { }
 
@@ -316,6 +398,14 @@ namespace QSBar
             foreach (dynamic ws in wb.Worksheets)
 
             {
+
+                if (ws.AutoFilterMode)
+
+                {
+
+                    try { ws.AutoFilterMode = false; } catch { }
+
+                }
 
                 app.CutCopyMode = false;
 
@@ -342,6 +432,557 @@ namespace QSBar
             }
 
             app.CutCopyMode = false;
+
+        }
+
+
+
+        /// <summary>
+
+        /// 两阶段选择性数值化：
+
+        /// 阶段1：只粘死自身公式含外部工作簿引用 [xxx.xlsx] 或问题名称的单元格。
+
+        /// 阶段2：粘死引用了隐藏列（将被删除）的公式单元格。
+
+        /// 阶段1先执行，外部引用粘死后阶段2只检查隐藏列，表内公式（如=2*D2）不受影响。
+
+        /// </summary>
+
+        private static void ConvertReferencesToHiddenColsAndNames(dynamic app, dynamic wb)
+
+        {
+
+            // 收集即将被 ClearErrorNames 删除的问题名称
+
+            var problemNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            try
+
+            {
+
+                foreach (dynamic name in wb.Names)
+
+                {
+
+                    string val = "";
+
+                    try { val = name.Value; } catch { continue; }
+
+                    if (val.Contains("#REF!") || val.Contains(":\\") || val.Contains("\\\\") || val.Contains("#N/A"))
+
+                    {
+
+                        problemNames.Add(name.Name);
+
+                    }
+
+                }
+
+            }
+
+            catch { }
+
+
+
+            var problemNameRegex = BuildProblemNameRegex(problemNames);
+
+
+
+            // 外部工作簿引用模式: 匹配所有 [xxx] 格式（含 [141]Laldia清单 等无扩展名格式）
+
+            var externalRefRegex = new System.Text.RegularExpressions.Regex(
+
+                @"\[[^\]]*\]",
+
+                System.Text.RegularExpressions.RegexOptions.Compiled |
+
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+
+
+            int totalSheets = wb.Worksheets.Count;
+
+            int sheetIndex = 0;
+
+
+
+            // ===== 阶段1：只粘死自身公式含外部链接的单元格 =====
+
+            foreach (dynamic ws in wb.Worksheets)
+
+            {
+
+                sheetIndex++;
+
+                app.StatusBar = string.Format("导出报表: 粘死外部引用 ({0}/{1}) {2}...",
+
+                    sheetIndex, totalSheets, ws.Name);
+
+
+
+                try
+
+                {
+
+                    dynamic usedRange = ws.UsedRange;
+
+                    if (usedRange == null) continue;
+
+
+
+                    if (problemNames.Count == 0 && !HasAnyExternalRef(wb))
+
+                        continue;
+
+
+
+                    dynamic formulaArray = usedRange.Formula;
+
+                    int rows = formulaArray.GetLength(0);
+
+                    int cols = formulaArray.GetLength(1);
+
+                    int startRow = usedRange.Row;
+
+                    int startCol = usedRange.Column;
+
+
+
+                    for (int r = 1; r <= rows; r++)
+
+                    {
+
+                        for (int c = 1; c <= cols; c++)
+
+                        {
+
+                            object cellObj = formulaArray[r, c];
+
+                            string formula = cellObj as string;
+
+                            if (string.IsNullOrEmpty(formula))
+
+                                continue;
+
+                            bool isArray = formula.StartsWith("{=");
+
+                            if (!formula.StartsWith("=") && !isArray)
+
+                                continue;
+
+                            if (isArray)
+
+                                formula = formula.Substring(1, formula.Length - 2);
+
+
+
+                            bool needsConversion = false;
+
+
+
+                            // 名称匹配前先剥离引号字面量（工作表名 'xxx'、文本常量 "xxx"）。
+
+                            // 否则表名里的字母会撞上单字母坏名称，把正常公式一起粘死。
+
+                            string scrubbed = QuotedLiteralRegex.Replace(formula, "''");
+
+
+
+                            // 只检查问题名称。必须是完整标识符，不能用裸子串匹配
+
+                            if (problemNameRegex != null && problemNameRegex.IsMatch(scrubbed))
+
+                            {
+
+                                needsConversion = true;
+
+                            }
+
+
+
+                            // 只检查外部工作簿引用（公式文本里带 [xxx.xlsx]）
+
+                            // 注意用原始 formula：路径式外部引用 'C:\x\[a.xlsx]Sheet'!A1 的方括号在引号内
+
+                            if (!needsConversion && externalRefRegex.IsMatch(formula))
+
+                            {
+
+                                needsConversion = true;
+
+                            }
+
+
+
+                            if (needsConversion)
+
+                            {
+
+                                try
+
+                                {
+
+                                    int rowIdx = startRow + r - 1;
+
+                                    int colIdx = startCol + c - 1;
+
+                                    dynamic cell = ws.Cells[rowIdx, colIdx];
+
+                                    if (isArray)
+
+                                    {
+
+                                        dynamic arr = cell.CurrentArray;
+
+                                        arr.Value = arr.Value;
+
+                                    }
+
+                                    else
+
+                                    {
+
+                                        cell.Value = cell.Value;
+
+                                    }
+
+                                }
+
+                                catch { }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                catch { }
+
+            }
+
+
+
+            // ===== 阶段2：粘死引用了隐藏列的公式（隐藏列将在步骤7被删除） =====
+
+            sheetIndex = 0;
+
+            foreach (dynamic ws in wb.Worksheets)
+
+            {
+
+                sheetIndex++;
+
+                app.StatusBar = string.Format("导出报表: 粘死隐藏列引用 ({0}/{1}) {2}...",
+
+                    sheetIndex, totalSheets, ws.Name);
+
+
+
+                try
+
+                {
+
+                    dynamic usedRange = ws.UsedRange;
+
+                    if (usedRange == null) continue;
+
+
+
+                    // 获取当前工作表被隐藏的列字母集合
+
+                    var hiddenColLetters = new HashSet<string>();
+
+                    int firstCol = usedRange.Column;
+
+                    int lastCol = firstCol + usedRange.Columns.Count - 1;
+
+                    for (int c = firstCol; c <= lastCol; c++)
+
+                    {
+
+                        try
+
+                        {
+
+                            if (ws.Columns[c].Hidden)
+
+                                hiddenColLetters.Add(ColumnNumberToLetter(c));
+
+                        }
+
+                        catch { }
+
+                    }
+
+
+
+                    if (hiddenColLetters.Count == 0)
+
+                        continue;
+
+
+
+                    dynamic formulaArray = usedRange.Formula;
+
+                    int rows = formulaArray.GetLength(0);
+
+                    int cols = formulaArray.GetLength(1);
+
+                    int startRow = usedRange.Row;
+
+                    int startCol = usedRange.Column;
+
+
+
+                    var cellRefPattern = new System.Text.RegularExpressions.Regex(
+
+                        @"\$?([A-Z]{1,3})\$?\d+",
+
+                        System.Text.RegularExpressions.RegexOptions.Compiled);
+
+
+
+                    for (int r = 1; r <= rows; r++)
+
+                    {
+
+                        for (int c = 1; c <= cols; c++)
+
+                        {
+
+                            object cellObj = formulaArray[r, c];
+
+                            string formula = cellObj as string;
+
+                            if (string.IsNullOrEmpty(formula))
+
+                                continue;
+
+                            bool isArray = formula.StartsWith("{=");
+
+                            if (!formula.StartsWith("=") && !isArray)
+
+                                continue;
+
+                            if (isArray)
+
+                                formula = formula.Substring(1, formula.Length - 2);
+
+
+
+                            // 只检查是否引用了隐藏列（跳过跨表引用如 ='Sheet'!A1）
+
+                            var matches = cellRefPattern.Matches(formula);
+
+                            bool needsConversion = false;
+
+                            foreach (System.Text.RegularExpressions.Match match in matches)
+
+                            {
+
+                                if (match.Index > 0 && formula[match.Index - 1] == '!')
+
+                                    continue;
+
+                                string colLetter = match.Groups[1].Value;
+
+                                if (hiddenColLetters.Contains(colLetter))
+
+                                {
+
+                                    needsConversion = true;
+
+                                    break;
+
+                                }
+
+                            }
+
+
+
+                            if (needsConversion)
+
+                            {
+
+                                try
+
+                                {
+
+                                    int rowIdx = startRow + r - 1;
+
+                                    int colIdx = startCol + c - 1;
+
+                                    dynamic cell = ws.Cells[rowIdx, colIdx];
+
+                                    if (isArray)
+
+                                    {
+
+                                        dynamic arr = cell.CurrentArray;
+
+                                        arr.Value = arr.Value;
+
+                                    }
+
+                                    else
+
+                                    {
+
+                                        cell.Value = cell.Value;
+
+                                    }
+
+                                }
+
+                                catch { }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                catch { }
+
+            }
+
+        }
+
+
+
+
+        private static bool HasAnyExternalRef(dynamic wb)
+
+        {
+
+            try
+
+            {
+
+                foreach (dynamic link in wb.LinkSources(1)) // xlExcelLinks
+
+                {
+
+                    if (link != null) return true;
+
+                }
+
+            }
+
+            catch { }
+
+            return false;
+
+        }
+
+
+
+        // Excel 公式里的引号字面量：工作表名 'xxx'（内部单引号转义为 ''）与文本常量 "xxx"
+
+        private static readonly System.Text.RegularExpressions.Regex QuotedLiteralRegex =
+
+            new System.Text.RegularExpressions.Regex(
+
+                @"'(?:[^']|'')*'|""(?:[^""]|"""")*""",
+
+                System.Text.RegularExpressions.RegexOptions.Compiled);
+
+
+
+        /// <summary>
+
+        /// 把全部问题名称合并成一个带标识符边界的正则。
+
+        /// 名称合法字符为字母数字下划线点反斜杠（\w 已覆盖中日韩），前后紧邻这些字符时不算名称引用。
+
+        /// 合并成单个正则是为了避免逐名称匹配在大表上退化成 名称数 x 公式数 次扫描。
+
+        /// </summary>
+
+        private static System.Text.RegularExpressions.Regex BuildProblemNameRegex(HashSet<string> names)
+
+        {
+
+            if (names == null || names.Count == 0) return null;
+
+
+
+            List<string> ordered = new List<string>(names);
+
+            // 长的排前面，避免交替分支里短名称抢先匹配
+
+            ordered.Sort(delegate(string a, string b) { return b.Length.CompareTo(a.Length); });
+
+
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+            sb.Append(@"(?<![\w.\\])(?:");
+
+            for (int i = 0; i < ordered.Count; i++)
+
+            {
+
+                if (i > 0) sb.Append('|');
+
+                sb.Append(System.Text.RegularExpressions.Regex.Escape(ordered[i]));
+
+            }
+
+            sb.Append(@")(?![\w.\\])");
+
+
+
+            try
+
+            {
+
+                return new System.Text.RegularExpressions.Regex(
+
+                    sb.ToString(),
+
+                    System.Text.RegularExpressions.RegexOptions.Compiled |
+
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            }
+
+            catch
+
+            {
+
+                return null;
+
+            }
+
+        }
+
+
+
+        private static string ColumnNumberToLetter(int col)
+
+        {
+
+            string result = "";
+
+            while (col > 0)
+
+            {
+
+                col--;
+
+                result = (char)('A' + (col % 26)) + result;
+
+                col /= 26;
+
+            }
+
+            return result;
 
         }
 
