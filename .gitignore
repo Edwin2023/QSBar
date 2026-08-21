@@ -31,3 +31,10 @@ x86/
 !/Release/*
 !/Release/*.exe
 !/Release/*.dll
+
+# 临时脚本、探针输出、备份文件（temp/ 匹配任意层级，含 QSBar/temp/）
+temp/
+*.bak
+
+# 本地工作笔记与测试用工作簿
+.memory/
