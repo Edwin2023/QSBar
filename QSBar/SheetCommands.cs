@@ -205,33 +205,6 @@ namespace QSBar
         }
 
         
-        public static void DeleteHyperlinks()
-        {
-            Excel.Application app = WpsExcelAddIn.App;
-            if (app == null) return;
-            app.ScreenUpdating = false;
-            try
-            {
-                Excel.Range selection = app.Selection as Excel.Range;
-                if (selection != null)
-                {
-                    selection.Hyperlinks.Delete();
-                }
-                else
-                {
-                    foreach (Excel.Worksheet sheet in app.ActiveWorkbook.Worksheets)
-                    {
-                        sheet.UsedRange.Hyperlinks.Delete();
-                    }
-                }
-            }
-            finally
-            {
-                app.ScreenUpdating = true;
-            }
-        }
-
-        
         public static void MergeWorkbooks()
         {
             Excel.Application app = WpsExcelAddIn.App;

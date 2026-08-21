@@ -57,7 +57,7 @@
             imageMso='FillRight' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
           <button id='btnBreakLinks' getLabel='GetRibbonLabel' onAction='OnBreakLinks' imageMso='EditLinks'
             size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
-          <button id='btnDeleteLinks' getLabel='GetRibbonLabel' onAction='OnDeleteHyperlinks' imageMso='Delete'
+          <button id='btnPurgeNames' getLabel='GetRibbonLabel' onAction='OnPurgeNames' imageMso='NameDefine'
             size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />
           <button id='btnDeleteEmptyRows' getLabel='GetRibbonLabel' onAction='OnDeleteEmptyRows'
             imageMso='TableRowsDelete' size='normal' getScreentip='GetRibbonScreentip' getSupertip='GetRibbonSupertip' />

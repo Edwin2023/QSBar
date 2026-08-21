@@ -485,10 +485,6 @@ namespace QSBar
 
 
 
-            var problemNameRegex = BuildProblemNameRegex(problemNames);
-
-
-
             // 外部工作簿引用模式: 匹配所有 [xxx] 格式（含 [141]Laldia清单 等无扩展名格式）
 
             var externalRefRegex = new System.Text.RegularExpressions.Regex(
@@ -591,11 +587,25 @@ namespace QSBar
 
                             // 只检查问题名称。必须是完整标识符，不能用裸子串匹配
 
-                            if (problemNameRegex != null && problemNameRegex.IsMatch(scrubbed))
+                            if (problemNames.Count > 0)
 
                             {
 
-                                needsConversion = true;
+                                foreach (System.Text.RegularExpressions.Match token in IdentifierRegex.Matches(scrubbed))
+
+                                {
+
+                                    if (problemNames.Contains(token.Value))
+
+                                    {
+
+                                        needsConversion = true;
+
+                                        break;
+
+                                    }
+
+                                }
 
                             }
 
@@ -894,73 +904,19 @@ namespace QSBar
 
 
 
-        /// <summary>
+        // 从公式里切出标识符再查表。名称合法字符为字母数字下划线点反斜杠（\w 已覆盖中日韩）。
 
-        /// 把全部问题名称合并成一个带标识符边界的正则。
+        // 不能反过来拿几千个名称合并成交替正则去匹配公式，那是 O(公式长度 x 名称数)，
 
-        /// 名称合法字符为字母数字下划线点反斜杠（\w 已覆盖中日韩），前后紧邻这些字符时不算名称引用。
+        // 工作簿有上万个定义名称时会直接卡死。
 
-        /// 合并成单个正则是为了避免逐名称匹配在大表上退化成 名称数 x 公式数 次扫描。
+        private static readonly System.Text.RegularExpressions.Regex IdentifierRegex =
 
-        /// </summary>
+            new System.Text.RegularExpressions.Regex(
 
-        private static System.Text.RegularExpressions.Regex BuildProblemNameRegex(HashSet<string> names)
+                @"[\w.\\]+",
 
-        {
-
-            if (names == null || names.Count == 0) return null;
-
-
-
-            List<string> ordered = new List<string>(names);
-
-            // 长的排前面，避免交替分支里短名称抢先匹配
-
-            ordered.Sort(delegate(string a, string b) { return b.Length.CompareTo(a.Length); });
-
-
-
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
-            sb.Append(@"(?<![\w.\\])(?:");
-
-            for (int i = 0; i < ordered.Count; i++)
-
-            {
-
-                if (i > 0) sb.Append('|');
-
-                sb.Append(System.Text.RegularExpressions.Regex.Escape(ordered[i]));
-
-            }
-
-            sb.Append(@")(?![\w.\\])");
-
-
-
-            try
-
-            {
-
-                return new System.Text.RegularExpressions.Regex(
-
-                    sb.ToString(),
-
-                    System.Text.RegularExpressions.RegexOptions.Compiled |
-
-                    System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-            }
-
-            catch
-
-            {
-
-                return null;
-
-            }
-
-        }
+                System.Text.RegularExpressions.RegexOptions.Compiled);
 
 
 

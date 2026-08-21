@@ -70,13 +70,12 @@ namespace QSBar
                 "Ctrl + 3:  批量处理\r\n" +
                 "Ctrl + 4:  选择非空单元格\r\n" +
                 "Ctrl + 5:  选择可见单元格\r\n" +
-                "Ctrl + 6:  会计格式（0位小数）\r\n" +
-                "Ctrl + 7:  会计格式（2位小数）\r\n" +
-                "Ctrl + 8:  会计格式（3位小数）\r\n" +
-                "Ctrl + 9:  亿万元单位切换\r\n" +
-                "Ctrl + 0:  手动/自动计算切换\r\n" +
-                "Ctrl + Alt + 1:  展开数据透视表\r\n" +
-                "Ctrl + Alt + 2:  折叠数据透视表\r\n\r\n" +
+                "Ctrl + 7:  手动/自动计算切换\r\n" +
+                "Ctrl + 8:  百分号格式（2位小数）\r\n" +
+                "Ctrl + 9:  单位格式轮换（亿/万 → M/k → 还原）\r\n" +
+                "Ctrl + 0:  会计格式轮换（2位 → 0位 → 3位）\r\n" +
+                "Ctrl + Alt + 1:  展开当前透视字段的明细\r\n" +
+                "Ctrl + Alt + 2:  折叠当前透视字段的明细\r\n\r\n" +
                 "功能说明:\r\n" +
                 "--------------------------------------------------\r\n" +
                 "[批量处理] 大数据量表格的快速运算和转换。\r\n" +
@@ -91,13 +90,12 @@ namespace QSBar
                 "Ctrl + 3:  Batch process\r\n" +
                 "Ctrl + 4:  Select non-empty cells\r\n" +
                 "Ctrl + 5:  Select visible cells\r\n" +
-                "Ctrl + 6:  Accounting format (0 decimals)\r\n" +
-                "Ctrl + 7:  Accounting format (2 decimals)\r\n" +
-                "Ctrl + 8:  Accounting format (3 decimals)\r\n" +
-                "Ctrl + 9:  Switch between billion / ten-thousand format\r\n" +
-                "Ctrl + 0:  Toggle manual / automatic calculation\r\n" +
-                "Ctrl + Alt + 1:  Expand pivot table\r\n" +
-                "Ctrl + Alt + 2:  Collapse pivot table\r\n\r\n" +
+                "Ctrl + 7:  Toggle manual / automatic calculation\r\n" +
+                "Ctrl + 8:  Percentage format (2 decimals)\r\n" +
+                "Ctrl + 9:  Cycle unit format (亿/万 -> M/k -> plain)\r\n" +
+                "Ctrl + 0:  Cycle accounting format (2 -> 0 -> 3 decimals)\r\n" +
+                "Ctrl + Alt + 1:  Expand detail of the current pivot field\r\n" +
+                "Ctrl + Alt + 2:  Collapse detail of the current pivot field\r\n\r\n" +
                 "Features:\r\n" +
                 "--------------------------------------------------\r\n" +
                 "[Batch Process] Fast calculation and conversion for large data sets.\r\n" +

@@ -62,7 +62,7 @@ namespace QSBar
             { "btnValOnly", new string[] { "全表数值化", "Values Only" } },
             { "btnUnhideSheets", new string[] { "显示隐藏表", "Unhide Sheets" } },
             { "btnBreakLinks", new string[] { "删除外链接", "Break Links" } },
-            { "btnDeleteLinks", new string[] { "删除超链接", "Delete Hyperlinks" } },
+            { "btnPurgeNames", new string[] { "净化名称", "Purge Names" } },
             { "btnDeleteEmptyRows", new string[] { "删除表空行", "Delete Empty Rows" } },
             { "btnCalcAuto", new string[] { "切到手动计算", "Switch to Manual" } },
             { "btnCalcManual", new string[] { "切到自动计算", "Switch to Automatic" } },
@@ -91,7 +91,7 @@ namespace QSBar
             { "btnValOnly", new string[] { "整表转换为数值", "Convert entire sheet to values" } },
             { "btnUnhideSheets", new string[] { "显示全部隐藏工作表", "Unhide all sheets" } },
             { "btnBreakLinks", new string[] { "断开外部链接", "Break external links" } },
-            { "btnDeleteLinks", new string[] { "删除超链接", "Delete hyperlinks" } },
+            { "btnPurgeNames", new string[] { "净化定义名称", "Purge defined names" } },
             { "btnDeleteEmptyRows", new string[] { "删除空行", "Delete empty rows" } },
             { "btnCalcAuto", new string[] { "当前：自动计算 (Ctrl+0 / F10)", "Current: Automatic (Ctrl+0 / F10)" } },
             { "btnCalcManual", new string[] { "当前：手动计算 (Ctrl+0 / F10)", "Current: Manual (Ctrl+0 / F10)" } },
@@ -120,7 +120,7 @@ namespace QSBar
             { "btnValOnly", new string[] { "把当前工作表中的全部公式转换为数值。", "Convert all formulas in the current worksheet to values." } },
             { "btnUnhideSheets", new string[] { "显示当前工作簿中的全部隐藏工作表。", "Unhide all worksheets in the current workbook." } },
             { "btnBreakLinks", new string[] { "断开全部外部工作簿引用，并清理异常名称。", "Break all external workbook references and clean invalid names." } },
-            { "btnDeleteLinks", new string[] { "删除选中区域中的全部超链接。", "Delete all hyperlinks in the selected range." } },
+            { "btnPurgeNames", new string[] { "删除未被使用的定义名称和外链名称，只保留表内引用且在用的。删除前会列出清单供确认。", "Delete unused and external defined names, keeping only those referenced within the workbook. A confirmation list is shown first." } },
             { "btnDeleteEmptyRows", new string[] { "删除选中区域中的全部空行。", "Delete all empty rows in the selected range." } },
             { "btnCalcAuto", new string[] { "把计算模式切换为手动。快捷键 Ctrl+0 / F10。", "Switch calculation mode to manual. Shortcut: Ctrl+0 / F10." } },
             { "btnCalcManual", new string[] { "把计算模式切换为自动。快捷键 Ctrl+0 / F10。", "Switch calculation mode to automatic. Shortcut: Ctrl+0 / F10." } },
@@ -218,11 +218,10 @@ namespace QSBar
                 AddShortcuts(true, false, Keys.D3, Keys.NumPad3, () => DataCommands.BatchProcess());
                 AddShortcuts(true, false, Keys.D4, Keys.NumPad4, () => FormatCommands.SelectNonEmptyCells());
                 AddShortcuts(true, false, Keys.D5, Keys.NumPad5, () => FormatCommands.SelectVisibleCells());
-                AddShortcuts(true, false, Keys.D6, Keys.NumPad6, () => FormatCommands.Accounting0());
-                AddShortcuts(true, false, Keys.D7, Keys.NumPad7, () => FormatCommands.Accounting2());
-                AddShortcuts(true, false, Keys.D8, Keys.NumPad8, () => FormatCommands.Accounting3());
+                AddShortcuts(true, false, Keys.D7, Keys.NumPad7, () => LegacyAppCommands.ToggleCalculation());
+                AddShortcuts(true, false, Keys.D8, Keys.NumPad8, () => FormatCommands.PercentFormat());
                 AddShortcuts(true, false, Keys.D9, Keys.NumPad9, () => FormatCommands.YiWanFormat());
-                AddShortcuts(true, false, Keys.D0, Keys.NumPad0, () => LegacyAppCommands.ToggleCalculation());
+                AddShortcuts(true, false, Keys.D0, Keys.NumPad0, () => FormatCommands.AccountingFormat());
 
                 AddShortcuts(true, true, Keys.D1, Keys.NumPad1, () => DataCommands.ExpandPivotTable());
                 AddShortcuts(true, true, Keys.D2, Keys.NumPad2, () => DataCommands.CollapsePivotTable());
@@ -446,9 +445,8 @@ namespace QSBar
         public void OnTextify(Office.IRibbonControl control) { DataCommands.Textify(); }
         public void OnLockFormula(Office.IRibbonControl control) { LegacyAppCommands.LockFormula(); }
         public void OnWrapText(Office.IRibbonControl control) { FormatCommands.WrapText(); }
-        public void OnAccounting0(Office.IRibbonControl control) { FormatCommands.Accounting0(); }
-        public void OnAccounting2(Office.IRibbonControl control) { FormatCommands.Accounting2(); }
-        public void OnAccounting3(Office.IRibbonControl control) { FormatCommands.Accounting3(); }
+        public void OnAccountingFormat(Office.IRibbonControl control) { FormatCommands.AccountingFormat(); }
+        public void OnPercentFormat(Office.IRibbonControl control) { FormatCommands.PercentFormat(); }
         public void OnYiWanFormat(Office.IRibbonControl control) { FormatCommands.YiWanFormat(); }
         public void OnSetGrading(Office.IRibbonControl control) { FormatCommands.SetGrading(); }
         public void OnSetGradingStyle(Office.IRibbonControl control) { FormatCommands.SetGradingStyle(); }
@@ -468,7 +466,7 @@ namespace QSBar
         public void OnCreateSheetIndex(Office.IRibbonControl control) { SheetCommands.CreateSheetIndex(); }
         public void OnCreateFileIndex(Office.IRibbonControl control) { SheetCommands.CreateFileIndex(); }
         public void OnMergeSheets(Office.IRibbonControl control) { SheetCommands.MergeSheets(); }
-        public void OnDeleteHyperlinks(Office.IRibbonControl control) { SheetCommands.DeleteHyperlinks(); }
+        public void OnPurgeNames(Office.IRibbonControl control) { NameCommands.PurgeNames(); }
         public void OnForceRefresh(Office.IRibbonControl control) { DataCommands.ForceRefresh(); }
         public void OnDeleteEmptyRows(Office.IRibbonControl control) { SheetCommands.DeleteEmptyRows(); }
         public void OnUnhideAllSheets(Office.IRibbonControl control) { SheetCommands.UnhideAllSheets(); }
