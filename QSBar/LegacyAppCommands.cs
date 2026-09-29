@@ -13,10 +13,13 @@ namespace QSBar
             Excel.Range selection = app.Selection as Excel.Range;
             if (selection == null) return;
 
-            app.ScreenUpdating = false;
+            // 逐格改写公式，自动计算开着的话每改一格就重算一遍
+            Excel.Range formulas = null;
+            Excel.Areas areas = null;
+
+            using (ExcelScope.Begin(app))
             try
             {
-                Excel.Range formulas = null;
                 try
                 {
                     formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
@@ -28,31 +31,40 @@ namespace QSBar
 
                 if (formulas != null)
                 {
-                    foreach (Excel.Range area in formulas.Areas)
+                    areas = formulas.Areas;
+                    int areaCount = areas.Count;
+                    for (int a = 1; a <= areaCount; a++)
                     {
-                        foreach (Excel.Range cell in area)
+                        Excel.Range area = null;
+                        try
                         {
-                            try
+                            area = areas[a];
+                            foreach (Excel.Range cell in area)
                             {
-                                string f = (string)cell.Formula;
-                                if (!string.IsNullOrEmpty(f))
+                                try
                                 {
-                                    object newFormula = app.ConvertFormula(
-                                        f,
-                                        Excel.XlReferenceStyle.xlA1,
-                                        Excel.XlReferenceStyle.xlA1,
-                                        Excel.XlReferenceType.xlAbsolute
-                                    );
-
-                                    string s = newFormula as string;
-                                    if (!string.IsNullOrEmpty(s))
+                                    string f = (string)cell.Formula;
+                                    if (!string.IsNullOrEmpty(f))
                                     {
-                                        cell.Formula = s;
+                                        object newFormula = app.ConvertFormula(
+                                            f,
+                                            Excel.XlReferenceStyle.xlA1,
+                                            Excel.XlReferenceStyle.xlA1,
+                                            Excel.XlReferenceType.xlAbsolute
+                                        );
+
+                                        string s = newFormula as string;
+                                        if (!string.IsNullOrEmpty(s))
+                                        {
+                                            cell.Formula = s;
+                                        }
                                     }
                                 }
+                                catch { }
+                                finally { ComUtil.Release(cell); }
                             }
-                            catch { }
                         }
+                        finally { ComUtil.Release(area); }
                     }
                 }
             }
@@ -61,7 +73,7 @@ namespace QSBar
             }
             finally
             {
-                app.ScreenUpdating = true;
+                ComUtil.Release(areas, formulas, selection);
             }
         }
 
@@ -69,9 +81,14 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
+
+            Excel.Workbook wb = null;
             try
             {
-                string path = app.ActiveWorkbook.Path;
+                wb = app.ActiveWorkbook;
+                if (wb == null) return;
+
+                string path = wb.Path;
                 if (!string.IsNullOrEmpty(path))
                 {
                     System.Diagnostics.Process.Start("explorer.exe", path);
@@ -85,6 +102,7 @@ namespace QSBar
             {
                 MessageBox.Show("Failed to open folder: " + ex.Message);
             }
+            finally { ComUtil.Release(wb); }
         }
 
         public static void ShowHelp()
@@ -127,17 +145,21 @@ namespace QSBar
             {
                 foreach (Excel.Range cell in selection)
                 {
+                    Excel.Validation validation = null;
                     try
                     {
-                        if (cell.Validation.Type != (int)Excel.XlDVType.xlValidateInputOnly)
+                        validation = cell.Validation;
+                        if (validation.Type != (int)Excel.XlDVType.xlValidateInputOnly)
                         {
                             cell.Locked = true;
                         }
                     }
                     catch { }
+                    finally { ComUtil.Release(validation, cell); }
                 }
             }
             catch { }
+            finally { ComUtil.Release(selection); }
         }
     }
 }

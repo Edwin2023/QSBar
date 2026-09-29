@@ -40,48 +40,56 @@ namespace QSBar
 
                 foreach (Excel.Shape obj in shapeRange)
                 {
+                    Excel.Range topLeft = null;
                     try
                     {
-                        Excel.Range topLeft = obj.TopLeftCell;
-                        
+                        topLeft = obj.TopLeftCell;
+
                         obj.Top = (float)topLeft.Top + 4;
                         obj.Left = (float)topLeft.Left + 4;
                         obj.LockAspectRatio = Microsoft.Office.Core.MsoTriState.msoFalse;
-                        
+
                         obj.Height = (float)topLeft.Height * times - 8;
                         obj.Width = (float)topLeft.Width - 8;
-                        
+
                         if (obj.Width < 10)
                         {
                             obj.Width = (float)topLeft.Width * 2 - 8;
                         }
                     }
                     catch { }
+                    finally { ComUtil.Release(topLeft, obj); }
                 }
+
+                ComUtil.Release(shapeRange, selection);
             }
             catch { }
         }
 
-        
+
         public static void SelectAllPictures()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
-            
-            if (activeSheet == null) return;
 
-            if (activeSheet.ProtectContents)
-            {
-                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
-                return;
-            }
-
+            Excel.Worksheet activeSheet = null;
+            Excel.Shapes shapes = null;
             try
             {
-                activeSheet.Shapes.SelectAll();
+                activeSheet = app.ActiveSheet as Excel.Worksheet;
+                if (activeSheet == null) return;
+
+                if (activeSheet.ProtectContents)
+                {
+                    MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
+                    return;
+                }
+
+                shapes = activeSheet.Shapes;
+                shapes.SelectAll();
             }
             catch { }
+            finally { ComUtil.Release(shapes, activeSheet); }
         }
     }
 }

@@ -19,24 +19,40 @@ namespace QSBar
         private void LoadSheets(Excel.Workbook workbook)
         {
             chkListSheets.Items.Clear();
-            foreach (Excel.Worksheet sheet in workbook.Worksheets)
+
+            Excel.Sheets sheets = null;
+            try
             {
-                string sheetName = sheet.Name;
-
-                if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) ||
-                    sheetName.StartsWith("MergeSheet(", StringComparison.OrdinalIgnoreCase))
+                sheets = workbook.Worksheets;
+                int count = sheets.Count;
+                for (int i = 1; i <= count; i++)
                 {
-                    continue;
-                }
+                    Excel.Worksheet sheet = null;
+                    try
+                    {
+                        sheet = sheets[i] as Excel.Worksheet;
+                        if (sheet == null) continue;
 
-                string displayName = sheetName;
-                if (sheet.Visible != Excel.XlSheetVisibility.xlSheetVisible)
-                {
-                    displayName += " (Hidden)";
-                }
+                        string sheetName = sheet.Name;
 
-                chkListSheets.Items.Add(displayName, true);
+                        if (sheetName.Equals("MergeSheet", StringComparison.OrdinalIgnoreCase) ||
+                            sheetName.StartsWith("MergeSheet(", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        string displayName = sheetName;
+                        if (sheet.Visible != Excel.XlSheetVisibility.xlSheetVisible)
+                        {
+                            displayName += " (Hidden)";
+                        }
+
+                        chkListSheets.Items.Add(displayName, true);
+                    }
+                    finally { ComUtil.Release(sheet); }
+                }
             }
+            finally { ComUtil.Release(sheets); }
         }
 
         private void btnOK_Click(object sender, EventArgs e)

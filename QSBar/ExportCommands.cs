@@ -8,7 +8,42 @@ namespace QSBar
 {
     public static class ExportCommands
     {
-        
+        /// <summary>
+        /// 先把表名取成字符串，循环里再按名字拿表、用完就还。
+        /// 直接 foreach 工作表集合的话，每张表都留下一个不还的引用，Excel 退不掉进程。
+        /// </summary>
+        private static List<string> SheetNames(dynamic wb)
+        {
+            var names = new List<string>();
+            dynamic sheets = wb.Worksheets;
+            try
+            {
+                int count = sheets.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    dynamic ws = sheets[i];
+                    try { names.Add((string)ws.Name); }
+                    catch { }
+                    finally { ComUtil.Release((object)ws); }
+                }
+            }
+            finally { ComUtil.Release((object)sheets); }
+            return names;
+        }
+
+        // 调用方负责 Release
+        private static dynamic GetSheet(dynamic wb, string name)
+        {
+            dynamic sheets = null;
+            try
+            {
+                sheets = wb.Worksheets;
+                return sheets[name];
+            }
+            catch { return null; }
+            finally { ComUtil.Release((object)sheets); }
+        }
+
         public static void ShowLevel1() { SetRowLevel(1); }
         public static void ShowLevel2() { SetRowLevel(2); }
         public static void ShowLevel3() { SetRowLevel(3); }
@@ -18,9 +53,18 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet ws = app.ActiveSheet as Excel.Worksheet;
-            if (ws == null) return;
-            try { ws.Outline.ShowLevels(RowLevels: level); } catch { }
+
+            Excel.Worksheet ws = null;
+            Excel.Outline outline = null;
+            try
+            {
+                ws = app.ActiveSheet as Excel.Worksheet;
+                if (ws == null) return;
+                outline = ws.Outline;
+                outline.ShowLevels(RowLevels: level);
+            }
+            catch { }
+            finally { ComUtil.Release(outline, ws); }
         }
 
         public static void ExportCurrentSheet()
@@ -31,31 +75,32 @@ namespace QSBar
             Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
             if (activeSheet == null) return;
 
-            // Preserve settings
-            Excel.XlCalculation originalCalc = app.Calculation;
-            bool originalUpdating = app.ScreenUpdating;
-            bool originalEvents = app.EnableEvents;
             bool originalAlerts = app.DisplayAlerts;
 
+            Excel.Workbook sourceWb = null;
+            Excel.Workbook newWb = null;
+            Excel.Sheets newSheets = null;
+            Excel.Worksheet targetSheet = null;
+            Excel.Range usedRange = null;
+
+            using (ExcelScope.Begin(app))
             try
             {
-                app.ScreenUpdating = false;
-                app.Calculation = Excel.XlCalculation.xlCalculationManual;
-                app.EnableEvents = false;
                 app.DisplayAlerts = false;
 
                 // File Name Processing
                 string dateStr = DateTime.Now.ToString("yyyy-MM-dd");
                 string sheetName = activeSheet.Name;
                 string fileName = string.Format("(OUT{0}){1}", dateStr, sheetName);
-                
+
                 // Sanitize filename
                 fileName = fileName.Replace(":", "-").Replace("\\", "-").Replace("/", "-");
                 if (fileName.Length > 50) fileName = fileName.Substring(0, 50);
                 fileName += ".xlsx";
 
                 // Path Processing (Same as Workbook)
-                string savePath = app.ActiveWorkbook.Path;
+                sourceWb = app.ActiveWorkbook;
+                string savePath = sourceWb == null ? "" : sourceWb.Path;
                 if (string.IsNullOrEmpty(savePath))
                 {
                     savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
@@ -70,8 +115,9 @@ namespace QSBar
 
                 // Copy Sheet (creates new workbook)
                 activeSheet.Copy();
-                Excel.Workbook newWb = app.ActiveWorkbook;
-                Excel.Worksheet targetSheet = newWb.Sheets[1] as Excel.Worksheet;
+                newWb = app.ActiveWorkbook;
+                newSheets = newWb.Sheets;
+                targetSheet = newSheets[1] as Excel.Worksheet;
 
                 // Cancel auto-filter on target (defensive, in case copy preserved filter state)
                 if (targetSheet.AutoFilterMode)
@@ -80,7 +126,7 @@ namespace QSBar
                 }
 
                 // Paste Values & Formats
-                Excel.Range usedRange = targetSheet.UsedRange;
+                usedRange = targetSheet.UsedRange;
                 usedRange.Copy();
                 usedRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
                 usedRange.PasteSpecial(Excel.XlPasteType.xlPasteFormats);
@@ -104,10 +150,8 @@ namespace QSBar
                 try { app.CutCopyMode = (Excel.XlCutCopyMode)0; } catch { }
                 try { Clipboard.Clear(); } catch { }
 
-                app.ScreenUpdating = originalUpdating;
-                app.Calculation = originalCalc;
-                app.EnableEvents = originalEvents;
                 app.DisplayAlerts = originalAlerts;
+                ComUtil.Release(usedRange, targetSheet, newSheets, newWb, sourceWb, activeSheet);
             }
         }
 
@@ -120,28 +164,37 @@ namespace QSBar
             Excel.Workbook wb = app.ActiveWorkbook;
             if (wb == null) return;
             
-            bool originalUpdating = app.ScreenUpdating;
+            // 逐表整片 PasteSpecial 成数值，自动计算开着的话每贴一张表就重算一遍
+            using (ExcelScope.Begin(app))
             try
             {
-                app.ScreenUpdating = false;
-                foreach (Excel.Worksheet ws in wb.Worksheets)
+                foreach (string sheetName in ComUtil.GetSheetNames(wb))
                 {
-                    // Cancel auto-filter before copy to ensure all rows are included
-                    if (ws.AutoFilterMode)
+                    Excel.Worksheet ws = null;
+                    Excel.Range usedRange = null;
+                    try
                     {
-                        try { ws.AutoFilterMode = false; } catch { }
-                    }
+                        ws = ComUtil.GetSheet(wb, sheetName);
+                        if (ws == null) continue;
 
-                    Excel.Range usedRange = ws.UsedRange;
-                    if (usedRange != null)
-                    {
-                        try
+                        // Cancel auto-filter before copy to ensure all rows are included
+                        if (ws.AutoFilterMode)
                         {
-                            usedRange.Copy();
-                            usedRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
+                            try { ws.AutoFilterMode = false; } catch { }
                         }
-                        catch { }
+
+                        usedRange = ws.UsedRange;
+                        if (usedRange != null)
+                        {
+                            try
+                            {
+                                usedRange.Copy();
+                                usedRange.PasteSpecial(Excel.XlPasteType.xlPasteValues);
+                            }
+                            catch { }
+                        }
                     }
+                    finally { ComUtil.Release(usedRange, ws); }
                 }
             }
             catch (Exception ex)
@@ -152,7 +205,8 @@ namespace QSBar
             {
                 try { app.CutCopyMode = (Excel.XlCutCopyMode)0; } catch { }
                 try { Clipboard.Clear(); } catch { }
-                app.ScreenUpdating = originalUpdating;
+
+                ComUtil.Release(wb);
             }
         }
 
@@ -212,25 +266,15 @@ namespace QSBar
 
 
 
-            XlCalculation originalCalc = (XlCalculation)app.Calculation;
-
-            bool originalUpdating = app.ScreenUpdating;
-
-            bool originalEvents = app.EnableEvents;
-
             bool originalAlerts = app.DisplayAlerts;
 
+            dynamic newWb = null;
 
+            using (ExcelScope.Begin(app))
 
             try
 
             {
-
-                app.ScreenUpdating = false;
-
-                app.Calculation = XlCalculation.xlCalculationManual;
-
-                app.EnableEvents = false;
 
                 app.DisplayAlerts = false;
 
@@ -266,9 +310,11 @@ namespace QSBar
 
                 // VBA: Sheets.Copy -> Copies all sheets to new workbook
 
-                sourceWb.Sheets.Copy(); 
+                dynamic sourceSheets = sourceWb.Sheets;
+                try { sourceSheets.Copy(); }
+                finally { ComUtil.Release((object)sourceSheets); }
 
-                dynamic newWb = app.ActiveWorkbook;
+                newWb = app.ActiveWorkbook;
 
 
 
@@ -379,10 +425,9 @@ namespace QSBar
                 try { app.CutCopyMode = false; } catch { }
                 try { Clipboard.Clear(); } catch { }
 
-                app.ScreenUpdating = originalUpdating;
-                app.Calculation = originalCalc;
-                app.EnableEvents = originalEvents;
                 app.DisplayAlerts = originalAlerts;
+
+                ComUtil.Release((object)newWb, (object)sourceWb);
             }
 
         }
@@ -395,40 +440,33 @@ namespace QSBar
 
             dynamic app = WpsExcelAddIn.App;
 
-            foreach (dynamic ws in wb.Worksheets)
-
+            foreach (string sheetName in SheetNames(wb))
             {
+                dynamic ws = GetSheet(wb, sheetName);
+                if (ws == null) continue;
 
-                if (ws.AutoFilterMode)
-
+                dynamic usedRange = null;
+                try
                 {
-
-                    try { ws.AutoFilterMode = false; } catch { }
-
-                }
-
-                app.CutCopyMode = false;
-
-                dynamic usedRange = ws.UsedRange;
-
-                if (usedRange != null)
-
-                {
-
-                    try
-
+                    if (ws.AutoFilterMode)
                     {
-
-                        usedRange.Copy();
-
-                        usedRange.PasteSpecial(-4163); // xlPasteValues
-
+                        try { ws.AutoFilterMode = false; } catch { }
                     }
 
-                    catch { }
+                    app.CutCopyMode = false;
 
+                    usedRange = ws.UsedRange;
+                    if (usedRange != null)
+                    {
+                        try
+                        {
+                            usedRange.Copy();
+                            usedRange.PasteSpecial(-4163); // xlPasteValues
+                        }
+                        catch { }
+                    }
                 }
-
+                finally { ComUtil.Release((object)usedRange, (object)ws); }
             }
 
             app.CutCopyMode = false;
@@ -457,31 +495,27 @@ namespace QSBar
 
             var problemNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
+            dynamic wbNames = null;
             try
-
             {
-
-                foreach (dynamic name in wb.Names)
-
+                wbNames = wb.Names;
+                foreach (dynamic name in wbNames)
                 {
-
-                    string val = "";
-
-                    try { val = name.Value; } catch { continue; }
-
-                    if (val.Contains("#REF!") || val.Contains(":\\") || val.Contains("\\\\") || val.Contains("#N/A"))
-
+                    try
                     {
+                        string val = "";
+                        try { val = name.Value; } catch { continue; }
 
-                        problemNames.Add(name.Name);
-
+                        if (val.Contains("#REF!") || val.Contains(":\\") || val.Contains("\\\\") || val.Contains("#N/A"))
+                        {
+                            problemNames.Add((string)name.Name);
+                        }
                     }
-
+                    finally { ComUtil.Release((object)name); }
                 }
-
             }
-
             catch { }
+            finally { ComUtil.Release((object)wbNames); }
 
 
 
@@ -497,7 +531,8 @@ namespace QSBar
 
 
 
-            int totalSheets = wb.Worksheets.Count;
+            List<string> allSheetNames = SheetNames(wb);
+            int totalSheets = allSheetNames.Count;
 
             int sheetIndex = 0;
 
@@ -505,7 +540,7 @@ namespace QSBar
 
             // ===== 阶段1：只粘死自身公式含外部链接的单元格 =====
 
-            foreach (dynamic ws in wb.Worksheets)
+            foreach (string phase1Name in allSheetNames)
 
             {
 
@@ -513,15 +548,18 @@ namespace QSBar
 
                 app.StatusBar = string.Format("导出报表: 粘死外部引用 ({0}/{1}) {2}...",
 
-                    sheetIndex, totalSheets, ws.Name);
+                    sheetIndex, totalSheets, phase1Name);
 
+                dynamic ws = GetSheet(wb, phase1Name);
+                if (ws == null) continue;
 
+                dynamic usedRange = null;
 
                 try
 
                 {
 
-                    dynamic usedRange = ws.UsedRange;
+                    usedRange = ws.UsedRange;
 
                     if (usedRange == null) continue;
 
@@ -629,37 +667,7 @@ namespace QSBar
 
                             {
 
-                                try
-
-                                {
-
-                                    int rowIdx = startRow + r - 1;
-
-                                    int colIdx = startCol + c - 1;
-
-                                    dynamic cell = ws.Cells[rowIdx, colIdx];
-
-                                    if (isArray)
-
-                                    {
-
-                                        dynamic arr = cell.CurrentArray;
-
-                                        arr.Value = arr.Value;
-
-                                    }
-
-                                    else
-
-                                    {
-
-                                        cell.Value = cell.Value;
-
-                                    }
-
-                                }
-
-                                catch { }
+                                FlattenCell(ws, startRow + r - 1, startCol + c - 1, isArray);
 
                             }
 
@@ -671,6 +679,8 @@ namespace QSBar
 
                 catch { }
 
+                finally { ComUtil.Release((object)usedRange, (object)ws); }
+
             }
 
 
@@ -679,7 +689,7 @@ namespace QSBar
 
             sheetIndex = 0;
 
-            foreach (dynamic ws in wb.Worksheets)
+            foreach (string phase2Name in allSheetNames)
 
             {
 
@@ -687,15 +697,18 @@ namespace QSBar
 
                 app.StatusBar = string.Format("导出报表: 粘死隐藏列引用 ({0}/{1}) {2}...",
 
-                    sheetIndex, totalSheets, ws.Name);
+                    sheetIndex, totalSheets, phase2Name);
 
+                dynamic ws = GetSheet(wb, phase2Name);
+                if (ws == null) continue;
 
+                dynamic usedRange = null;
 
                 try
 
                 {
 
-                    dynamic usedRange = ws.UsedRange;
+                    usedRange = ws.UsedRange;
 
                     if (usedRange == null) continue;
 
@@ -707,23 +720,32 @@ namespace QSBar
 
                     int firstCol = usedRange.Column;
 
-                    int lastCol = firstCol + usedRange.Columns.Count - 1;
+                    dynamic usedCols = usedRange.Columns;
+                    int lastCol;
+                    try { lastCol = firstCol + (int)usedCols.Count - 1; }
+                    finally { ComUtil.Release((object)usedCols); }
 
                     for (int c = firstCol; c <= lastCol; c++)
 
                     {
 
+                        dynamic column = null;
+
                         try
 
                         {
 
-                            if (ws.Columns[c].Hidden)
+                            column = ws.Columns[c];
+
+                            if (column.Hidden)
 
                                 hiddenColLetters.Add(ColumnNumberToLetter(c));
 
                         }
 
                         catch { }
+
+                        finally { ComUtil.Release((object)column); }
 
                     }
 
@@ -817,37 +839,7 @@ namespace QSBar
 
                             {
 
-                                try
-
-                                {
-
-                                    int rowIdx = startRow + r - 1;
-
-                                    int colIdx = startCol + c - 1;
-
-                                    dynamic cell = ws.Cells[rowIdx, colIdx];
-
-                                    if (isArray)
-
-                                    {
-
-                                        dynamic arr = cell.CurrentArray;
-
-                                        arr.Value = arr.Value;
-
-                                    }
-
-                                    else
-
-                                    {
-
-                                        cell.Value = cell.Value;
-
-                                    }
-
-                                }
-
-                                catch { }
+                                FlattenCell(ws, startRow + r - 1, startCol + c - 1, isArray);
 
                             }
 
@@ -859,8 +851,34 @@ namespace QSBar
 
                 catch { }
 
+                finally { ComUtil.Release((object)usedRange, (object)ws); }
+
             }
 
+        }
+
+        /// <summary>
+        /// 把一格公式粘成值。数组公式要整块处理，写单格会报「不能更改数组的某一部分」。
+        /// </summary>
+        private static void FlattenCell(dynamic ws, int rowIdx, int colIdx, bool isArray)
+        {
+            dynamic cell = null;
+            dynamic arr = null;
+            try
+            {
+                cell = ws.Cells[rowIdx, colIdx];
+                if (isArray)
+                {
+                    arr = cell.CurrentArray;
+                    arr.Value = arr.Value;
+                }
+                else
+                {
+                    cell.Value = cell.Value;
+                }
+            }
+            catch { }
+            finally { ComUtil.Release((object)arr, (object)cell); }
         }
 
 
@@ -945,261 +963,261 @@ namespace QSBar
 
 
         private static void CancelAutoFilters(dynamic wb)
-
         {
-
-            foreach (dynamic ws in wb.Worksheets)
-
+            foreach (string sheetName in SheetNames(wb))
             {
-
-                if (ws.AutoFilterMode)
-
+                dynamic ws = GetSheet(wb, sheetName);
+                if (ws == null) continue;
+                try
                 {
-
-                    ws.AutoFilterMode = false;
-
+                    if (ws.AutoFilterMode) ws.AutoFilterMode = false;
                 }
-
+                catch { }
+                finally { ComUtil.Release((object)ws); }
             }
-
         }
-
-
 
         private static void ClearErrorNames(dynamic wb)
-
         {
-
+            dynamic wbNames = null;
             try
-
             {
-
                 List<string> namesToDelete = new List<string>();
 
-                foreach (dynamic name in wb.Names)
-
+                wbNames = wb.Names;
+                foreach (dynamic name in wbNames)
                 {
-
-                    string val = "";
-
-                    try { val = name.Value; } catch { continue; }
-
-                    
-
-                    if (val.Contains("#REF!") || val.Contains(":\\") || val.Contains("\\\\") || val.Contains("#N/A"))
-
+                    try
                     {
+                        string val = "";
+                        try { val = name.Value; } catch { continue; }
 
-                        namesToDelete.Add(name.Name);
-
+                        if (val.Contains("#REF!") || val.Contains(":\\") || val.Contains("\\\\") || val.Contains("#N/A"))
+                        {
+                            namesToDelete.Add((string)name.Name);
+                        }
                     }
-
+                    finally { ComUtil.Release((object)name); }
                 }
-
-
 
                 foreach (string n in namesToDelete)
-
                 {
-
-                    try { wb.Names.Item(n).Delete(); } catch { }
-
+                    dynamic item = null;
+                    try
+                    {
+                        item = wbNames.Item(n);
+                        item.Delete();
+                    }
+                    catch { }
+                    finally { ComUtil.Release((object)item); }
                 }
-
             }
-
             catch { }
-
+            finally { ComUtil.Release((object)wbNames); }
         }
 
+        private static void ShowOutlineLevels(dynamic wb, bool rows)
+        {
+            foreach (string sheetName in SheetNames(wb))
+            {
+                dynamic ws = GetSheet(wb, sheetName);
+                if (ws == null) continue;
 
+                dynamic outline = null;
+                try
+                {
+                    outline = ws.Outline;
+                    if (rows) outline.ShowLevels(RowLevels: 4);
+                    else outline.ShowLevels(ColumnLevels: 1);
+                }
+                catch { }
+                finally { ComUtil.Release((object)outline, (object)ws); }
+            }
+        }
 
         private static void HideNonLevel1Columns(dynamic wb)
-
         {
-
-            foreach (dynamic ws in wb.Worksheets)
-
-            {
-
-                try { ws.Outline.ShowLevels(ColumnLevels: 1); } catch { }
-
-            }
-
+            ShowOutlineLevels(wb, false);
         }
-
-
 
         private static void ExpandAllRows(dynamic wb)
-
         {
-
-            foreach (dynamic ws in wb.Worksheets)
-
-            {
-
-                try { ws.Outline.ShowLevels(RowLevels: 4); } catch { }
-
-            }
-
+            ShowOutlineLevels(wb, true);
         }
 
-
-
         private static void DeleteHiddenColumns(dynamic wb)
-
         {
-
-            foreach (dynamic ws in wb.Worksheets)
-
+            foreach (string sheetName in SheetNames(wb))
             {
+                dynamic ws = GetSheet(wb, sheetName);
+                if (ws == null) continue;
 
+                dynamic usedRange = null;
+                dynamic usedCols = null;
                 try
-
                 {
-
-                    dynamic usedRange = ws.UsedRange;
-
-                    int colCount = usedRange.Columns.Count;
-
+                    usedRange = ws.UsedRange;
+                    usedCols = usedRange.Columns;
+                    int colCount = (int)usedCols.Count;
                     // Loop backwards is safer for deletion, but VBA used a Do While loop with Counter adjustment
 
-                    
-
                     for (int i = colCount; i >= 1; i--)
-
                     {
-
-                        dynamic col = usedRange.Columns[i];
-
-                        if (col.EntireColumn.Hidden)
-
+                        dynamic col = null;
+                        dynamic entire = null;
+                        try
                         {
-
-                            col.EntireColumn.Delete();
-
+                            col = usedCols[i];
+                            entire = col.EntireColumn;
+                            if (entire.Hidden) entire.Delete();
                         }
-
+                        catch { }
+                        finally { ComUtil.Release((object)entire, (object)col); }
                     }
-
                 }
-
                 catch { }
-
+                finally { ComUtil.Release((object)usedCols, (object)usedRange, (object)ws); }
             }
-
         }
 
 
 
         private static void CleanOutsidePrintArea(dynamic wb)
-
         {
-
             dynamic app = WpsExcelAddIn.App;
 
-            foreach (dynamic ws in wb.Worksheets)
-
+            foreach (string sheetName in SheetNames(wb))
             {
+                dynamic ws = GetSheet(wb, sheetName);
+                if (ws == null) continue;
 
+                dynamic printRange = null;
+                dynamic usedRange = null;
+                dynamic deleteCols = null;
+                dynamic deleteRows = null;
                 try
-
                 {
-
-                    dynamic printRange = null;
-
                     // 1. Find Print_Area
-
-                    foreach (dynamic name in ws.Names)
-
+                    dynamic wsNames = null;
+                    try
                     {
-
-                        if (name.Name.EndsWith("!Print_Area"))
-
+                        wsNames = ws.Names;
+                        foreach (dynamic name in wsNames)
                         {
-
-                            printRange = name.RefersToRange;
-
-                            break;
-
+                            bool matched = false;
+                            try
+                            {
+                                if (((string)name.Name).EndsWith("!Print_Area"))
+                                {
+                                    printRange = name.RefersToRange;
+                                    matched = true;
+                                }
+                            }
+                            catch { }
+                            finally { ComUtil.Release((object)name); }
+                            if (matched) break;
                         }
-
                     }
-
-
+                    catch { }
+                    finally { ComUtil.Release((object)wsNames); }
 
                     // Fallback to UsedRange if no print area (creating a temporary print area name logic from VBA seems redundant if we just use UsedRange, but let's follow logic: "Use UsedRange as PrintArea if none")
-
                     if (printRange == null)
-
                     {
-
                         printRange = ws.UsedRange;
-
                     }
 
-
-
-                    dynamic usedRange = ws.UsedRange;
-
-                    
+                    usedRange = ws.UsedRange;
 
                     // 2.1 Delete Columns outside
-
-                    dynamic deleteCols = null;
-
-                    foreach (dynamic col in usedRange.Columns)
-
+                    dynamic cols = null;
+                    try
                     {
-
-                        dynamic intersect = app.Intersect(col, printRange);
-
-                        if (intersect == null)
-
+                        cols = usedRange.Columns;
+                        foreach (dynamic col in cols)
                         {
-
-                            if (deleteCols == null) deleteCols = col;
-
-                            else deleteCols = app.Union(deleteCols, col);
-
+                            bool keepCol = false;
+                            dynamic intersect = null;
+                            try
+                            {
+                                intersect = app.Intersect(col, printRange);
+                                if (intersect == null)
+                                {
+                                    if (deleteCols == null) { deleteCols = col; keepCol = true; }
+                                    else
+                                    {
+                                        dynamic merged = app.Union(deleteCols, col);
+                                        ComUtil.Release((object)deleteCols);
+                                        deleteCols = merged;
+                                    }
+                                }
+                            }
+                            catch { }
+                            finally
+                            {
+                                ComUtil.Release((object)intersect);
+                                if (!keepCol) ComUtil.Release((object)col);
+                            }
                         }
-
                     }
+                    finally { ComUtil.Release((object)cols); }
 
-                    if (deleteCols != null) deleteCols.EntireColumn.Delete();
-
-
+                    if (deleteCols != null)
+                    {
+                        dynamic entire = null;
+                        try { entire = deleteCols.EntireColumn; entire.Delete(); }
+                        catch { }
+                        finally { ComUtil.Release((object)entire); }
+                    }
 
                     // 2.2 Delete Rows outside
-
-                    dynamic deleteRows = null;
-
-                    foreach (dynamic row in usedRange.Rows)
-
+                    dynamic rows = null;
+                    try
                     {
-
-                        dynamic intersect = app.Intersect(row, printRange);
-
-                        if (intersect == null)
-
+                        rows = usedRange.Rows;
+                        foreach (dynamic row in rows)
                         {
-
-                            if (deleteRows == null) deleteRows = row;
-
-                            else deleteRows = app.Union(deleteRows, row);
-
+                            bool keepRow = false;
+                            dynamic intersect = null;
+                            try
+                            {
+                                intersect = app.Intersect(row, printRange);
+                                if (intersect == null)
+                                {
+                                    if (deleteRows == null) { deleteRows = row; keepRow = true; }
+                                    else
+                                    {
+                                        dynamic merged = app.Union(deleteRows, row);
+                                        ComUtil.Release((object)deleteRows);
+                                        deleteRows = merged;
+                                    }
+                                }
+                            }
+                            catch { }
+                            finally
+                            {
+                                ComUtil.Release((object)intersect);
+                                if (!keepRow) ComUtil.Release((object)row);
+                            }
                         }
-
                     }
+                    finally { ComUtil.Release((object)rows); }
 
-                    if (deleteRows != null) deleteRows.EntireRow.Delete();
-
+                    if (deleteRows != null)
+                    {
+                        dynamic entire = null;
+                        try { entire = deleteRows.EntireRow; entire.Delete(); }
+                        catch { }
+                        finally { ComUtil.Release((object)entire); }
+                    }
                 }
-
                 catch { }
-
+                finally
+                {
+                    ComUtil.Release((object)deleteRows, (object)deleteCols,
+                                    (object)usedRange, (object)printRange, (object)ws);
+                }
             }
-
         }
 
 

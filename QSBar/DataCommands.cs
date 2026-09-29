@@ -16,9 +16,10 @@ namespace QSBar
 
         {
 
-            var form = new BatchProcessForm();
-
-            form.ShowDialog();
+            using (var form = new BatchProcessForm())
+            {
+                form.ShowDialog();
+            }
 
         }
 
@@ -26,214 +27,235 @@ namespace QSBar
 
         
 
+        /// <summary>
+        /// 取「选区 ∩ 已用区域」。调用方负责 Release 返回的 Range。
+        /// </summary>
+        private static Excel.Range GetUsedSelection(Excel.Application app)
+        {
+            Excel.Worksheet sheet = null;
+            Excel.Range sel = null;
+            Excel.Range used = null;
+            try
+            {
+                sheet = app.ActiveSheet as Excel.Worksheet;
+                sel = app.Selection as Excel.Range;
+                if (sheet == null || sel == null) return null;
+                used = sheet.UsedRange;
+                return app.Intersect(sel, used);
+            }
+            finally { ComUtil.Release(used, sel, sheet); }
+        }
+
         public static void Textify()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
-            Excel.Range sel = app.Selection as Excel.Range;
-            if (sheet == null || sel == null) return;
 
-            Excel.Range used = sheet.UsedRange;
-            Excel.Range target = app.Intersect(sel, used);
+            Excel.Range target = GetUsedSelection(app);
             if (target == null) return;
 
-            object value2 = target.Value2;
-            if (!(value2 is object[,]))
+            using (ExcelScope.Begin(app))
+            try
             {
-                object val = value2;
-                if (val != null)
+                object value2 = target.Value2;
+                if (!(value2 is object[,]))
                 {
-                    bool isError = false;
-                    if (val is int)
+                    object val = value2;
+                    if (val != null)
                     {
-                        if (IsExcelErrorCode((int)val))
-                            isError = true;
+                        bool isError = false;
+                        if (val is int)
+                        {
+                            if (IsExcelErrorCode((int)val))
+                                isError = true;
+                        }
+
+                        if (!isError)
+                        {
+                            string s = val.ToString();
+                            if (s.Length > 0 && s[0] != '=')
+                            {
+                                // 无论是不是数字，都加上单引号前缀强制转为文本
+                                val = "'" + s;
+                            }
+                        }
                     }
 
-                    if (!isError)
+                    target.NumberFormatLocal = "@";
+                    target.Value2 = val;
+                    target.ShrinkToFit = true;
+                    return;
+                }
+
+                object[,] data = (object[,])value2;
+                int rows = data.GetLength(0);
+                int cols = data.GetLength(1);
+                int rBase = data.GetLowerBound(0);
+                int cBase = data.GetLowerBound(1);
+
+                for (int i = rBase; i < rBase + rows; i++)
+                {
+                    for (int j = cBase; j < cBase + cols; j++)
                     {
-                        string s = val.ToString();
-                        if (s.Length > 0 && s[0] != '=')
+                        object val = data[i, j];
+                        if (val == null) continue;
+
+                        if (val is int)
                         {
-                            // 无论是不是数字，都加上单引号前缀强制转为文本
-                            val = "'" + s;
+                            if (IsExcelErrorCode((int)val)) continue;
                         }
+
+                        string s = val.ToString();
+                        if (s.Length == 0) continue;
+                        if (s[0] == '=') continue;
+
+                        data[i, j] = "'" + s;
                     }
                 }
 
                 target.NumberFormatLocal = "@";
-                target.Value2 = val;
+                target.Value2 = data;
                 target.ShrinkToFit = true;
-                return;
             }
-
-            object[,] data = (object[,])value2;
-            int rows = data.GetLength(0);
-            int cols = data.GetLength(1);
-            int rBase = data.GetLowerBound(0);
-            int cBase = data.GetLowerBound(1);
-
-            for (int i = rBase; i < rBase + rows; i++)
-            {
-                for (int j = cBase; j < cBase + cols; j++)
-                {
-                    object val = data[i, j];
-                    if (val == null) continue;
-
-                    if (val is int)
-                    {
-                        if (IsExcelErrorCode((int)val)) continue;
-                    }
-
-                    string s = val.ToString();
-                    if (s.Length == 0) continue;
-                    if (s[0] == '=') continue;
-
-                    data[i, j] = "'" + s;
-                }
-            }
-
-            target.NumberFormatLocal = "@";
-            target.Value2 = data;
-            target.ShrinkToFit = true;
+            finally { ComUtil.Release(target); }
         }
 
         public static void NormalizeNumbers()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
-            Excel.Range sel = app.Selection as Excel.Range;
-            if (sheet == null || sel == null) return;
-            
-            Excel.Range used = sheet.UsedRange;
-            Excel.Range target = app.Intersect(sel, used);
-            if (target == null)
-            {
-                return;
-            }
 
+            Excel.Range target = GetUsedSelection(app);
+            if (target == null) return;
+
+            using (ExcelScope.Begin(app))
             try
             {
-                target.Hyperlinks.Delete();
-            }
-            catch
-            {
-            }
-
-            object value2 = target.Value2;
-            if (!(value2 is object[,]))
-            {
-                object val = value2;
-                if (val != null)
+                Excel.Hyperlinks links = null;
+                try
                 {
-                    bool isError = false;
-                    if (val is int)
-                    {
-                        if (IsExcelErrorCode((int)val))
-                            isError = true;
-                    }
+                    links = target.Hyperlinks;
+                    links.Delete();
+                }
+                catch
+                {
+                }
+                finally { ComUtil.Release(links); }
 
-                    if (!isError)
+                object value2 = target.Value2;
+                if (!(value2 is object[,]))
+                {
+                    object val = value2;
+                    if (val != null)
                     {
-                        string s = val.ToString();
-                        if (s.Length > 0 && s[0] != '=')
+                        bool isError = false;
+                        if (val is int)
                         {
-                            double p;
-                            DateTime dt;
-                            double num;
+                            if (IsExcelErrorCode((int)val))
+                                isError = true;
+                        }
 
-                            if (s.EndsWith("%", StringComparison.Ordinal))
+                        if (!isError)
+                        {
+                            string s = val.ToString();
+                            if (s.Length > 0 && s[0] != '=')
                             {
-                                string inner = s.Substring(0, s.Length - 1);
-                                if (double.TryParse(inner, out p))
+                                double p;
+                                DateTime dt;
+                                double num;
+
+                                if (s.EndsWith("%", StringComparison.Ordinal))
                                 {
-                                    val = (double)(p / 100.0);
+                                    string inner = s.Substring(0, s.Length - 1);
+                                    if (double.TryParse(inner, out p))
+                                    {
+                                        val = (double)(p / 100.0);
+                                    }
+                                }
+                                else if (double.TryParse(s, out num))
+                                {
+                                    val = num;
+                                }
+                                else if (DateTime.TryParse(s, out dt))
+                                {
+                                    val = dt;
                                 }
                             }
-                            else if (double.TryParse(s, out num))
+                        }
+                    }
+
+                    target.Value2 = val;
+                    target.ShrinkToFit = true;
+                    target.NumberFormatLocal = " #,##0.00_ ;[红色] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
+                    return;
+                }
+
+                object[,] data = (object[,])value2;
+                int rows = data.GetLength(0);
+                int cols = data.GetLength(1);
+                int rBase = data.GetLowerBound(0);
+                int cBase = data.GetLowerBound(1);
+
+                for (int i = rBase; i < rBase + rows; i++)
+                {
+                    for (int j = cBase; j < cBase + cols; j++)
+                    {
+                        object val = data[i, j];
+                        if (val == null)
+                        {
+                            continue;
+                        }
+
+                        if (val is int)
+                        {
+                            if (IsExcelErrorCode((int)val))
+                                continue;
+                        }
+
+                        string s = val.ToString();
+                        if (s.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        if (s[0] == '=')
+                        {
+                            continue;
+                        }
+
+                        double p;
+                        DateTime dt;
+                        double num;
+
+                        if (s.EndsWith("%", StringComparison.Ordinal))
+                        {
+                            string inner = s.Substring(0, s.Length - 1);
+                            if (double.TryParse(inner, out p))
                             {
-                                val = num;
+                                data[i, j] = (double)(p / 100.0);
+                                continue;
                             }
-                            else if (DateTime.TryParse(s, out dt))
-                            {
-                                val = dt;
-                            }
+                        }
+
+                        if (double.TryParse(s, out num))
+                        {
+                            data[i, j] = num;
+                            continue;
+                        }
+
+                        if (DateTime.TryParse(s, out dt))
+                        {
+                            data[i, j] = dt;
+                            continue;
                         }
                     }
                 }
 
-                target.Value2 = val;
+                target.Value2 = data;
                 target.ShrinkToFit = true;
                 target.NumberFormatLocal = " #,##0.00_ ;[红色] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
-                return;
             }
-
-            object[,] data = (object[,])value2;
-            int rows = data.GetLength(0);
-            int cols = data.GetLength(1);
-            int rBase = data.GetLowerBound(0);
-            int cBase = data.GetLowerBound(1);
-
-            for (int i = rBase; i < rBase + rows; i++)
-            {
-                for (int j = cBase; j < cBase + cols; j++)
-                {
-                    object val = data[i, j];
-                    if (val == null)
-                    {
-                        continue;
-                    }
-
-                    if (val is int)
-                    {
-                        if (IsExcelErrorCode((int)val))
-                            continue;
-                    }
-
-                    string s = val.ToString();
-                    if (s.Length == 0)
-                    {
-                        continue;
-                    }
-
-                    if (s[0] == '=')
-                    {
-                        continue;
-                    }
-
-                    double p;
-                    DateTime dt;
-                    double num;
-
-                    if (s.EndsWith("%", StringComparison.Ordinal))
-                    {
-                        string inner = s.Substring(0, s.Length - 1);
-                        if (double.TryParse(inner, out p))
-                        {
-                            data[i, j] = (double)(p / 100.0);
-                            continue;
-                        }
-                    }
-
-                    if (double.TryParse(s, out num))
-                    {
-                        data[i, j] = num;
-                        continue;
-                    }
-
-                    if (DateTime.TryParse(s, out dt))
-                    {
-                        data[i, j] = dt;
-                        continue;
-                    }
-                }
-            }
-
-            target.Value2 = data;
-            target.ShrinkToFit = true;
-            target.NumberFormatLocal = " #,##0.00_ ;[红色] -#,##0.00_ ;_ \"\"\"\"?_ ;@";
+            finally { ComUtil.Release(target); }
         }
 
         private static bool IsExcelErrorCode(int iVal)
@@ -251,107 +273,138 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
-            if (sheet == null) return;
-            Excel.Range rng = sheet.UsedRange;
-            if (rng == null) return;
 
+            Excel.Worksheet sheet = null;
+            Excel.Range rng = null;
+            Excel.Range formulas = null;
+            Excel.Areas areas = null;
             try
             {
+                sheet = app.ActiveSheet as Excel.Worksheet;
+                if (sheet == null) return;
+                rng = sheet.UsedRange;
+                if (rng == null) return;
+
                 // xlCellTypeFormulas = -4123
-                Excel.Range formulas = rng.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
+                formulas = rng.SpecialCells(Excel.XlCellType.xlCellTypeFormulas);
                 if (formulas == null) return;
 
-                foreach (Excel.Range area in formulas.Areas)
+                areas = formulas.Areas;
+                int areaCount = areas.Count;
+                for (int a = 1; a <= areaCount; a++)
                 {
-                    area.Formula = area.Formula;
+                    Excel.Range area = null;
+                    try
+                    {
+                        area = areas[a];
+                        area.Formula = area.Formula;
+                    }
+                    finally { ComUtil.Release(area); }
                 }
             }
             catch { }
+            finally { ComUtil.Release(areas, formulas, rng, sheet); }
         }
 
         public static void ExpandPivotTable()
         {
-            Excel.Application app = WpsExcelAddIn.App;
-            if (app == null) return;
-            Excel.Range activeCell = app.ActiveCell;
-            if (activeCell == null) return;
-
-            try
-            {
-                Excel.PivotTable pt = activeCell.PivotTable;
-                if (pt != null)
-                {
-                    Excel.PivotField pf = activeCell.PivotField;
-                    if (pf != null)
-                    {
-                        pf.ShowDetail = true;
-                    }
-                }
-            }
-            catch { }
+            SetPivotDetail(true);
         }
 
         public static void CollapsePivotTable()
         {
+            SetPivotDetail(false);
+        }
+
+        private static void SetPivotDetail(bool show)
+        {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Range activeCell = app.ActiveCell;
-            if (activeCell == null) return;
 
+            Excel.Range activeCell = null;
+            Excel.PivotTable pt = null;
+            Excel.PivotField pf = null;
             try
             {
-                Excel.PivotTable pt = activeCell.PivotTable;
-                if (pt != null)
-                {
-                    Excel.PivotField pf = activeCell.PivotField;
-                    if (pf != null)
-                    {
-                        pf.ShowDetail = false;
-                    }
-                }
+                activeCell = app.ActiveCell;
+                if (activeCell == null) return;
+
+                pt = activeCell.PivotTable;
+                if (pt == null) return;
+
+                pf = activeCell.PivotField;
+                if (pf != null) pf.ShowDetail = show;
             }
             catch { }
+            finally { ComUtil.Release(pf, pt, activeCell); }
         }
 
         public static void PasteExternalLinks()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
-            if (activeSheet == null) return;
 
-            if (activeSheet.ProtectContents)
-            {
-                MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
-                return;
-            }
-
-            app.ScreenUpdating = false;
-            app.DisplayAlerts = false;
-
+            Excel.Worksheet activeSheet = null;
+            Excel.Workbook wb = null;
             try
             {
-                foreach (Excel.Worksheet sht in app.ActiveWorkbook.Worksheets)
+                activeSheet = app.ActiveSheet as Excel.Worksheet;
+                if (activeSheet == null) return;
+
+                if (activeSheet.ProtectContents)
                 {
-                    Excel.Range usedRange = sht.UsedRange;
-                    if (usedRange == null) continue;
+                    MessageBox.Show("This worksheet is protected. The operation has been blocked.", "Notice");
+                    return;
+                }
 
-                    // XlFindLookIn.xlFormulas = -4144
-                    // XlLookAt.xlPart = 2
-                    // XlSearchOrder.xlByRows = 1
-                    Excel.Range cell = usedRange.Find("=*[*]*", Type.Missing, Excel.XlFindLookIn.xlFormulas, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, true);
+                wb = app.ActiveWorkbook;
+                if (wb == null) return;
+            }
+            finally { ComUtil.Release(activeSheet); }
 
-                    if (cell != null)
+            bool oldAlerts = app.DisplayAlerts;
+            app.DisplayAlerts = false;
+
+            // 循环里逐格 Value2 = Value2，自动计算开着的话每写一格就重算一遍全表
+            using (ExcelScope.Begin(app))
+            try
+            {
+                foreach (string sheetName in ComUtil.GetSheetNames(wb))
+                {
+                    Excel.Worksheet sht = null;
+                    Excel.Range usedRange = null;
+                    try
                     {
-                        string firstAddress = cell.Address;
-                        do
+                        sht = ComUtil.GetSheet(wb, sheetName);
+                        if (sht == null) continue;
+
+                        usedRange = sht.UsedRange;
+                        if (usedRange == null) continue;
+
+                        // XlFindLookIn.xlFormulas = -4144
+                        // XlLookAt.xlPart = 2
+                        // XlSearchOrder.xlByRows = 1
+                        Excel.Range cell = usedRange.Find("=*[*]*", Type.Missing, Excel.XlFindLookIn.xlFormulas, Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlNext, true);
+
+                        if (cell != null)
                         {
-                            cell.Value2 = cell.Value2;
-                            cell = usedRange.FindNext(cell);
+                            string firstAddress = cell.Address;
+                            do
+                            {
+                                Excel.Range current = cell;
+                                try
+                                {
+                                    current.Value2 = current.Value2;
+                                    cell = usedRange.FindNext(current);
+                                }
+                                finally { ComUtil.Release(current); }
+                            }
+                            while (cell != null && cell.Address != firstAddress);
+
+                            ComUtil.Release(cell);
                         }
-                        while (cell != null && cell.Address != firstAddress);
                     }
+                    finally { ComUtil.Release(usedRange, sht); }
                 }
             }
             catch (Exception ex)
@@ -360,8 +413,8 @@ namespace QSBar
             }
             finally
             {
-                app.ScreenUpdating = true;
-                app.DisplayAlerts = true;
+                app.DisplayAlerts = oldAlerts;
+                ComUtil.Release(wb);
             }
         }
     }

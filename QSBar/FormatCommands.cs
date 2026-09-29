@@ -14,16 +14,25 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
-            Excel.Range sel = app.Selection as Excel.Range;
-            if (sheet == null || sel == null) return;
 
-            Excel.Range used = sheet.UsedRange;
-            Excel.Range target = app.Intersect(sel, used);
-            if (target == null) return;
+            Excel.Worksheet sheet = null;
+            Excel.Range sel = null;
+            Excel.Range used = null;
+            Excel.Range target = null;
+            try
+            {
+                sheet = app.ActiveSheet as Excel.Worksheet;
+                sel = app.Selection as Excel.Range;
+                if (sheet == null || sel == null) return;
 
-            target.NumberFormatLocal = "@";
-            target.WrapText = true;
+                used = sheet.UsedRange;
+                target = app.Intersect(sel, used);
+                if (target == null) return;
+
+                target.NumberFormatLocal = "@";
+                target.WrapText = true;
+            }
+            finally { ComUtil.Release(target, used, sel, sheet); }
         }
 
         
@@ -38,14 +47,24 @@ namespace QSBar
         // Ctrl+8 百分号格式。风格跟会计格式一条线：红字负数、零值空白、_ * 填充对齐
         private const string PercentFmt = "_ * #,##0.00%_ ;[红色]_ * -#,##0.00%_ ;_ * \"\"??_ ;_ @ ";
 
+        // 调用方负责 Release 返回的 Range
         private static Excel.Range GetUsedSelection()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return null;
-            Excel.Worksheet sheet = app.ActiveSheet as Excel.Worksheet;
-            Excel.Range sel = app.Selection as Excel.Range;
-            if (sheet == null || sel == null) return null;
-            return app.Intersect(sel, sheet.UsedRange);
+
+            Excel.Worksheet sheet = null;
+            Excel.Range sel = null;
+            Excel.Range used = null;
+            try
+            {
+                sheet = app.ActiveSheet as Excel.Worksheet;
+                sel = app.Selection as Excel.Range;
+                if (sheet == null || sel == null) return null;
+                used = sheet.UsedRange;
+                return app.Intersect(sel, used);
+            }
+            finally { ComUtil.Release(used, sel, sheet); }
         }
 
         public static void PercentFormat()
@@ -53,8 +72,12 @@ namespace QSBar
             Excel.Range target = GetUsedSelection();
             if (target == null) return;
 
-            target.ShrinkToFit = true;
-            target.NumberFormatLocal = PercentFmt;
+            try
+            {
+                target.ShrinkToFit = true;
+                target.NumberFormatLocal = PercentFmt;
+            }
+            finally { ComUtil.Release(target); }
         }
 
         public static void AccountingFormat()
@@ -62,29 +85,38 @@ namespace QSBar
             Excel.Range target = GetUsedSelection();
             if (target == null) return;
 
-            // 同 Ctrl+9，档位从当前格式串反推，不存状态。首档给最常用的 2 位小数
-            string current = null;
-            try { current = target.NumberFormatLocal as string; }
-            catch { }
+            try
+            {
+                // 同 Ctrl+9，档位从当前格式串反推，不存状态。首档给最常用的 2 位小数
+                string current = null;
+                try { current = target.NumberFormatLocal as string; }
+                catch { }
 
-            string next;
-            if (current == AcctFormat2) next = AcctFormat0;
-            else if (current == AcctFormat0) next = AcctFormat3;
-            else next = AcctFormat2;
+                string next;
+                if (current == AcctFormat2) next = AcctFormat0;
+                else if (current == AcctFormat0) next = AcctFormat3;
+                else next = AcctFormat2;
 
-            target.ShrinkToFit = true;
-            target.NumberFormatLocal = next;
+                target.ShrinkToFit = true;
+                target.NumberFormatLocal = next;
+            }
+            finally { ComUtil.Release(target); }
         }
 
         
-        // Ctrl+9 三档轮换：中文亿/万 → 英文 M/k → 千分位还原 → 回到中文。
-        // 量级词不带「元」，国际项目币种不一定是人民币，量级跟币种本来就是两回事。
-        // 中文档不能写成 #,##0!.00 —— !. 硬插小数点的技巧和 #,## 千分位冲突，
-        // 格式会失效并漏出字面的 ".," 字符。英文档的 k/M 正好是 1000 的整数次幂，
-        // 不需要 !. 技巧，所以可以带千分位
-        private const string UnitFormatCn = @"[<=-100000000]-0!.00,,""亿"";[>=100000000]0!.00,,""亿"";0!.0,""万""";
-        private const string UnitFormatEn = @"[<=-1000000]-#,##0.00,,""M"";[>=1000000]#,##0.00,,""M"";#,##0.0,""k""";
-        private const string UnitFormatPlain = @"#,##0.00";
+        // Ctrl+9 两档轮换：万 → 亿 → 回到万。零值空白、红字负数、文本原样。
+        // 量级词不带「元」，国际项目币种不定。想看原始数字按 Ctrl+0 的千分位会计格式，
+        // 英文 M/k 缩写档已取消：国际场景千分位本身就够读，缩写反而多一层心算。
+        //
+        // 单一量级是零值空白的前提。带条件的格式只有 条件1;条件2;其余 三段，没有独立的
+        // 零值段和文本段，零值只能跟着量级段显示成 0.0万；不带条件才是标准的
+        // 正;负;零;文本 四段，零值和颜色才放得下。原先亿/万合一档要吃掉两个条件位
+        // 做量级分档，正是它没法让零值空白的原因。Excel 最多 2 个条件，写 3 个直接报错。
+        //
+        // 不能写成 #,##0!.0 —— !. 硬插小数点的技巧和 #,## 千分位冲突，格式会失效并
+        // 漏出字面的 ".," 字符
+        private const string UnitFormatWan = @"0!.0,""万"";[红色]-0!.0,""万"";;@";
+        private const string UnitFormatYi = @"0!.00,,""亿"";[红色]-0!.00,,""亿"";;@";
 
         public static void YiWanFormat()
         {
@@ -93,19 +125,20 @@ namespace QSBar
             Excel.Range sel = app.Selection as Excel.Range;
             if (sel == null) return;
 
-            // 当前处于哪一档直接从格式串反推，不存状态。换选区、换工作簿都能自己对上；
-            // 选区内格式不统一时读不到统一格式串，和任何一档都不相等，落到第一档
-            string current = null;
-            try { current = sel.NumberFormatLocal as string; }
-            catch { }
+            try
+            {
+                // 当前处于哪一档直接从格式串反推，不存状态。换选区、换工作簿都能自己对上；
+                // 选区内格式不统一时读不到统一格式串，和任何一档都不相等，落到第一档
+                string current = null;
+                try { current = sel.NumberFormatLocal as string; }
+                catch { }
 
-            string next;
-            if (current == UnitFormatCn) next = UnitFormatEn;
-            else if (current == UnitFormatEn) next = UnitFormatPlain;
-            else next = UnitFormatCn;
+                string next = current == UnitFormatWan ? UnitFormatYi : UnitFormatWan;
 
-            sel.ShrinkToFit = true;
-            sel.NumberFormatLocal = next;
+                sel.ShrinkToFit = true;
+                sel.NumberFormatLocal = next;
+            }
+            finally { ComUtil.Release(sel); }
         }
 
         // =========================================================================================
@@ -118,28 +151,45 @@ namespace QSBar
             if (lev < 1) lev = 1;
             if (lev > 8) lev = 8; // Excel max outline level is 8
 
-            int rowCount = rng.Rows.Count;
-            for (int i = 1; i <= rowCount; i++)
+            Excel.Range rows = null;
+            try
             {
-                try
+                rows = rng.Rows;
+                int rowCount = rows.Count;
+                for (int i = 1; i <= rowCount; i++)
                 {
-                    string val = Convert.ToString(((Excel.Range)rng.Cells[i, col]).Value2);
-                    if (Like(val, cond))
+                    Excel.Range cell = null;
+                    Excel.Range row = null;
+                    try
                     {
-                        ((Excel.Range)rng.Rows[i]).OutlineLevel = lev;
+                        cell = rng.Cells[i, col] as Excel.Range;
+                        string val = Convert.ToString(cell.Value2);
+                        if (Like(val, cond))
+                        {
+                            row = rows[i] as Excel.Range;
+                            row.OutlineLevel = lev;
+                        }
                     }
+                    catch { }
+                    finally { ComUtil.Release(row, cell); }
                 }
-                catch { }
             }
+            finally { ComUtil.Release(rows); }
         }
 
-        
+
         public static void RowStyle()
         {
-             Excel.Application app = WpsExcelAddIn.App;
-             if (app == null) return;
-             Excel.Range rng = app.Selection as Excel.Range;
-             RowStyleInternal(rng);
+            Excel.Application app = WpsExcelAddIn.App;
+            if (app == null) return;
+
+            Excel.Range rng = null;
+            try
+            {
+                rng = app.Selection as Excel.Range;
+                RowStyleInternal(rng);
+            }
+            finally { ComUtil.Release(rng); }
         }
 
         private static void RowStyleInternal(Excel.Range rng)
@@ -147,48 +197,56 @@ namespace QSBar
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
 
-            bool originalUpdating = app.ScreenUpdating;
-            Excel.XlCalculation originalCalc = app.Calculation;
-            bool originalEvents = app.EnableEvents;
+            Excel.Font font = null;
+            Excel.Areas areas = null;
 
+            using (ExcelScope.Begin(app))
             try
             {
-                app.ScreenUpdating = false;
-                app.Calculation = Excel.XlCalculation.xlCalculationManual;
-                app.EnableEvents = false;
-
                 if (rng == null) return;
 
                 // 全局一次性设置字体，极大减少 COM 调用
-                try { rng.Font.Name = "Microsoft YaHei UI"; } catch { }
-
-                foreach (Excel.Range area in rng.Areas)
+                try
                 {
-                    int rowCount = area.Rows.Count;
-                    if (rowCount <= 0) continue;
+                    font = rng.Font;
+                    font.Name = "Microsoft YaHei UI";
+                }
+                catch { }
 
-                    for (int i = 1; i <= rowCount; i++)
+                areas = rng.Areas;
+                int areaCount = areas.Count;
+                for (int a = 1; a <= areaCount; a++)
+                {
+                    Excel.Range area = null;
+                    Excel.Range rows = null;
+                    try
                     {
-                        try
+                        area = areas[a];
+                        rows = area.Rows;
+                        int rowCount = rows.Count;
+                        if (rowCount <= 0) continue;
+
+                        for (int i = 1; i <= rowCount; i++)
                         {
-                            Excel.Range row = (Excel.Range)area.Rows[i];
-                            int level = (int)row.OutlineLevel;
-                            ApplyStyleToRow(row, level);
+                            Excel.Range row = null;
+                            try
+                            {
+                                row = rows[i] as Excel.Range;
+                                int level = (int)row.OutlineLevel;
+                                ApplyStyleToRow(row, level);
+                            }
+                            catch { }
+                            finally { ComUtil.Release(row); }
                         }
-                        catch { }
                     }
+                    finally { ComUtil.Release(rows, area); }
                 }
             }
             catch (Exception)
             {
                 // Optionally log error
             }
-            finally
-            {
-                app.ScreenUpdating = originalUpdating;
-                app.Calculation = originalCalc;
-                app.EnableEvents = originalEvents;
-            }
+            finally { ComUtil.Release(areas, font); }
         }
 
         // 分级配色集中定义。判定「这底色是不是本插件刷的」和实际刷色必须用同一份，
@@ -201,41 +259,38 @@ namespace QSBar
 
         private static void ApplyStyleToRow(Excel.Range row, int level)
         {
+            if (row == null) return;
+            if (level < 1 || level > 3) return;
+
+            int bg = level == 1 ? GradingBg1 : (level == 2 ? GradingBg2 : GradingBg3);
+            int fg = level == 1 ? GradingFont1 : GradingFont23;
+
+            Excel.Interior interior = null;
+            Excel.Font font = null;
+            Excel.Borders borders = null;
+            Excel.Border bottom = null;
             try
             {
-                if (row == null) return;
+                interior = row.Interior;
+                interior.Pattern = Excel.XlPattern.xlPatternSolid;
+                interior.Color = bg;
+                interior.TintAndShade = 0;
 
-                if (level == 1)
+                font = row.Font;
+                font.Color = fg;
+                font.TintAndShade = 0;
+                font.Bold = true;
+
+                // L3 不动下边框，保持原样
+                if (level != 3)
                 {
-                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = GradingBg1;
-                    row.Interior.TintAndShade = 0;
-                    row.Font.Color = GradingFont1;
-                    row.Font.TintAndShade = 0;
-                    row.Font.Bold = true;
-                    row.Borders[Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Excel.XlLineStyle.xlLineStyleNone;
-                }
-                else if (level == 2)
-                {
-                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = GradingBg2;
-                    row.Interior.TintAndShade = 0;
-                    row.Font.Color = GradingFont23;
-                    row.Font.TintAndShade = 0;
-                    row.Font.Bold = true;
-                    row.Borders[Excel.XlBordersIndex.xlEdgeBottom].LineStyle = Excel.XlLineStyle.xlLineStyleNone;
-                }
-                else if (level == 3)
-                {
-                    row.Interior.Pattern = Excel.XlPattern.xlPatternSolid;
-                    row.Interior.Color = GradingBg3;
-                    row.Interior.TintAndShade = 0;
-                    row.Font.Color = GradingFont23;
-                    row.Font.TintAndShade = 0;
-                    row.Font.Bold = true;
+                    borders = row.Borders;
+                    bottom = borders[Excel.XlBordersIndex.xlEdgeBottom];
+                    bottom.LineStyle = Excel.XlLineStyle.xlLineStyleNone;
                 }
             }
             catch { }
+            finally { ComUtil.Release(bottom, borders, font, interior); }
         }
 
         
@@ -243,36 +298,59 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            ClearStyleInternal(app.Selection as Excel.Range);
+
+            Excel.Range sel = null;
+            try
+            {
+                sel = app.Selection as Excel.Range;
+                ClearStyleInternal(sel);
+            }
+            finally { ComUtil.Release(sel); }
         }
 
         private static void ClearStyleInternal(Excel.Range rng)
         {
             if (rng == null) return;
+
+            Excel.Interior interior = null;
+            Excel.Font font = null;
             try
             {
-                rng.Interior.Pattern = Excel.XlPattern.xlPatternNone;
-                rng.Font.ColorIndex = Excel.XlColorIndex.xlColorIndexAutomatic;
-                rng.Font.Bold = false;
+                interior = rng.Interior;
+                interior.Pattern = Excel.XlPattern.xlPatternNone;
+
+                font = rng.Font;
+                font.ColorIndex = Excel.XlColorIndex.xlColorIndexAutomatic;
+                font.Bold = false;
             }
             catch { }
+            finally { ComUtil.Release(font, interior); }
         }
 
         public static bool IsStyled(Excel.Range rng)
         {
-             if (rng == null) return false;
-             try
-             {
-                 foreach (Excel.Range cell in rng)
-                 {
-                     if ((int)cell.Font.ColorIndex != (int)Excel.Constants.xlAutomatic || (int)cell.Interior.ColorIndex != (int)Excel.Constants.xlNone) 
-                     {
-                         return true;
-                     }
-                 }
-             }
-             catch { }
-             return false;
+            if (rng == null) return false;
+            try
+            {
+                foreach (Excel.Range cell in rng)
+                {
+                    Excel.Font font = null;
+                    Excel.Interior interior = null;
+                    try
+                    {
+                        font = cell.Font;
+                        interior = cell.Interior;
+                        if ((int)font.ColorIndex != (int)Excel.Constants.xlAutomatic ||
+                            (int)interior.ColorIndex != (int)Excel.Constants.xlNone)
+                        {
+                            return true;
+                        }
+                    }
+                    finally { ComUtil.Release(interior, font, cell); }
+                }
+            }
+            catch { }
+            return false;
         }
 
         
@@ -280,21 +358,35 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            
+
+            Excel.Range selection = null;
+            Excel.Worksheet activeSheet = null;
+            Excel.Range used = null;
+            Excel.Range rng = null;
+            Excel.Range rngRows = null;
+            Excel.Range rngCols = null;
+
+            using (ExcelScope.Begin(app))
             try
             {
-                Excel.Range selection = app.Selection as Excel.Range;
-                Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
+                selection = app.Selection as Excel.Range;
+                activeSheet = app.ActiveSheet as Excel.Worksheet;
                 if (selection == null || activeSheet == null) return;
 
                 // 1) 确定范围 - Intersect 确保只处理有数据的区域
-                Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
+                used = activeSheet.UsedRange;
+                rng = app.Intersect(selection, used);
                 if (rng == null) return;
+
+                rngRows = rng.Rows;
+                rngCols = rng.Columns;
+                int rowCount = rngRows.Count;
+                int colCount = rngCols.Count;
 
                 // 性能优化：一次性将整个区域的数据读入内存数组
                 // 这比循环数千次读取单元格要快 100 倍以上
                 object[,] dataValues = null;
-                if (rng.Rows.Count > 1 || rng.Columns.Count > 1)
+                if (rowCount > 1 || colCount > 1)
                 {
                     dataValues = rng.Value2 as object[,];
                 }
@@ -305,12 +397,7 @@ namespace QSBar
                     dataValues[1, 1] = rng.Value2;
                 }
 
-                app.ScreenUpdating = false;
-                app.Calculation = Excel.XlCalculation.xlCalculationManual; // 暂时关闭自动计算
-
                 // 3) 循环数组并设置等级
-                int rowCount = rng.Rows.Count;
-                int colCount = rng.Columns.Count;
                 for (int i = 1; i <= rowCount; i++)
                 {
                     int level = 4;
@@ -319,18 +406,23 @@ namespace QSBar
                     {
                         object val = dataValues[i, c];
                         string v = val == null ? "" : val.ToString();
-                        
+
                         if (Like(v, "*【*") || Like(v, "*[[*")) { level = 1; break; }
                         else if (Like(v, "*《*") || Like(v, "*<<*")) { level = 2; break; }
                         else if (Like(v, "*{*") || Like(v, "*｛*")) { level = 3; break; }
                     }
-                    
+
                     // 只有在等级不同时才设置，进一步优化
-                    Excel.Range row = (Excel.Range)rng.Rows[i];
-                    if ((int)row.OutlineLevel != level)
+                    Excel.Range row = null;
+                    try
                     {
-                        row.OutlineLevel = level;
+                        row = rngRows[i] as Excel.Range;
+                        if ((int)row.OutlineLevel != level)
+                        {
+                            row.OutlineLevel = level;
+                        }
                     }
+                    finally { ComUtil.Release(row); }
                 }
             }
             catch (Exception)
@@ -339,8 +431,7 @@ namespace QSBar
             }
             finally
             {
-                app.Calculation = Excel.XlCalculation.xlCalculationAutomatic;
-                app.ScreenUpdating = true;
+                ComUtil.Release(rngCols, rngRows, rng, used, activeSheet, selection);
             }
         }
 
@@ -349,14 +440,24 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
-            Excel.Range selection = app.Selection as Excel.Range;
-            Excel.Worksheet activeSheet = app.ActiveSheet as Excel.Worksheet;
-            if (selection == null || activeSheet == null) return;
 
-            Excel.Range rng = app.Intersect(selection, activeSheet.UsedRange);
-            if (rng == null) return;
+            Excel.Range selection = null;
+            Excel.Worksheet activeSheet = null;
+            Excel.Range used = null;
+            Excel.Range rng = null;
+            try
+            {
+                selection = app.Selection as Excel.Range;
+                activeSheet = app.ActiveSheet as Excel.Worksheet;
+                if (selection == null || activeSheet == null) return;
 
-            ClearAndRestyleByLevel(app, rng);
+                used = activeSheet.UsedRange;
+                rng = app.Intersect(selection, used);
+                if (rng == null) return;
+
+                ClearAndRestyleByLevel(app, rng);
+            }
+            finally { ComUtil.Release(rng, used, activeSheet, selection); }
         }
 
         // L1~L3 标题行的底色和字色全由级别决定，手动填充一律覆盖，不做保留
@@ -364,90 +465,103 @@ namespace QSBar
         {
             if (rng == null) return;
 
-            bool originalUpdating = app.ScreenUpdating;
-            Excel.XlCalculation originalCalc = app.Calculation;
-            bool originalEvents = app.EnableEvents;
+            Excel.Areas areas = null;
 
+            using (ExcelScope.Begin(app))
             try
             {
-                app.ScreenUpdating = false;
-                app.Calculation = Excel.XlCalculation.xlCalculationManual;
-                app.EnableEvents = false;
-
-                foreach (Excel.Range area in rng.Areas)
+                areas = rng.Areas;
+                int areaCount = areas.Count;
+                for (int a = 1; a <= areaCount; a++)
                 {
-                    int rowCount = area.Rows.Count;
-                    if (rowCount <= 0) continue;
-
-                    for (int i = 1; i <= rowCount; i++)
+                    Excel.Range area = null;
+                    Excel.Range rows = null;
+                    try
                     {
-                        Excel.Range row = null;
-                        try
-                        {
-                            row = (Excel.Range)area.Rows[i];
-                            int level = (int)row.OutlineLevel;
-                            if (level < 1 || level > 3) continue;
+                        area = areas[a];
+                        rows = area.Rows;
+                        int rowCount = rows.Count;
+                        if (rowCount <= 0) continue;
 
-                            // 先清成无填充，把图案填充和渐变填充也一并去掉，再刷分级底色
-                            ClearStyleInternal(row);
-                            ApplyStyleToRow(row, level);
-                        }
-                        catch { }
-                        finally
+                        for (int i = 1; i <= rowCount; i++)
                         {
-                            if (row != null) Marshal.ReleaseComObject(row);
+                            Excel.Range row = null;
+                            try
+                            {
+                                row = rows[i] as Excel.Range;
+                                int level = (int)row.OutlineLevel;
+                                if (level < 1 || level > 3) continue;
+
+                                // 先清成无填充，把图案填充和渐变填充也一并去掉，再刷分级底色
+                                ClearStyleInternal(row);
+                                ApplyStyleToRow(row, level);
+                            }
+                            catch { }
+                            finally { ComUtil.Release(row); }
                         }
                     }
+                    finally { ComUtil.Release(rows, area); }
                 }
             }
-            finally
+            catch (Exception)
             {
-                app.ScreenUpdating = originalUpdating;
-                app.Calculation = originalCalc;
-                app.EnableEvents = originalEvents;
             }
+            finally { ComUtil.Release(areas); }
         }
 
 
         public static void MultiAreaGroup()
         {
-            Excel.Application app = WpsExcelAddIn.App;
-            if (app == null) return;
-            try
-            {
-                Excel.Range selection = app.Selection as Excel.Range;
-                if (selection == null) return;
-                Excel.Range visible = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-                foreach (Excel.Range area in visible.Areas)
-                {
-                    foreach (Excel.Range row in area.Rows)
-                    {
-                        row.Group();
-                    }
-                }
-            }
-            catch { }
+            MultiAreaOutline(true);
         }
 
-        
+
         public static void MultiAreaUngroup()
+        {
+            MultiAreaOutline(false);
+        }
+
+        private static void MultiAreaOutline(bool group)
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
+
+            Excel.Range selection = null;
+            Excel.Range visible = null;
+            Excel.Areas areas = null;
             try
             {
-                Excel.Range selection = app.Selection as Excel.Range;
+                selection = app.Selection as Excel.Range;
                 if (selection == null) return;
-                Excel.Range visible = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
-                foreach (Excel.Range area in visible.Areas)
+
+                visible = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+                areas = visible.Areas;
+                int areaCount = areas.Count;
+                for (int a = 1; a <= areaCount; a++)
                 {
-                    foreach (Excel.Range row in area.Rows)
+                    Excel.Range area = null;
+                    Excel.Range rows = null;
+                    try
                     {
-                        row.Ungroup();
+                        area = areas[a];
+                        rows = area.Rows;
+                        int rowCount = rows.Count;
+                        for (int i = 1; i <= rowCount; i++)
+                        {
+                            Excel.Range row = null;
+                            try
+                            {
+                                row = rows[i] as Excel.Range;
+                                if (group) row.Group(); else row.Ungroup();
+                            }
+                            finally { ComUtil.Release(row); }
+                        }
                     }
+                    finally { ComUtil.Release(rows, area); }
                 }
             }
             catch { }
+            finally { ComUtil.Release(areas, visible, selection); }
         }
 
         private static bool Like(string s, string pattern)
@@ -465,35 +579,43 @@ namespace QSBar
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
+
+            Excel.Range selection = null;
+            Excel.Range visible = null;
             try
             {
-                Excel.Range selection = app.Selection as Excel.Range;
+                selection = app.Selection as Excel.Range;
                 if (selection == null) return;
-                selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible).Select();
+                visible = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+                visible.Select();
             }
             catch { }
+            finally { ComUtil.Release(visible, selection); }
         }
 
         public static void SelectNonEmptyCells()
         {
             Excel.Application app = WpsExcelAddIn.App;
             if (app == null) return;
+
+            Excel.Range selection = null;
+            Excel.Range constants = null;
+            Excel.Range formulas = null;
+            Excel.Range union = null;
             try
             {
-                Excel.Range selection = app.Selection as Excel.Range;
+                selection = app.Selection as Excel.Range;
                 if (selection == null) return;
-                
+
                 // SpecialCells can only find one type at a time.
                 // We need to combine constants (xlCellTypeConstants = 2) and formulas (xlCellTypeFormulas = -4123)
-                Excel.Range constants = null;
-                Excel.Range formulas = null;
-                
                 try { constants = selection.SpecialCells(Excel.XlCellType.xlCellTypeConstants); } catch { }
                 try { formulas = selection.SpecialCells(Excel.XlCellType.xlCellTypeFormulas); } catch { }
-                
+
                 if (constants != null && formulas != null)
                 {
-                    app.Union(constants, formulas).Select();
+                    union = app.Union(constants, formulas);
+                    union.Select();
                 }
                 else if (constants != null)
                 {
@@ -505,6 +627,7 @@ namespace QSBar
                 }
             }
             catch { }
+            finally { ComUtil.Release(union, formulas, constants, selection); }
         }
 
         private struct CleanStats
@@ -539,22 +662,16 @@ namespace QSBar
 
             var stats = new CleanStats();
             var sw = System.Diagnostics.Stopwatch.StartNew();
+            List<NameCommands.NameEntry> doomed = null;
 
-            bool oldScreenUpdating = app.ScreenUpdating;
-            Excel.XlCalculation oldCalc = app.Calculation;
-            bool oldEvents = app.EnableEvents;
-
+            using (ExcelScope.Begin(app))
             try
             {
-                app.ScreenUpdating = false;
-                app.Calculation = Excel.XlCalculation.xlCalculationManual;
-                app.EnableEvents = false;
-
                 // Step 1: 名称只遍历一次，同时拿到要删的 Name 对象和它们的短名
                 app.StatusBar = Cn() ? "删除外部链接: 扫描名称..." : "Break Links: scanning names...";
                 System.Windows.Forms.Application.DoEvents();
 
-                List<NameCommands.NameEntry> doomed = CollectDoomedNames(workbook);
+                doomed = CollectDoomedNames(workbook);
 
                 Array links = workbook.LinkSources(Excel.XlLink.xlExcelLinks) as Array;
                 stats.ExtLinksFound = (links == null ? 0 : links.Length) + doomed.Count;
@@ -613,10 +730,8 @@ namespace QSBar
             }
             finally
             {
-                app.EnableEvents = oldEvents;
-                app.Calculation = oldCalc;
-                app.ScreenUpdating = oldScreenUpdating;
-                app.StatusBar = false;
+                NameCommands.ReleaseEntries(doomed);
+                ComUtil.Release(workbook);
             }
         }
 
@@ -629,31 +744,39 @@ namespace QSBar
         {
             var list = new List<NameCommands.NameEntry>();
 
-            foreach (Excel.Name nm in wb.Names)
+            // NameEntry.ComName 要留给后面的删除步骤，所以这里遍历到的 Name 对象不能
+            // 一律释放 —— 不入列表的那些由 NameCommands 那边统一收尾
+            Excel.Names names = null;
+            try
             {
-                string full;
-                try { full = nm.Name; }
-                catch { continue; }
-
-                // _xlfn 是本版本不认识的新函数占位、_xlpm 是 LAMBDA 参数，它们的
-                // RefersTo 正常情况下就是 #NAME?。删掉会直接把公式打坏
-                if (NameCommands.IsNeverDelete(full)) continue;
-
-                // 名称坏到 RefersTo 都读不出来时，读不出来本身就说明该删
-                string refersTo;
-                try { refersTo = nm.RefersTo as string; }
-                catch { refersTo = null; }
-
-                if (!IsBadNameRefersTo(refersTo)) continue;
-
-                list.Add(new NameCommands.NameEntry
+                names = wb.Names;
+                foreach (Excel.Name nm in names)
                 {
-                    ComName = nm,
-                    FullName = full,
-                    ShortName = NameCommands.StripSheetPrefix(full),
-                    RefersTo = refersTo ?? ""
-                });
+                    string full;
+                    try { full = nm.Name; }
+                    catch { ComUtil.Release(nm); continue; }
+
+                    // _xlfn 是本版本不认识的新函数占位、_xlpm 是 LAMBDA 参数，它们的
+                    // RefersTo 正常情况下就是 #NAME?。删掉会直接把公式打坏
+                    if (NameCommands.IsNeverDelete(full)) { ComUtil.Release(nm); continue; }
+
+                    // 名称坏到 RefersTo 都读不出来时，读不出来本身就说明该删
+                    string refersTo;
+                    try { refersTo = nm.RefersTo as string; }
+                    catch { refersTo = null; }
+
+                    if (!IsBadNameRefersTo(refersTo)) { ComUtil.Release(nm); continue; }
+
+                    list.Add(new NameCommands.NameEntry
+                    {
+                        ComName = nm,
+                        FullName = full,
+                        ShortName = NameCommands.StripSheetPrefix(full),
+                        RefersTo = refersTo ?? ""
+                    });
+                }
             }
+            finally { ComUtil.Release(names); }
 
             return list;
         }
@@ -661,99 +784,115 @@ namespace QSBar
         private static void ConvertExternalFormulas(Excel.Application app, Excel.Workbook wb,
             HashSet<string> doomedNames, ref CleanStats stats)
         {
-            int sheetTotal = wb.Worksheets.Count;
+            List<string> sheetNames = ComUtil.GetSheetNames(wb);
+            int sheetTotal = sheetNames.Count;
             int sheetIndex = 0;
 
-            foreach (Excel.Worksheet ws in wb.Worksheets)
+            foreach (string sheetName in sheetNames)
             {
                 sheetIndex++;
                 app.StatusBar = string.Format(
                     Cn() ? "删除外部链接: 处理工作表 ({0}/{1}) {2}..." : "Break Links: sheet ({0}/{1}) {2}...",
-                    sheetIndex, sheetTotal, ws.Name);
+                    sheetIndex, sheetTotal, sheetName);
                 System.Windows.Forms.Application.DoEvents();
 
+                Excel.Worksheet ws = null;
                 Excel.Range used = null;
-                try { used = ws.UsedRange; }
-                catch { continue; }
-                if (used == null) continue;
-
-                int usedRows, usedCols, firstRow, firstCol;
+                Excel.Range usedRowsRange = null;
+                Excel.Range usedColsRange = null;
                 try
                 {
-                    usedRows = used.Rows.Count;
-                    usedCols = used.Columns.Count;
-                    firstRow = used.Row;
-                    firstCol = used.Column;
-                }
-                catch { continue; }
-                if (usedRows < 1 || usedCols < 1) continue;
+                    ws = ComUtil.GetSheet(wb, sheetName);
+                    if (ws == null) continue;
 
-                // 一次取一整块比逐个 Areas 快得多（每个 Area 都要 4 次以上 COM 往返，
-                // 公式分散时 Areas 能有上万个），但 UsedRange 常被脏文件撑到几十万空行，
-                // 整块读会吃光内存。按行切块取一个折中
-                int chunkRows = Math.Max(1, ChunkCellBudget / usedCols);
+                    try { used = ws.UsedRange; }
+                    catch { continue; }
+                    if (used == null) continue;
 
-                for (int offset = 0; offset < usedRows; offset += chunkRows)
-                {
-                    int height = Math.Min(chunkRows, usedRows - offset);
-                    ConvertChunk(ws, firstRow + offset, firstCol, height, usedCols, doomedNames, ref stats);
-                    System.Windows.Forms.Application.DoEvents();
+                    int usedRows, usedCols, firstRow, firstCol;
+                    try
+                    {
+                        usedRowsRange = used.Rows;
+                        usedColsRange = used.Columns;
+                        usedRows = usedRowsRange.Count;
+                        usedCols = usedColsRange.Count;
+                        firstRow = used.Row;
+                        firstCol = used.Column;
+                    }
+                    catch { continue; }
+                    if (usedRows < 1 || usedCols < 1) continue;
+
+                    // 一次取一整块比逐个 Areas 快得多（每个 Area 都要 4 次以上 COM 往返，
+                    // 公式分散时 Areas 能有上万个），但 UsedRange 常被脏文件撑到几十万空行，
+                    // 整块读会吃光内存。按行切块取一个折中
+                    int chunkRows = Math.Max(1, ChunkCellBudget / usedCols);
+
+                    for (int offset = 0; offset < usedRows; offset += chunkRows)
+                    {
+                        int height = Math.Min(chunkRows, usedRows - offset);
+                        ConvertChunk(ws, firstRow + offset, firstCol, height, usedCols, doomedNames, ref stats);
+                        System.Windows.Forms.Application.DoEvents();
+                    }
                 }
+                finally { ComUtil.Release(usedColsRange, usedRowsRange, used, ws); }
             }
         }
 
         private static void ConvertChunk(Excel.Worksheet ws, int firstRow, int firstCol,
             int rows, int cols, HashSet<string> doomedNames, ref CleanStats stats)
         {
-            Excel.Range block;
+            Excel.Range block = null;
             try
             {
-                block = ws.Range[
-                    ws.Cells[firstRow, firstCol],
-                    ws.Cells[firstRow + rows - 1, firstCol + cols - 1]];
-            }
-            catch { return; }
-
-            object formulaObj;
-            try { formulaObj = block.Formula; }
-            catch { return; }
-
-            object[,] formulas = formulaObj as object[,];
-            if (formulas == null)
-            {
-                if (NeedsFlatten(formulaObj as string, doomedNames))
+                try
                 {
-                    try { block.Value2 = block.Value2; stats.CellsConverted++; }
-                    catch { stats.Errors++; }
+                    block = ComUtil.GetRange(ws, firstRow, firstCol,
+                        firstRow + rows - 1, firstCol + cols - 1);
                 }
-                return;
-            }
+                catch { return; }
 
-            int rLo = formulas.GetLowerBound(0);
-            int cLo = formulas.GetLowerBound(1);
+                object formulaObj;
+                try { formulaObj = block.Formula; }
+                catch { return; }
 
-            var hit = new bool[rows, cols];
-            int hitCount = 0;
-
-            for (int r = 0; r < rows; r++)
-            {
-                for (int c = 0; c < cols; c++)
+                object[,] formulas = formulaObj as object[,];
+                if (formulas == null)
                 {
-                    if (!NeedsFlatten(formulas[rLo + r, cLo + c] as string, doomedNames)) continue;
-                    hit[r, c] = true;
-                    hitCount++;
+                    if (NeedsFlatten(formulaObj as string, doomedNames))
+                    {
+                        try { block.Value2 = block.Value2; stats.CellsConverted++; }
+                        catch { stats.Errors++; }
+                    }
+                    return;
                 }
-                if ((r & 511) == 0) System.Windows.Forms.Application.DoEvents();
+
+                int rLo = formulas.GetLowerBound(0);
+                int cLo = formulas.GetLowerBound(1);
+
+                var hit = new bool[rows, cols];
+                int hitCount = 0;
+
+                for (int r = 0; r < rows; r++)
+                {
+                    for (int c = 0; c < cols; c++)
+                    {
+                        if (!NeedsFlatten(formulas[rLo + r, cLo + c] as string, doomedNames)) continue;
+                        hit[r, c] = true;
+                        hitCount++;
+                    }
+                    if ((r & 511) == 0) System.Windows.Forms.Application.DoEvents();
+                }
+
+                if (hitCount == 0) return;
+
+                object[,] values = null;
+                try { values = block.Value2 as object[,]; }
+                catch { }
+                if (values == null) { stats.Errors++; return; }
+
+                WriteBackValues(ws, hit, values, rLo, cLo, rows, cols, firstRow, firstCol, ref stats);
             }
-
-            if (hitCount == 0) return;
-
-            object[,] values = null;
-            try { values = block.Value2 as object[,]; }
-            catch { }
-            if (values == null) { stats.Errors++; return; }
-
-            WriteBackValues(ws, hit, values, rLo, cLo, rows, cols, firstRow, firstCol, ref stats);
+            finally { ComUtil.Release(block); }
         }
 
         /// <summary>
@@ -788,15 +927,17 @@ namespace QSBar
                         for (int cc = 0; cc < w; cc++)
                             buffer[rr, cc] = values[rLo + i + rr, cLo + seg[0] + cc];
 
+                    Excel.Range target = null;
                     try
                     {
-                        Excel.Range target = ws.Range[
-                            ws.Cells[firstRow + i, firstCol + seg[0]],
-                            ws.Cells[firstRow + j - 1, firstCol + seg[1]]];
+                        target = ComUtil.GetRange(ws,
+                            firstRow + i, firstCol + seg[0],
+                            firstRow + j - 1, firstCol + seg[1]);
                         target.Value2 = buffer;
                         stats.CellsConverted += h * w;
                     }
                     catch { stats.Errors++; }
+                    finally { ComUtil.Release(target); }
                 }
 
                 i = j;

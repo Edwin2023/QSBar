@@ -455,50 +455,56 @@ namespace QSBar
                 StringBuilder sb = new StringBuilder();
                 int item = 1;
                 int count = 0;
-                
+
                 // Limit preview to first 50 items to avoid lag
-                int maxPreview = 50; 
+                int maxPreview = 50;
 
                 // Use SpecialCells to get visible cells only
+                Excel.Range visibleCells = null;
                 try
                 {
-                    Excel.Range visibleCells = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+                    visibleCells = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
                     foreach (Excel.Range cell in visibleCells)
                     {
-                        if (count >= maxPreview)
+                        try
                         {
-                            sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "... 仅显示前50项" : "... only the first 50 items are shown");
-                            break;
-                        }
+                            if (count >= maxPreview)
+                            {
+                                sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "... 仅显示前50项" : "... only the first 50 items are shown");
+                                break;
+                            }
 
-                        string formula = "";
-                        try 
-                        { 
-                            object f = cell.Formula;
-                            formula = (f != null) ? f.ToString() : ""; 
-                        } 
-                        catch { continue; } // Handle potential errors
+                            string formula = "";
+                            try
+                            {
+                                object f = cell.Formula;
+                                formula = (f != null) ? f.ToString() : "";
+                            }
+                            catch { continue; } // Handle potential errors
 
-                        string result = "";
-                        if (formula.StartsWith("="))
-                        {
-                            result = "=" + SumUp(formula.Substring(1), item);
-                        }
-                        else
-                        {
-                            result = SumUp(formula, item);
-                        }
+                            string result = "";
+                            if (formula.StartsWith("="))
+                            {
+                                result = "=" + SumUp(formula.Substring(1), item);
+                            }
+                            else
+                            {
+                                result = SumUp(formula, item);
+                            }
 
-                        sb.AppendLine(result);
-                        
-                        item++;
-                        count++;
+                            sb.AppendLine(result);
+
+                            item++;
+                            count++;
+                        }
+                        finally { ComUtil.Release(cell); }
                     }
                 }
                 catch
                 {
                     sb.AppendLine(WpsExcelAddIn.UseChineseRibbon ? "无法从选定范围获取可见单元格" : "Unable to get visible cells from the selected range");
                 }
+                finally { ComUtil.Release(visibleCells, selection); }
 
                 txtPreview.Text = sb.ToString();
             }
@@ -520,48 +526,54 @@ namespace QSBar
                 Excel.Range selection = app.Selection as Excel.Range;
                 if (selection == null) return;
 
-                app.ScreenUpdating = false;
+                // 逐格写公式，自动计算开着的话每写一格就重算一遍
+                Excel.Range visibleCells = null;
+                using (ExcelScope.Begin(app))
                 try
                 {
-                    Excel.Range visibleCells = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
+                    visibleCells = selection.SpecialCells(Excel.XlCellType.xlCellTypeVisible);
                     int item = 1;
                     var errorAddresses = new List<string>();
-                    
+
                     foreach (Excel.Range cell in visibleCells)
                     {
-                        string formula;
-                        try 
-                        { 
-                            object f = cell.Formula;
-                            formula = (f != null) ? f.ToString() : ""; 
-                        }
-                        catch
-                        {
-                            errorAddresses.Add(TryGetAddress(cell));
-                            MarkCellRed(cell);
-                            continue;
-                        }
-
-                        string result = "";
-                        if (formula.StartsWith("="))
-                        {
-                            result = "=" + SumUp(formula.Substring(1), item);
-                        }
-                        else
-                        {
-                            result = SumUp(formula, item);
-                        }
-
                         try
                         {
-                            cell.Formula = result;
-                            item++;
+                            string formula;
+                            try
+                            {
+                                object f = cell.Formula;
+                                formula = (f != null) ? f.ToString() : "";
+                            }
+                            catch
+                            {
+                                errorAddresses.Add(TryGetAddress(cell));
+                                MarkCellRed(cell);
+                                continue;
+                            }
+
+                            string result = "";
+                            if (formula.StartsWith("="))
+                            {
+                                result = "=" + SumUp(formula.Substring(1), item);
+                            }
+                            else
+                            {
+                                result = SumUp(formula, item);
+                            }
+
+                            try
+                            {
+                                cell.Formula = result;
+                                item++;
+                            }
+                            catch
+                            {
+                                errorAddresses.Add(TryGetAddress(cell));
+                                MarkCellRed(cell);
+                            }
                         }
-                        catch
-                        {
-                            errorAddresses.Add(TryGetAddress(cell));
-                            MarkCellRed(cell);
-                        }
+                        finally { ComUtil.Release(cell); }
                     }
 
                     if (errorAddresses.Count > 0)
@@ -575,9 +587,9 @@ namespace QSBar
                 }
                 finally
                 {
-                    app.ScreenUpdating = true;
+                    ComUtil.Release(visibleCells, selection);
                 }
-                
+
                 this.Close();
             }
             catch (Exception ex)
@@ -588,7 +600,14 @@ namespace QSBar
 
         private static void MarkCellRed(Excel.Range cell)
         {
-            try { cell.Font.Color = ColorTranslator.ToOle(Color.Red); } catch { }
+            Excel.Font font = null;
+            try
+            {
+                font = cell.Font;
+                font.Color = ColorTranslator.ToOle(Color.Red);
+            }
+            catch { }
+            finally { ComUtil.Release(font); }
         }
 
         private static string TryGetAddress(Excel.Range cell)

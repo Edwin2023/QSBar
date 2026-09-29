@@ -72,7 +72,7 @@ namespace QSBar
                 "Ctrl + 5:  选择可见单元格\r\n" +
                 "Ctrl + 7:  手动/自动计算切换\r\n" +
                 "Ctrl + 8:  百分号格式（2位小数）\r\n" +
-                "Ctrl + 9:  单位格式轮换（亿/万 → M/k → 还原）\r\n" +
+                "Ctrl + 9:  单位格式轮换（万 → 亿）\r\n" +
                 "Ctrl + 0:  会计格式轮换（2位 → 0位 → 3位）\r\n" +
                 "Ctrl + Alt + 1:  展开当前透视字段的明细\r\n" +
                 "Ctrl + Alt + 2:  折叠当前透视字段的明细\r\n\r\n" +
@@ -92,7 +92,7 @@ namespace QSBar
                 "Ctrl + 5:  Select visible cells\r\n" +
                 "Ctrl + 7:  Toggle manual / automatic calculation\r\n" +
                 "Ctrl + 8:  Percentage format (2 decimals)\r\n" +
-                "Ctrl + 9:  Cycle unit format (亿/万 -> M/k -> plain)\r\n" +
+                "Ctrl + 9:  Cycle unit format (万 10^4 -> 亿 10^8)\r\n" +
                 "Ctrl + 0:  Cycle accounting format (2 -> 0 -> 3 decimals)\r\n" +
                 "Ctrl + Alt + 1:  Expand detail of the current pivot field\r\n" +
                 "Ctrl + Alt + 2:  Collapse detail of the current pivot field\r\n\r\n" +

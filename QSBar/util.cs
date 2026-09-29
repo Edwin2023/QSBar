@@ -124,20 +124,14 @@ namespace QSBar
 
 
 
-        // Search for sheets in workbook
+        // Search for sheets in workbook。调用方负责 Release 返回的工作表
         public static Excel.Worksheet getSheetByEqual(Excel.Workbook wb, string searchTerm)
         {
-            foreach (Excel.Worksheet ws in wb.Worksheets)
-            {
-                if (ws.Name.Equals(searchTerm, StringComparison.OrdinalIgnoreCase))
-                {   
-                    return ws;
-                }
-            }
-            return null;
+            return ComUtil.GetSheet(wb, searchTerm);
         }
 
         // Search for sheet even if they are party the same, control: contain
+        // 返回的工作表由调用方 Release
         public static List<Excel.Worksheet> getSheetsByContain(List<string> selectedWbPath, string searchTerm)
         {
             List<Excel.Worksheet> allSheets = new List<Excel.Worksheet>();
@@ -145,38 +139,64 @@ namespace QSBar
 
             foreach (string path in selectedWbPath)
             {
+                Excel.Workbooks books = null;
+                Excel.Workbook wb = null;
                 try
                 {
-                    Excel.Workbook wb = excelApp.Workbooks.Open(path);
-                    foreach (Excel.Worksheet ws in wb.Worksheets)
-                    {
-                        if (ws.Name.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            allSheets.Add(ws);
-                        }
-                    }
+                    books = excelApp.Workbooks;
+                    wb = books.Open(path);
+                    allSheets.AddRange(MatchSheets(wb, searchTerm, false));
                 }
                 catch (Exception ex)
                 {
                     System.Windows.Forms.MessageBox.Show(string.Format("Error opening {0}: {1}", path, ex.Message));
                 }
+                finally { ComUtil.Release(wb, books); }
             }
             return allSheets;
         }
-        
+
         public static List<Excel.Worksheet> getSheetsByContain(Excel.Workbook selectedWb, string searchTerm)
         {
-            List<Excel.Worksheet> sheets = new List<Excel.Worksheet>();
+            return MatchSheets(selectedWb, searchTerm, true);
+        }
 
-            foreach (Excel.Worksheet sheet in selectedWb.Sheets)
+        /// <summary>
+        /// 名字包含 searchTerm 的工作表。命中的留给调用方，没命中的当场还回去 ——
+        /// 遍历时每张表都会产生一个引用，不还 Excel 就退不掉进程。
+        /// </summary>
+        private static List<Excel.Worksheet> MatchSheets(Excel.Workbook wb, string searchTerm, bool caseSensitive)
+        {
+            var matched = new List<Excel.Worksheet>();
+            Excel.Sheets sheets = null;
+            try
             {
-                if (sheet.Name.Contains(searchTerm))
-                { 
-                   sheets.Add(sheet);
-                }    
-            }
+                sheets = wb.Worksheets;
+                int count = sheets.Count;
+                for (int i = 1; i <= count; i++)
+                {
+                    Excel.Worksheet sheet = null;
+                    bool keep = false;
+                    try
+                    {
+                        sheet = sheets[i] as Excel.Worksheet;
+                        if (sheet == null) continue;
 
-            return sheets;
+                        bool hit = caseSensitive
+                            ? sheet.Name.Contains(searchTerm)
+                            : sheet.Name.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        if (hit)
+                        {
+                            matched.Add(sheet);
+                            keep = true;
+                        }
+                    }
+                    finally { if (!keep) ComUtil.Release(sheet); }
+                }
+            }
+            finally { ComUtil.Release(sheets); }
+            return matched;
         }
         
 

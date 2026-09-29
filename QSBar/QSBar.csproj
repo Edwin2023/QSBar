@@ -201,6 +201,8 @@
       <DependentUpon>otherFileForm.cs</DependentUpon>
     </Compile>
     <Compile Include="DataCommands.cs" />
+    <Compile Include="ComUtil.cs" />
+    <Compile Include="ExcelScope.cs" />
     <Compile Include="ExportCommands.cs" />
     <Compile Include="FormatCommands.cs" />
     <Compile Include="HelpForm.cs">
@@ -267,7 +269,10 @@
   <!-- 鍦ㄩ」鐩枃浠剁殑鏈熬锛?/Project> 鏍囩涔嬪墠鍔犲叆浠ヤ笅鍐呭 -->
   <Target Name="AfterBuild">
     <Message Text="[Dev] 灏濊瘯鍏抽棴 Excel/WPS 杩涚▼浠ラ噴鏀?DLL 閿佸畾..." Importance="high" />
-    <Exec Command="taskkill /F /IM EXCEL.EXE /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM et.exe /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM wps.exe /T &gt;nul 2&gt;&amp;1" ContinueOnError="true" />
+    <!-- 先温和关：不带 /F 的 taskkill 让宿主走正常退出流程。直接 /F 强杀会被 Excel 记成异常终止，下次启动就弹安全模式 -->
+    <Exec Command="taskkill /IM EXCEL.EXE /T &gt;nul 2&gt;&amp;1 &amp; taskkill /IM et.exe /T &gt;nul 2&gt;&amp;1 &amp; taskkill /IM wps.exe /T &gt;nul 2&gt;&amp;1 &amp; exit 0" ContinueOnError="true" />
+    <!-- 给它三秒退干净，还赖着（卡死或弹了保存对话框）才强杀，否则 DLL 锁不放，下面的复制会失败 -->
+    <Exec Command="ping -n 4 127.0.0.1 &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM EXCEL.EXE /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM et.exe /T &gt;nul 2&gt;&amp;1 &amp; taskkill /F /IM wps.exe /T &gt;nul 2&gt;&amp;1 &amp; exit 0" ContinueOnError="true" />
     <Message Text="姝ｅ湪鍚屾 DLL 鍙婁緷璧栧埌瀹夎鐩綍 (%LOCALAPPDATA%\QSBar)..." Importance="high" />
     <Exec Command="if not exist &quot;%LOCALAPPDATA%\QSBar&quot; mkdir &quot;%LOCALAPPDATA%\QSBar&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)*.dll&quot; &quot;%LOCALAPPDATA%\QSBar\&quot;" />
